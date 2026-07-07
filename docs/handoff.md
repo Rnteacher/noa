@@ -1,36 +1,45 @@
-# Handoff - ADMIN-001 Staff access grant management
+# Handoff - Documentation sync after parallel work
 
 ## Summary
 
-Built the first super-admin-only staff access grant management surface at `/admin/access-grants`. The page lists existing grants, creates grants, edits active state and roles, and writes audit log entries through server-only privileged code.
+Updated the central project documentation after merging parallel work. The current project state now records the implemented Google OAuth/protected route foundation, the super-admin staff access grant management surface, the UX design documentation package, and the draft development seed.
+
+## Current implemented foundation
+
+- Google OAuth routes and protected routing exist.
+- First-run access control exists through staff access grants and bootstrap super admin emails.
+- `/admin/access-grants` exists as the first super-admin-only grant management surface.
+- Grant mutations are server-side and audit logged.
+
+## Parallel work now recorded
+
+- UX design foundation docs were added under `docs/design/`.
+- Claude's UI foundation handoff is stored at `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`.
+- A draft local development seed was added at `supabase/seeds/dev_seed.sql`.
+- Gemini's seed handoff is stored at `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`.
+
+## Seed status
+
+The draft seed is not enabled. It remains disconnected from `supabase/config.toml`, so `supabase db reset` will not automatically run `supabase/seeds/dev_seed.sql`.
+
+The seed includes draft `auth.users` rows and needs review against the local Supabase Auth schema before activation.
 
 ## Files changed
 
-- `src/app/(app)/admin/access-grants/page.tsx`: Added the super-admin-only grant management page.
-- `src/lib/admin/access-grants.ts`: Added server actions for grant create/update, role replacement, active toggles, and audit logging.
-- `src/lib/audit/log.ts`: Added server-only audit log helper.
-- `src/lib/auth/roles.ts`: Added shared typed app role list.
-- `src/app/(app)/dashboard/page.tsx`: Added a minimal super-admin-only link to access grant management.
-- `src/i18n/he.json`: Added Hebrew UI strings for access grant management.
-- `src/i18n/en.json`: Added English UI strings for access grant management.
-- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`: Added Windows OAuth env troubleshooting note.
-- `docs/11_DECISION_LOG.md`: Logged the grant mutation and audit model.
-- `docs/12_CURRENT_STATE.md`: Updated access grant management status, validation results, and next tasks.
-- `docs/handoff.md`: Replaced with this handoff.
+- `docs/12_CURRENT_STATE.md`: Added UX design foundation status, parallel handoff references, draft seed status, and updated next tasks.
+- `docs/handoff.md`: Replaced with this current sync handoff.
 
 ## Decisions made
 
-- The admin surface is server-rendered and uses server actions rather than client-side Supabase mutations.
-- `/admin/access-grants` requires an active staff session through Proxy and also checks `current_user_is_super_admin` on the page.
-- Every mutation repeats the super-admin check before using the service-role client.
-- Audit logs are inserted by a server-only helper using the service-role client, never by browser code.
-- Role edits replace the selected grant role set from submitted checkbox state.
+- No application code was changed.
+- No migrations were changed.
+- No i18n files were changed.
+- The draft dev seed remains disabled until reviewed.
+- `docs/07_LOCAL_SUPABASE_WORKFLOW.md` already used `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET`, so it was not changed.
 
 ## Tests/checks run
 
 ```bash
-supabase db reset
-supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
 npm run check:no-hebrew-in-code
 npm run lint
 npm run build
@@ -39,31 +48,21 @@ git diff --check
 
 Result:
 
-- `supabase db reset`: Passed. Applied both migrations. Warned that `supabase/seed.sql` does not exist.
-- Type generation: Passed and updated `src/types/supabase.ts`.
 - `npm run check:no-hebrew-in-code`: Passed.
 - `npm run lint`: Passed.
 - `npm run build`: Passed.
-- `git diff --check`: Passed.
-
-## Documentation updated
-
-- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`
-- `docs/11_DECISION_LOG.md`
-- `docs/12_CURRENT_STATE.md`
-- `docs/handoff.md`
+- `git diff --check`: Passed with Windows line-ending normalization warnings only.
 
 ## Known risks
 
-- The UI and server actions compile, but a browser smoke test still requires a real logged-in super admin session.
-- Grant role replacement is implemented as delete then insert inside server action flow, not as a dedicated database RPC transaction.
-- Server action errors currently surface through Next.js error handling; there is no inline form error UI yet.
+- The draft development seed includes direct `auth.users` inserts and may need adjustment before it can run safely on local Supabase.
+- The design docs are planning artifacts; implementation still needs design tokens and shared components.
 
 ## Open questions
 
-- Should grant role replacement move into a dedicated database RPC for stricter transaction boundaries?
-- Should access grant changes also create notifications for newly granted staff later?
+- Should the draft seed be activated by copying it to `supabase/seed.sql`, or should `supabase/config.toml` be updated after review?
+- Should the current local starter script containing OAuth environment variables be moved to an untracked example template before the repo is shared?
 
 ## Recommended next task
 
-Configure local Google OAuth, sign in as a bootstrap super admin, smoke test `/admin/access-grants`, and verify that grant mutation audit entries are written.
+Review `supabase/seeds/dev_seed.sql`, especially the draft `auth.users` inserts, then decide how to activate local seed data.

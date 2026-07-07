@@ -39,10 +39,20 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
   - `supabase/migrations/20260707115303_staff_access_grants.sql`
+  - `supabase/seeds/dev_seed.sql` (draft local development seed; intentionally not wired into `supabase/config.toml`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
 - `.env.example` (environment variables template)
   - Includes `BOOTSTRAP_SUPER_ADMIN_EMAILS` for first-run admin bootstrap.
+- `docs/design/` (UX design foundation)
+  - `docs/design/01_PRODUCT_UX_OVERVIEW.md`
+  - `docs/design/02_MOBILE_STAFF_APP_WIREFRAMES.md`
+  - `docs/design/03_STUDENT_CARD_UX.md`
+  - `docs/design/04_ADMIN_DESKTOP_UX.md`
+  - `docs/design/05_VISUAL_SYSTEM_DIRECTION.md`
+- `docs/parallel/`
+  - `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`
+  - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
 
 ## Database foundation status
 
@@ -123,6 +133,36 @@ Audit logging:
 
 - Grant actions write to `audit_logs` through a privileged server-only helper.
 - Audited actions include `staff_access_grant.created`, `staff_access_grant.updated`, `staff_access_grant.roles_updated`, `staff_access_grant.deactivated`, and `staff_access_grant.activated`.
+
+## UX design foundation status
+
+Parallel Claude design planning added documentation under `docs/design/`.
+
+The design package covers:
+
+- Product UX overview and main flows.
+- Mobile staff app wireframes.
+- Student card UX.
+- Desktop admin UX.
+- Visual system direction.
+
+The parallel handoff is stored at `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`.
+
+These files are documentation-only and did not change application code, migrations, or i18n files.
+
+## Development seed status
+
+A draft local development seed exists at:
+
+- `supabase/seeds/dev_seed.sql`
+
+The parallel Gemini handoff is stored at:
+
+- `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
+
+The seed is intentionally not connected to `supabase/config.toml` yet. Local `supabase db reset` still uses the configured `./seed.sql` path and will not automatically run `supabase/seeds/dev_seed.sql`.
+
+The draft seed includes mock English-only data across the current schema, including draft `auth.users` rows. Those `auth.users` inserts need review against the local Supabase Auth schema before the seed is activated.
 
 ## Latest validation results
 
@@ -229,9 +269,12 @@ Created/maintained docs for:
 - Security/privacy/audit.
 - Decision log.
 - Hand-off files and Hebrew character scanner scripts.
+- UX design foundation docs under `docs/design/`.
+- Parallel handoffs under `docs/parallel/`.
 
 ## Next recommended tasks
 
 1. **Manual Google OAuth and grant-management smoke test**: Configure Google OAuth credentials locally, sign in as a bootstrap super admin, visit `/admin/access-grants`, create a grant, and verify audit log rows.
-2. **Local Database Seed Setup**: Add `supabase/seed.sql` containing mock data for local development (profiles, groups, students, announcements, events) to populate the UI.
-3. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
+2. **Review and activate the draft development seed**: Validate `supabase/seeds/dev_seed.sql`, especially the draft `auth.users` inserts, then decide whether to copy/rename it to `supabase/seed.sql` or update `supabase/config.toml`.
+3. **Design tokens and base components**: Start implementation from the new `docs/design/05_VISUAL_SYSTEM_DIRECTION.md` and shared component patterns.
+4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
