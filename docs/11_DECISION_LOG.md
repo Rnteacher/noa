@@ -144,3 +144,62 @@ Rationale:
 
 - Student data is sensitive.
 - Exports are high-risk and must be audited.
+
+## 2026-07-07 - Initial schema role names
+
+Decision:
+
+Use the migration task role enum values: `staff`, `mentor`, `master`, `counselor`, `leadership`, `manager`, and `super_admin`.
+
+Rationale:
+
+- The migration task is more specific than the earlier RBAC draft.
+- `manager` and `super_admin` map cleanly to export and administration requirements.
+- `leadership` supports announcement creation without granting full manager privileges.
+
+## 2026-07-07 - Announcement target mode
+
+Decision:
+
+Add `announcements.target_type` using the `announcement_target_type` enum, while keeping normalized target tables for roles, groups, and users.
+
+Rationale:
+
+- The enum was explicitly required.
+- `all_staff` needs a durable representation without adding a synthetic target row.
+- Normalized target tables keep role, group, and user targeting explicit.
+
+## 2026-07-07 - Learning group time window
+
+Decision:
+
+Enforce the standard learning group window at the database level with `starts_at >= 11:30` and `ends_at <= 13:30`.
+
+Rationale:
+
+- The product requirement describes this as the normal operating window.
+- The rule is simple, deterministic, and does not require application context.
+
+## 2026-07-07 - Column-sensitive updates need RPC or server actions
+
+Decision:
+
+Use RLS for row-level authorization in the initial migration, but handle column-sensitive mutations through future RPC functions or server actions.
+
+Rationale:
+
+- PostgreSQL RLS policies decide which rows may be changed, not which individual columns may change.
+- Student photo updates and student message soft deletion should be constrained to exact columns and paired with audit logging.
+- A trusted server action or security definer RPC can enforce those column-level mutation contracts in one transaction.
+
+## 2026-07-07 - Audit log write policy
+
+Decision:
+
+Allow managers and super admins to read audit logs, but do not allow normal client-side inserts in the initial RLS policy set.
+
+Rationale:
+
+- Audit logs should be append-only and trustworthy.
+- Application code should write audit entries from privileged server-side flows or dedicated RPC functions.
+- This avoids clients forging audit entries directly.
