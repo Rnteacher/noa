@@ -39,7 +39,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
   - `supabase/migrations/20260707115303_staff_access_grants.sql`
-  - `supabase/seeds/dev_seed.sql` (draft local development seed; intentionally not wired into `supabase/config.toml`)
+  - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
 - `.env.example` (environment variables template)
@@ -54,6 +54,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`
   - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
   - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
+  - `docs/parallel/GPT_SEED_ACTIVATION_HANDOFF.md`
 
 ## Database foundation status
 
@@ -153,23 +154,51 @@ These files are documentation-only and did not change application code, migratio
 
 ## Development seed status
 
-A draft local development seed exists at:
+A reviewed local development seed exists at:
 
 - `supabase/seeds/dev_seed.sql`
 
-The parallel Gemini handoff and review handoff are stored at:
+The parallel Gemini, review, and activation handoffs are stored at:
 
 - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
 - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
+- `docs/parallel/GPT_SEED_ACTIVATION_HANDOFF.md`
 
-The seed is intentionally not connected to `supabase/config.toml` yet. Local `supabase db reset` still uses the default settings (no seed or configured `./seed.sql` path) and will not automatically run `supabase/seeds/dev_seed.sql`.
+The seed is now enabled in `supabase/config.toml` under `[db.seed]`:
+
+```toml
+sql_paths = ["./seeds/dev_seed.sql"]
+```
+
+Local `supabase db reset` now automatically loads `supabase/seeds/dev_seed.sql` after migrations.
 
 Status:
 - `supabase/seeds/dev_seed.sql` was reviewed and fixed.
 - Manual execution of the seed file after `supabase db reset` passed successfully.
+- Automatic loading via `supabase db reset` passed successfully.
 - Direct `auth.users` inserts are compatible with the current local Supabase Auth schema for local development/profile FK seeding.
 - Client password sign-in for mock auth users has not been validated/tested.
-- The seed remains disconnected from `supabase/config.toml` until automatic seeding is approved by the team.
+
+## Latest seed activation validation results
+
+Commands run:
+
+```bash
+supabase db reset
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and automatically loaded `supabase/seeds/dev_seed.sql`.
+- Spot-check SQL after reset confirmed `profiles` 8, `profile_roles` 15, `students` 6, `student_groups` 2, `projects` 6, `announcements` 2, `calendar_events` 2, `staff_access_grants` 8, and `audit_logs` 0.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed.
 
 ## Latest validation results
 
@@ -282,6 +311,5 @@ Created/maintained docs for:
 ## Next recommended tasks
 
 1. **Manual Google OAuth and grant-management smoke test**: Configure Google OAuth credentials locally, sign in as a bootstrap super admin, visit `/admin/access-grants`, create a grant, and verify audit log rows.
-2. **Activate the reviewed development seed for local db reset**: Enable automatic seeding on database resets by configuring the seed file or settings.
-3. **Design tokens and base components**: Start implementation from the new `docs/design/05_VISUAL_SYSTEM_DIRECTION.md` and shared component patterns.
-4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
+2. **Design tokens and base components**: Start implementation from the new `docs/design/05_VISUAL_SYSTEM_DIRECTION.md` and shared component patterns.
+3. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
