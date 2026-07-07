@@ -106,7 +106,7 @@ Use variable names only in documentation and never commit real secret values:
 
 ```powershell
 $env:SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID = "<google-client-id>"
-$env:SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET = "<google-client-secret>"
+$env:SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET= "<google-client-secret>"
 supabase start
 ```
 
