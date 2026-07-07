@@ -1,0 +1,47 @@
+{
+  "app.title": "Chamama - Staff",
+  "dashboard.title": "Personal Dashboard",
+  "dashboard.welcome": "Hello, staff member",
+  "sections.today": "Today at Chamama",
+  "sections.announcements": "Announcements",
+  "sections.followedStudents": "Followed Students",
+  "sections.weeklyEvents": "Weekly Events",
+  "common.loading": "Loading...",
+  "common.searchPlaceholder": "Search student...",
+  "announcements.acknowledge": "Acknowledge Read",
+  "announcements.acknowledged": "Read",
+  "announcements.requiredAcknowledge": "Requires Acknowledgment",
+  "student.projectStatus": "Project Status",
+  "student.emotionalStatus": "Emotional Status",
+  "student.mentor": "Mentor",
+  "student.master": "Master",
+  "nav.dashboard": "Home",
+  "nav.today": "Today",
+  "nav.calendar": "Calendar",
+  "nav.students": "Students",
+  "nav.announcements": "Announcements",
+  "nav.notifications": "Notifications",
+  "nav.settings": "Settings",
+  "nav.admin": "Admin",
+
+  "mock.today.morningMeeting": "Morning Meeting - Staff Assembly",
+  "mock.today.learningGroup": "Learning Group: Software Development",
+  "mock.today.lunch": "Lunch Break",
+  
+  "mock.announcement.title1": "Parents Day Preparation",
+  "mock.announcement.body1": "Please complete project and emotional status updates for all students by Thursday.",
+  "mock.announcement.title2": "Event Schedule Update",
+  "mock.announcement.body2": "The annual events schedule is now updated in the Gantt. Note changes in submission deadlines.",
+  
+  "mock.student.name1": "Noam Levi",
+  "mock.student.name2": "Aya Cohen",
+  "mock.student.name3": "Ariel Mizrahi",
+  
+  "mock.student.project1": "Task Management App",
+  "mock.student.project2": "Smart Irrigation System",
+  "mock.student.project3": "Obstacle Avoidance Robot",
+
+  "mock.weekly.event1": "Weekly Pedagogical Meeting",
+  "mock.weekly.event2": "Annual Gantt Update",
+  "mock.weekly.event3": "Mentors Workshop"
+}

@@ -1,0 +1,47 @@
+{
+  "app.title": "חממה - צוות",
+  "dashboard.title": "לוח בקרה אישי",
+  "dashboard.welcome": "שלום, חבר צוות",
+  "sections.today": "היום בחממה",
+  "sections.announcements": "הודעות והכרזות",
+  "sections.followedStudents": "תלמידים במעקב",
+  "sections.weeklyEvents": "אירועים השבוע",
+  "common.loading": "טוען...",
+  "common.searchPlaceholder": "חיפוש תלמיד...",
+  "announcements.acknowledge": "אישור קריאה",
+  "announcements.acknowledged": "נקרא",
+  "announcements.requiredAcknowledge": "נדרש אישור קריאה",
+  "student.projectStatus": "מצב פרויקט",
+  "student.emotionalStatus": "מצב רגשי",
+  "student.mentor": "מנחה",
+  "student.master": "מאסטר",
+  "nav.dashboard": "ראשי",
+  "nav.today": "היום",
+  "nav.calendar": "לוח שנה",
+  "nav.students": "תלמידים",
+  "nav.announcements": "הודעות",
+  "nav.notifications": "התראות",
+  "nav.settings": "הגדרות",
+  "nav.admin": "ניהול",
+
+  "mock.today.morningMeeting": "מפגש בוקר - מליאת צוות",
+  "mock.today.learningGroup": "קבוצת למידה: פיתוח תוכנה",
+  "mock.today.lunch": "ארוחת צהריים",
+  
+  "mock.announcement.title1": "הערכות ליום הורים",
+  "mock.announcement.body1": "נא להשלים את עדכון מצב הפרויקטים והמצב הרגשי של כל התלמידים עד יום חמישי.",
+  "mock.announcement.title2": "עדכון לוח אירועים",
+  "mock.announcement.body2": "לוח האירועים השנתי מעודכן כעת בגאנט. שימו לב לשינויים במועדי ההגשות.",
+  
+  "mock.student.name1": "נועם לוי",
+  "mock.student.name2": "איה כהן",
+  "mock.student.name3": "אריאל מזרחי",
+  
+  "mock.student.project1": "אפליקציית ניהול משימות",
+  "mock.student.project2": "מערכת השקיה חכמה",
+  "mock.student.project3": "רובוט לזיהוי מכשולים",
+
+  "mock.weekly.event1": "ישיבה פדגוגית שבועית",
+  "mock.weekly.event2": "עדכון גאנט שנתי",
+  "mock.weekly.event3": "סדנת מנחים"
+}
