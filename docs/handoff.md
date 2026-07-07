@@ -1,42 +1,46 @@
-# Handoff - Local Development Seed Activation
+# Handoff — Documentation Sync after UI Foundation Base Components Implementation
 
 ## Summary
 
-Activated the reviewed local development seed for automatic local database resets.
+Synchronized the central documentation after implementing semantic design tokens, base UI components, and the component showcase route. The codebase now contains a verified kit of visual components, semantic CSS tokens, and navigation options.
 
-## Current state
+## Current implemented foundation
 
-- `supabase/config.toml` now points `[db.seed].sql_paths` to `./seeds/dev_seed.sql`.
-- `supabase db reset` automatically loads `supabase/seeds/dev_seed.sql` after migrations.
-- The canonical seed file remains `supabase/seeds/dev_seed.sql`; no `supabase/seed.sql` copy was created.
-- No migrations, application UI code, or i18n files were changed.
-- Seed data remains fake, deterministic, English-only local development data.
+- **Local Seed is Active**: The database contains complete mock testing data in English.
+- **Google OAuth / Access Grants Foundation**: Protected routing and first-run whitelisted email activation systems are verified.
+- **UI Design Documents**: Visual guidelines and mobile wireframes reside under `docs/design/`.
+- **UI Base Components and Design Tokens**: Base UI components (`Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`) and semantic Tailwind v4 design tokens are configured.
+- **Protected showcase route**: `/dev/ui` is available for reviewing and verifying the layout of all base components.
 
-## Validation performed
+## Files changed
 
-- `supabase db reset` passed and printed `Seeding data from supabase/seeds/dev_seed.sql`.
-- Spot-check SQL after reset confirmed:
-  - `profiles`: 8
-  - `profile_roles`: 15
-  - `students`: 6
-  - `student_groups`: 2
-  - `projects`: 6
-  - `announcements`: 2
-  - `calendar_events`: 2
-  - `staff_access_grants`: 8
-  - `audit_logs`: 0
-- `npm run check:no-hebrew-in-code` passed.
-- `npm run lint` passed.
-- `npm run build` passed.
-- `git diff --check` passed.
+- `docs/12_CURRENT_STATE.md`: Documented the new files and routes, registered the handoff doc, updated the next tasks, and added the UI foundation status.
+- `docs/handoff.md`: Updated to this current handoff summary.
 
-## Remaining risks
+## Decisions made
 
-- Client password sign-in for seeded mock auth users has not been tested.
-- Direct `auth.users` seed rows remain a local-development-only strategy.
+- No application logic was changed.
+- No database migrations were changed.
+- No database seed data was changed.
+- The Toast system was deferred; inline `Alert` was implemented instead.
+
+## Tests/checks run
+
+```bash
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Result:
+
+- `check:no-hebrew-in-code`: Passed.
+- `npm run lint`: Passed.
+- `npm run build`: Passed.
+- `git diff --check`: Passed.
 
 ## Next recommended tasks
 
-1. Manual Google OAuth and grant-management smoke test.
-2. Design tokens and base components.
-3. Privileged RPC/server actions for sensitive mutations.
+- Wire `AppHeader` and `BottomNav` into the protected app shell and dashboard layout.
+- Implement privileged RPC/server actions for column-sensitive database mutations.

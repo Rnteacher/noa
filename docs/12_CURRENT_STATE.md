@@ -18,8 +18,11 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 ## Scaffold structure created
 
 - `src/app/` (with root layout, page routing, and RTL configuration)
-- `src/components/` (empty placeholder for UI elements)
+  - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
+- `src/components/` (UI elements and layouts)
+  - `src/components/ui/` (base components: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`)
 - `src/lib/` (general utilities)
+  - `src/lib/cn.ts` (Tailwind class-joining utility helper)
   - `src/lib/env.ts` (Zod environment variable schema validation)
   - `src/lib/env.server.ts` (Server-only environment helper for privileged values)
   - `src/lib/auth/` (Authentication, access, profile sync, and service-role utilities)
@@ -51,6 +54,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/design/04_ADMIN_DESKTOP_UX.md`
   - `docs/design/05_VISUAL_SYSTEM_DIRECTION.md`
 - `docs/parallel/`
+  - `docs/parallel/CLAUDE_BASE_COMPONENTS_HANDOFF.md`
   - `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`
   - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
   - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
@@ -135,6 +139,18 @@ Audit logging:
 
 - Grant actions write to `audit_logs` through a privileged server-only helper.
 - Audited actions include `staff_access_grant.created`, `staff_access_grant.updated`, `staff_access_grant.roles_updated`, `staff_access_grant.deactivated`, and `staff_access_grant.activated`.
+
+## UI foundation status
+
+Base UI components and semantic design tokens are implemented.
+
+Status:
+- Semantic design tokens were added in `src/app/globals.css` using Tailwind v4 CSS-based token configuration.
+- Base UI components were added under `src/components/ui/`: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, and `AppHeader`.
+- The Toast system was deferred; the inline `Alert` component was implemented instead for early feedback messaging.
+- An internal component showcase route exists at `/dev/ui` (accessible under the protected app route group).
+- `BottomNav` matches the five conceptual navigation slots: Dashboard (`/dashboard`), Today (`/today`), Students (`/students`), Announcements (`/announcements`), and More (`/more`).
+- `StatusBadge` uses both a unique glyph shape (e.g., circle-check, triangle, octagon) and text labels, ensuring color is never used as the sole conveyor of status information.
 
 ## UX design foundation status
 
@@ -311,5 +327,6 @@ Created/maintained docs for:
 ## Next recommended tasks
 
 1. **Manual Google OAuth and grant-management smoke test**: Configure Google OAuth credentials locally, sign in as a bootstrap super admin, visit `/admin/access-grants`, create a grant, and verify audit log rows.
-2. **Design tokens and base components**: Start implementation from the new `docs/design/05_VISUAL_SYSTEM_DIRECTION.md` and shared component patterns.
-3. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
+2. **Activate the reviewed development seed for local db reset**: Enable automatic seeding on database resets by configuring the seed file or settings.
+3. **Wire AppHeader and BottomNav into the protected app shell and dashboard**: Integrate the newly created base header and navigation tabs into the main application layout shell.
+4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
