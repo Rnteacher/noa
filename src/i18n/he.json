@@ -43,5 +43,21 @@
 
   "mock.weekly.event1": "ישיבה פדגוגית שבועית",
   "mock.weekly.event2": "עדכון גאנט שנתי",
-  "mock.weekly.event3": "סדנת מנחים"
+  "mock.weekly.event3": "סדנת מנחים",
+
+  "mock.location.staffRoom": "חדר צוות",
+  "mock.location.room102": "חדר 102",
+  "mock.location.diningRoom": "חדר אוכל",
+  "mock.location.meetingRoom": "חדר ישיבות",
+  "mock.location.zoom": "אונליין - זום",
+  "mock.location.library": "ספרייה",
+  "mock.author.management": "הנהלה",
+  "mock.author.sysadmin": "מנהל מערכת",
+  "mock.time.yesterday": "אתמול",
+  "mock.student.initial1": "נ",
+  "mock.student.initial2": "א",
+  "mock.student.initial3": "א",
+  "mock.day.monday": "יום ב",
+  "mock.day.wednesday": "יום ד",
+  "mock.day.thursday": "יום ה"
 }

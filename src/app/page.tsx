@@ -96,21 +96,21 @@ export default function HomePage() {
                   <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded">08:30</span>
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{t("mock.today.morningMeeting")}</span>
                 </div>
-                <span className="text-xs text-zinc-400">חדר צוות</span>
+                <span className="text-xs text-zinc-400">{t("mock.location.staffRoom")}</span>
               </div>
               <div className="p-3 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded">11:30</span>
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{t("mock.today.learningGroup")}</span>
                 </div>
-                <span className="text-xs text-zinc-400">חדר 102</span>
+                <span className="text-xs text-zinc-400">{t("mock.location.room102")}</span>
               </div>
               <div className="p-3 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded">13:30</span>
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{t("mock.today.lunch")}</span>
                 </div>
-                <span className="text-xs text-zinc-400">חדר אוכל</span>
+                <span className="text-xs text-zinc-400">{t("mock.location.diningRoom")}</span>
               </div>
             </div>
           </section>
@@ -140,7 +140,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 font-medium">הנהלה</span>
+                  <span className="text-xs text-zinc-400 font-medium">{t("mock.author.management")}</span>
                   <button className="text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm shadow-rose-500/10">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {t("announcements.acknowledge")}
@@ -154,7 +154,7 @@ export default function HomePage() {
                   <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full font-semibold">
                     {t("announcements.acknowledged")}
                   </span>
-                  <span className="text-xs text-zinc-400">אתמול</span>
+                  <span className="text-xs text-zinc-400">{t("mock.time.yesterday")}</span>
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 mb-1">
@@ -165,7 +165,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-zinc-100/60 dark:border-zinc-800/60">
-                  <span className="text-xs text-zinc-400">מנהל מערכת</span>
+                  <span className="text-xs text-zinc-400">{t("mock.author.sysadmin")}</span>
                 </div>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function HomePage() {
               <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-800 p-3.5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 flex items-center justify-center font-bold">
-                    נ
+                    {t("mock.student.initial1")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">
@@ -207,7 +207,7 @@ export default function HomePage() {
               <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-800 p-3.5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 flex items-center justify-center font-bold">
-                    א
+                    {t("mock.student.initial2")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">
@@ -232,7 +232,7 @@ export default function HomePage() {
               <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-150 dark:border-zinc-800 p-3.5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-600 flex items-center justify-center font-bold">
-                    א
+                    {t("mock.student.initial3")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">
@@ -264,34 +264,34 @@ export default function HomePage() {
             <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border border-zinc-100 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800">
               <div className="p-3.5 flex items-start gap-3">
                 <div className="text-center bg-zinc-200/60 dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg min-w-[44px]">
-                  <div className="text-[10px] text-zinc-500 font-bold leading-none">יום ב</div>
+                  <div className="text-[10px] text-zinc-500 font-bold leading-none">{t("mock.day.monday")}</div>
                   <div className="text-sm font-bold text-zinc-800 dark:text-zinc-100 mt-1">14:00</div>
                 </div>
                 <div className="space-y-0.5">
                   <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">{t("mock.weekly.event1")}</h4>
-                  <p className="text-xs text-zinc-400">חדר ישיבות</p>
+                  <p className="text-xs text-zinc-400">{t("mock.location.meetingRoom")}</p>
                 </div>
               </div>
 
               <div className="p-3.5 flex items-start gap-3">
                 <div className="text-center bg-zinc-200/60 dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg min-w-[44px]">
-                  <div className="text-[10px] text-zinc-500 font-bold leading-none">יום ד</div>
+                  <div className="text-[10px] text-zinc-500 font-bold leading-none">{t("mock.day.wednesday")}</div>
                   <div className="text-sm font-bold text-zinc-800 dark:text-zinc-100 mt-1">09:00</div>
                 </div>
                 <div className="space-y-0.5">
                   <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">{t("mock.weekly.event2")}</h4>
-                  <p className="text-xs text-zinc-400">אונליין - זום</p>
+                  <p className="text-xs text-zinc-400">{t("mock.location.zoom")}</p>
                 </div>
               </div>
 
               <div className="p-3.5 flex items-start gap-3">
                 <div className="text-center bg-zinc-200/60 dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg min-w-[44px]">
-                  <div className="text-[10px] text-zinc-500 font-bold leading-none">יום ה</div>
+                  <div className="text-[10px] text-zinc-500 font-bold leading-none">{t("mock.day.thursday")}</div>
                   <div className="text-sm font-bold text-zinc-800 dark:text-zinc-100 mt-1">12:00</div>
                 </div>
                 <div className="space-y-0.5">
                   <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">{t("mock.weekly.event3")}</h4>
-                  <p className="text-xs text-zinc-400">ספרייה</p>
+                  <p className="text-xs text-zinc-400">{t("mock.location.library")}</p>
                 </div>
               </div>
             </div>

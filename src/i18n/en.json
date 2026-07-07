@@ -43,5 +43,21 @@
 
   "mock.weekly.event1": "Weekly Pedagogical Meeting",
   "mock.weekly.event2": "Annual Gantt Update",
-  "mock.weekly.event3": "Mentors Workshop"
+  "mock.weekly.event3": "Mentors Workshop",
+
+  "mock.location.staffRoom": "Staff Room",
+  "mock.location.room102": "Room 102",
+  "mock.location.diningRoom": "Dining Room",
+  "mock.location.meetingRoom": "Meeting Room",
+  "mock.location.zoom": "Online - Zoom",
+  "mock.location.library": "Library",
+  "mock.author.management": "Management",
+  "mock.author.sysadmin": "System Admin",
+  "mock.time.yesterday": "Yesterday",
+  "mock.student.initial1": "N",
+  "mock.student.initial2": "A",
+  "mock.student.initial3": "A",
+  "mock.day.monday": "Mon",
+  "mock.day.wednesday": "Wed",
+  "mock.day.thursday": "Thu"
 }
