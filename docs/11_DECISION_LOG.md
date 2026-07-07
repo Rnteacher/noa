@@ -203,3 +203,50 @@ Rationale:
 - Audit logs should be append-only and trustworthy.
 - Application code should write audit entries from privileged server-side flows or dedicated RPC functions.
 - This avoids clients forging audit entries directly.
+
+## 2026-07-07 - Staff access grants for first-run activation
+
+Decision:
+
+Use `staff_access_grants` and `staff_access_grant_roles` as the normal first-run activation path for staff accounts.
+
+Rationale:
+
+- Institutional Google domains may include users who are not staff.
+- A valid Google domain alone is not enough to enter the staff app.
+- Grants let a super admin or import process pre-approve staff emails and roles before first OAuth login.
+
+## 2026-07-07 - Bootstrap super admin emails
+
+Decision:
+
+Support `BOOTSTRAP_SUPER_ADMIN_EMAILS` as a comma-separated server-side environment variable for first-run super admin access.
+
+Rationale:
+
+- A new environment needs a safe way to create the first admin without manually editing production data.
+- Bootstrap emails still require Google OAuth and the allowed institutional domain.
+- Bootstrap grants only `super_admin` and `manager` roles, and should be treated as a sensitive deployment setting.
+
+## 2026-07-07 - Pending profiles for valid-domain users
+
+Decision:
+
+Create or update an inactive profile for valid-domain users who sign in without a grant, bootstrap entry, or existing active profile with roles.
+
+Rationale:
+
+- This gives administrators a visible pending account to activate later.
+- It does not grant protected route access because route protection still requires `profiles.is_active = true` and at least one role.
+
+## 2026-07-07 - Next.js route protection convention
+
+Decision:
+
+Use `src/proxy.ts` for request-level route protection.
+
+Rationale:
+
+- The project uses Next.js 16.2.10.
+- In Next.js 16, the current documented convention is Proxy; `middleware.ts` is deprecated in favor of `proxy.ts`.
+- Request-level protection still runs before app routes, auth callback routes are explicitly exempted, and protected routes require an active staff profile with roles.

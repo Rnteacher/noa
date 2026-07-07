@@ -60,4 +60,15 @@
   "mock.day.monday": "יום ב",
   "mock.day.wednesday": "יום ד",
   "mock.day.thursday": "יום ה"
+,
+  "auth.login.title": "כניסת צוות",
+  "auth.login.description": "יש להתחבר באמצעות חשבון Google המוסדי כדי להיכנס לאפליקציית הצוות.",
+  "auth.login.googleButton": "כניסה עם Google",
+  "auth.login.staffOnly": "הגישה מוגבלת לחשבונות צוות פעילים שאושרו.",
+  "auth.accessDenied.title": "הגישה נדחתה",
+  "auth.accessDenied.description": "חשבון Google הזה אינו מורשה להיכנס לאפליקציית הצוות.",
+  "auth.accessPending.title": "הגישה ממתינה לאישור",
+  "auth.accessPending.description": "החשבון זוהה, אך מנהל צוות צריך עדיין להפעיל את הגישה.",
+  "auth.common.backToLogin": "חזרה להתחברות",
+  "auth.common.signOut": "יציאה"
 }

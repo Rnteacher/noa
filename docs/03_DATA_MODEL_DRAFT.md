@@ -72,6 +72,41 @@ Fields:
 - role_id
 - created_at
 
+## staff_access_grants
+
+Pre-approved staff access for first sign-in activation.
+
+Fields:
+
+- id
+- email
+- is_active
+- created_by
+- created_at
+- updated_at
+
+Rules:
+
+- Email values are lowercase.
+- Active grants allow a valid-domain Google account to create or sync an active profile on first OAuth callback.
+- Grants do not replace `profiles.is_active` and `profile_roles`; they are an activation source.
+
+## staff_access_grant_roles
+
+Roles attached to a staff access grant.
+
+Fields:
+
+- id
+- grant_id
+- role
+- created_at
+
+Rules:
+
+- A grant can include one or more app roles.
+- Roles are copied into `profile_roles` during OAuth callback activation.
+
 ## groups
 
 Student groups.

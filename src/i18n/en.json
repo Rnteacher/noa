@@ -59,5 +59,16 @@
   "mock.student.initial3": "A",
   "mock.day.monday": "Mon",
   "mock.day.wednesday": "Wed",
-  "mock.day.thursday": "Thu"
+  "mock.day.thursday": "Thu",
+
+  "auth.login.title": "Staff sign in",
+  "auth.login.description": "Use your institutional Google account to access the staff app.",
+  "auth.login.googleButton": "Sign in with Google",
+  "auth.login.staffOnly": "Access is limited to approved active staff accounts.",
+  "auth.accessDenied.title": "Access denied",
+  "auth.accessDenied.description": "This Google account is not allowed to access the staff app.",
+  "auth.accessPending.title": "Access pending",
+  "auth.accessPending.description": "Your account was recognized, but a staff administrator still needs to activate access.",
+  "auth.common.backToLogin": "Back to sign in",
+  "auth.common.signOut": "Sign out"
 }

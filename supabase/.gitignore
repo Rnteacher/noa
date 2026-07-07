@@ -6,3 +6,7 @@
 .env.keys
 .env.local
 .env.*.local
+
+.ps1
+
+scripts/local/start-supabase-oauth.ps1

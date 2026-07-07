@@ -21,6 +21,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - `src/components/` (empty placeholder for UI elements)
 - `src/lib/` (general utilities)
   - `src/lib/env.ts` (Zod environment variable schema validation)
+  - `src/lib/env.server.ts` (Server-only environment helper for privileged values)
+  - `src/lib/auth/` (Authentication, access, profile sync, and service-role utilities)
   - `src/lib/i18n.ts` (Lightweight translation helper)
   - `src/lib/supabase/`
     - `src/lib/supabase/client.ts` (Supabase client-side browser helper)
@@ -34,9 +36,11 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `dashboard/`, `students/`, `announcements/`, `calendar/`, `admin/`, `auth/`, `notifications/`
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
+  - `supabase/migrations/20260707115303_staff_access_grants.sql`
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
 - `.env.example` (environment variables template)
+  - Includes `BOOTSTRAP_SUPER_ADMIN_EMAILS` for first-run admin bootstrap.
 
 ## Database foundation status
 
@@ -52,6 +56,45 @@ The migration defines:
 - Initial RLS policies for staff read access, relationship-based updates, announcement acknowledgement, calendar/learning group management, push subscriptions, notifications, webhook administration, and audit log visibility.
 - Views: `current_student_project_statuses` and `latest_student_emotional_statuses`.
 
+The second migration `supabase/migrations/20260707115303_staff_access_grants.sql` is verified locally.
+
+It defines:
+
+- `staff_access_grants`: pre-approved staff email grants.
+- `staff_access_grant_roles`: roles attached to each grant.
+- RLS policies allowing only super admins to manage grants.
+- Authenticated grants matching the existing RLS approach.
+
+## Auth and access-control status
+
+Google OAuth, protected app routes, and first-run access control are implemented.
+
+Files created or changed:
+
+- `src/proxy.ts`: Next.js 16 Proxy route protection.
+- `src/app/(public)/login/page.tsx`: Google sign-in page.
+- `src/app/(public)/access-denied/page.tsx`: Wrong-domain or invalid-auth page.
+- `src/app/(public)/access-pending/page.tsx`: Valid-domain inactive profile page.
+- `src/app/auth/callback/route.ts`: Supabase OAuth callback, domain validation, profile sync, and access redirects.
+- `src/app/auth/sign-out/route.ts`: Sign-out route.
+- `src/app/(app)/dashboard/page.tsx`: Protected dashboard shell moved from `/`.
+- `src/app/page.tsx`: Root redirect based on auth/access state.
+- `src/lib/auth/access.ts`: Email normalization and domain checks.
+- `src/lib/auth/admin.ts`: Server-only service-role Supabase client.
+- `src/lib/auth/profile.ts`: OAuth profile sync, access grants, role assignment, and bootstrap flow.
+- `src/lib/auth/session.ts`: Current server-side access state helper.
+
+Access model:
+
+- Google OAuth is required.
+- `GOOGLE_ALLOWED_DOMAIN` is enforced on callback and protected routing.
+- Valid-domain users without activation get inactive profiles and no roles.
+- Active staff access requires `profiles.is_active = true` and at least one `profile_roles` row.
+- Active `staff_access_grants` can activate first OAuth login and copy grant roles into `profile_roles`.
+- `BOOTSTRAP_SUPER_ADMIN_EMAILS` can activate allowed-domain first-run users with `super_admin` and `manager` roles.
+- Wrong-domain users are signed out during callback and redirected to access denied.
+- Protected routes use `src/proxy.ts`, matching the current Next.js 16 convention.
+
 ## Latest validation results
 
 We ran local validations and checks on Windows 10:
@@ -64,6 +107,35 @@ We ran local validations and checks on Windows 10:
    - `npm run lint` - Passed cleanly.
    - `npm run build` - Production bundle build with Next.js Turbopack succeeded.
    - `git diff --check` - Passed without whitespace issues.
+
+## Latest auth task validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and applied both migrations. Supabase warned that `supabase/seed.sql` does not exist.
+- Type generation passed and updated `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed.
+
+Remaining Google OAuth setup:
+
+- Create Google OAuth credentials outside the repo.
+- Configure local Supabase Google provider with the client id and secret.
+- Add `http://127.0.0.1:54321/auth/v1/callback` as the local Google OAuth redirect URI.
+- Add local `.env.local` values for Supabase URL, anon key, service-role key, app URL, allowed domain, and optional bootstrap emails.
 
 ## Current product decisions
 
@@ -109,6 +181,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Google OAuth and Protected Routes (Phase 1 task)**: Configure authentication flow restricting access to institutional domains (`GOOGLE_ALLOWED_DOMAIN`), and implement Next.js middleware for route protection based on authentication and DB profiles.
-2. **Local Database Seed Setup**: Add `supabase/seed.sql` containing mock data for local development (profiles, groups, students, announcements, events) to populate the UI.
-3. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
+1. **Manual Google OAuth smoke test**: Configure Google OAuth credentials locally, set `.env.local`, add one bootstrap super admin email, run the app, and verify `/login -> /auth/callback -> /dashboard`.
+2. **Admin access grant management task**: Build a super-admin-only admin surface or server action to create staff access grants and assign roles.
+3. **Local Database Seed Setup**: Add `supabase/seed.sql` containing mock data for local development (profiles, groups, students, announcements, events) to populate the UI.
+4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.

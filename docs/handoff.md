@@ -1,40 +1,53 @@
-# Handoff — Supabase Validation and Hebrew Guardrails
+# Handoff - AUTH-001 Google OAuth and protected routes
 
 ## Summary
 
-Started local Supabase, verified the initial migrations reset successfully, generated database TypeScript types, and added a Hebrew character scanner script to verify that no Hebrew text is hardcoded inside implementation files. Fixed all hardcoded Hebrew text inside `src/app/page.tsx` by migrating them into translation resource files.
+Implemented Google OAuth entry points, protected route routing, first-run staff access control, access-grant database tables, bootstrap super admin support, and server-only profile sync utilities. Moved the existing staff shell to `/dashboard` and made `/` redirect based on the current access state.
 
 ## Files changed
 
-- `package.json`: Added `"check:no-hebrew-in-code"` script.
-- `src/types/supabase.ts` [NEW]: Generated typescript types from local database schema.
-- `scripts/check-no-hebrew-in-code.mjs` [NEW]: Hebrew character scanner script.
-- `src/app/page.tsx`: Migrated all hardcoded Hebrew strings to translation resources.
-- `src/i18n/he.json`: Added missing Hebrew translations for dashboard layout mock data.
-- `src/i18n/en.json`: Added matching English translations.
-- `docs/12_CURRENT_STATE.md`: Updated verification results and next recommended tasks.
-- `docs/handoff.md`: Replaced the database handoff with this validation handoff.
+- `.gitignore`: Added an exception so `.env.example` can be version-controlled while real env files stay ignored.
+- `.env.example`: Added `BOOTSTRAP_SUPER_ADMIN_EMAILS`.
+- `supabase/migrations/20260707115303_staff_access_grants.sql`: Added staff access grants, grant roles, indexes, trigger, RLS, and grants.
+- `src/types/supabase.ts`: Regenerated local Supabase database types.
+- `src/proxy.ts`: Added Next.js 16 Proxy route protection.
+- `src/app/page.tsx`: Replaced the dashboard shell with auth-state redirects.
+- `src/app/(app)/dashboard/page.tsx`: Moved the existing dashboard shell here.
+- `src/app/(public)/login/page.tsx`: Added Google sign-in page.
+- `src/app/(public)/access-denied/page.tsx`: Added access denied page.
+- `src/app/(public)/access-pending/page.tsx`: Added access pending page.
+- `src/app/auth/callback/route.ts`: Added OAuth callback, domain validation, profile sync, and redirect handling.
+- `src/app/auth/sign-out/route.ts`: Added sign-out route.
+- `src/lib/env.ts`: Restricted to client-safe environment values.
+- `src/lib/env.server.ts`: Added server-only environment helper and service-role key guard.
+- `src/lib/auth/access.ts`: Added email/domain access helpers.
+- `src/lib/auth/admin.ts`: Added server-only service-role Supabase client factory.
+- `src/lib/auth/profile.ts`: Added OAuth profile sync, grants, bootstrap roles, and pending profile handling.
+- `src/lib/auth/session.ts`: Added server-side current access state helper.
+- `src/lib/supabase/server.ts`: Updated session-refresh wording for Proxy.
+- `src/i18n/he.json`: Added auth UI strings.
+- `src/i18n/en.json`: Added auth UI strings.
+- `docs/03_DATA_MODEL_DRAFT.md`: Documented staff access grant tables.
+- `docs/04_RBAC_MATRIX.md`: Added super-admin grant management permission.
+- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`: Added local Google OAuth setup instructions.
+- `docs/11_DECISION_LOG.md`: Logged access grant, bootstrap, pending profile, and Proxy decisions.
+- `docs/12_CURRENT_STATE.md`: Updated auth/access status, validation results, and next tasks.
+- `docs/handoff.md`: Replaced with this handoff.
 
 ## Decisions made
 
-- **Extension checking in scanner**: Limited the Hebrew scanner to text-based extensions (`.ts`, `.tsx`, `.json`, `.sql`, `.js`, `.mjs`, `.css`, `.toml`) to avoid false positive binary parsing errors on files like `favicon.ico`.
-- **UTF-8 Out-File redirection**: Ran type generation with explicit `-Encoding utf8` redirection in PowerShell to ensure ESLint does not misinterpret the file as binary.
-- **Mock page i18n mapping**: Moved all Hebrew labels (including calendar day names, location names, author descriptions, and student initial letters) from JSX directly into `he.json` keys to strictly satisfy the Hebrew code restriction.
+- Used access grants as the normal first-run activation path.
+- Added `BOOTSTRAP_SUPER_ADMIN_EMAILS` for first-run super admin access after Google OAuth and allowed-domain validation.
+- Created inactive pending profiles for valid-domain users without grants, bootstrap entries, or existing active roles.
+- Used `src/proxy.ts` because Next.js 16.2.10 documents Proxy as the current request-interception convention and deprecates `middleware.ts`.
+- Kept `SUPABASE_SERVICE_ROLE_KEY` in a server-only module and only used it for OAuth callback profile/grant synchronization.
 
 ## Tests/checks run
 
 ```bash
-# Verify database resets and applies migrations cleanly
-supabase start
 supabase db reset
-
-# Verify types compile and match DB schema
 supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
-
-# Run the Hebrew scanner
 npm run check:no-hebrew-in-code
-
-# Check code formatting and Next.js production build compiler
 npm run lint
 npm run build
 git diff --check
@@ -42,26 +55,33 @@ git diff --check
 
 Result:
 
-- `supabase start`: Success. Stopped conflicting `grid-cms-platform` container and bound successfully.
-- `supabase db reset`: Success. Recreated database, initialized schema, and applied migration `20260707111701_initial_schema_and_rls.sql` successfully.
-- `check:no-hebrew-in-code`: Success. Scan completed with exit code 0.
-- `npm run lint`: Success. ESLint completed with 0 errors and 0 warnings.
-- `npm run build`: Success. Next.js production build compiled statically with Turbopack.
-- `git diff --check`: Success. No whitespace issues.
+- `supabase db reset`: Passed. Applied both migrations. Warned that `supabase/seed.sql` does not exist.
+- Type generation: Passed and updated `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code`: Passed.
+- `npm run lint`: Passed.
+- `npm run build`: Passed.
+- `git diff --check`: Passed.
 
 ## Documentation updated
 
+- `docs/03_DATA_MODEL_DRAFT.md`
+- `docs/04_RBAC_MATRIX.md`
+- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`
+- `docs/11_DECISION_LOG.md`
 - `docs/12_CURRENT_STATE.md`
 - `docs/handoff.md`
 
 ## Known risks
 
-- None known.
+- Google OAuth was implemented and compiled, but a browser OAuth smoke test still requires real local Google OAuth credentials.
+- `BOOTSTRAP_SUPER_ADMIN_EMAILS` is powerful and should be removed or tightly controlled after first production admin setup.
+- No admin UI exists yet for creating `staff_access_grants`; this currently requires SQL, seed/import, or future server actions.
 
 ## Open questions
 
-- None.
+- Should bootstrap also create a durable `staff_access_grants` row for auditability, or remain env-only?
+- Should grant activation consume or deactivate a grant after first use, or should grants remain reusable for account recovery?
 
 ## Recommended next task
 
-Suggest assigning to **GPT** or **Claude**: "Google OAuth authentication and Next.js middleware for protected routes". This should set up the Google sign-in restricting domain access to `GOOGLE_ALLOWED_DOMAIN` (from environment variables), store JWT/user profile updates on sign-in, and block unauthorized users from accessing the app routes.
+Assign to Gemini or GPT: configure and smoke test local Google OAuth end to end, then build a super-admin-only staff access grant management action or admin screen.

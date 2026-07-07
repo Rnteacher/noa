@@ -27,6 +27,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 GOOGLE_ALLOWED_DOMAIN=
+BOOTSTRAP_SUPER_ADMIN_EMAILS=
 WEB_PUSH_PUBLIC_KEY=
 WEB_PUSH_PRIVATE_KEY=
 WEB_PUSH_SUBJECT=
@@ -61,12 +62,49 @@ No real student data in seeds.
 
 ## Local auth
 
-Google OAuth in local Supabase requires explicit configuration. Document the exact setup after it works.
+Google OAuth in local Supabase requires configuration in both Google Cloud and Supabase.
 
-Local fallback option for early development:
+Local app URL:
 
-- Use test users created in Supabase Studio.
-- Keep OAuth implementation as a Phase 1 task.
+```txt
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Application callback route:
+
+```txt
+http://localhost:3000/auth/callback
+```
+
+Supabase local callback URL for Google OAuth:
+
+```txt
+http://127.0.0.1:54321/auth/v1/callback
+```
+
+Local setup steps:
+
+1. Create a Google OAuth client in Google Cloud.
+2. Add `http://127.0.0.1:54321/auth/v1/callback` as an authorized redirect URI for local Supabase Auth.
+3. Start Supabase locally with `supabase start`.
+4. Open Supabase Studio at the local Studio URL printed by the CLI.
+5. Enable the Google provider under Authentication providers.
+6. Add the Google OAuth client id and secret in the local Supabase Auth provider settings.
+7. Create `.env.local` from `.env.example`.
+8. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` from `supabase status`.
+9. Set `NEXT_PUBLIC_APP_URL=http://localhost:3000`.
+10. Set `GOOGLE_ALLOWED_DOMAIN` to the institutional Google Workspace domain.
+11. Optionally set `BOOTSTRAP_SUPER_ADMIN_EMAILS` to a comma-separated list of first-run super admin emails.
+
+Never commit real OAuth client secrets, Supabase service-role keys, or production bootstrap email lists.
+
+Access activation:
+
+- Valid-domain users are not automatically active staff.
+- A super admin can create a row in `staff_access_grants` and assign roles in `staff_access_grant_roles`.
+- On OAuth callback, active grants are copied into `profiles` and `profile_roles`.
+- Emails listed in `BOOTSTRAP_SUPER_ADMIN_EMAILS` become active profiles with `super_admin` and `manager` roles after Google OAuth and domain validation.
+- Valid-domain users without a grant or bootstrap entry get an inactive profile and are redirected to the access-pending page.
 
 Do not ship without Google OAuth and domain restrictions.
 

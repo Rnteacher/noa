@@ -45,6 +45,7 @@ Some permissions depend on user relationship to a student:
 | Manage groups | no | no | no | no | no | no | yes |
 | Assign group mentors | no | no | no | no | no | no | yes |
 | Assign student masters | no | no | no | no | no | no | yes |
+| Manage staff access grants | no | no | no | no | no | no | yes |
 | Import CSV | no | no | no | no | no | yes | yes |
 | Export data | no | no | no | no | no | yes | yes |
 | Export sensitive data | no | no | no | no | no | restricted | yes |
