@@ -98,6 +98,20 @@ Local setup steps:
 
 Never commit real OAuth client secrets, Supabase service-role keys, or production bootstrap email lists.
 
+### Windows OAuth env troubleshooting
+
+If `env(...)` references in `supabase/config.toml` do not pick up `.env` values on Windows, set the OAuth variables in the active PowerShell session before running `supabase start`.
+
+Use variable names only in documentation and never commit real secret values:
+
+```powershell
+$env:SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID = "<google-client-id>"
+$env:SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET = "<google-client-secret>"
+supabase start
+```
+
+Keep `supabase/config.toml` using `env(...)` references. Do not paste raw OAuth secrets into `config.toml`.
+
 Access activation:
 
 - Valid-domain users are not automatically active staff.

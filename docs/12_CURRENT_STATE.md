@@ -23,6 +23,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/lib/env.ts` (Zod environment variable schema validation)
   - `src/lib/env.server.ts` (Server-only environment helper for privileged values)
   - `src/lib/auth/` (Authentication, access, profile sync, and service-role utilities)
+  - `src/lib/admin/access-grants.ts` (Server actions for super-admin staff access grant management)
+  - `src/lib/audit/log.ts` (Server-only audit log writer)
   - `src/lib/i18n.ts` (Lightweight translation helper)
   - `src/lib/supabase/`
     - `src/lib/supabase/client.ts` (Supabase client-side browser helper)
@@ -95,6 +97,33 @@ Access model:
 - Wrong-domain users are signed out during callback and redirected to access denied.
 - Protected routes use `src/proxy.ts`, matching the current Next.js 16 convention.
 
+## Staff access grant management status
+
+The first super-admin-only access grant management surface is implemented at:
+
+- `/admin/access-grants`
+
+Implemented files:
+
+- `src/app/(app)/admin/access-grants/page.tsx`: Server-rendered grant list, create form, and edit forms.
+- `src/lib/admin/access-grants.ts`: Server actions for grant create/update, role replacement, active toggles, and audit logging.
+- `src/lib/audit/log.ts`: Privileged audit log helper using the server-only service-role client.
+- `src/lib/auth/roles.ts`: Shared typed app role list for forms.
+- `src/app/(app)/dashboard/page.tsx`: Adds a minimal super-admin-only link to grant management.
+
+Access enforcement:
+
+- `src/proxy.ts` requires an authenticated active staff session for `/admin/access-grants`.
+- The page checks `current_user_is_super_admin` before rendering grant data.
+- Each server action repeats the super-admin check before performing mutations.
+- Mutations use the server-only service-role client; the service-role key is not exposed to client code.
+- Direct table access still goes through existing RLS, where only super admins can manage grant tables.
+
+Audit logging:
+
+- Grant actions write to `audit_logs` through a privileged server-only helper.
+- Audited actions include `staff_access_grant.created`, `staff_access_grant.updated`, `staff_access_grant.roles_updated`, `staff_access_grant.deactivated`, and `staff_access_grant.activated`.
+
 ## Latest validation results
 
 We ran local validations and checks on Windows 10:
@@ -109,6 +138,28 @@ We ran local validations and checks on Windows 10:
    - `git diff --check` - Passed without whitespace issues.
 
 ## Latest auth task validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and applied both migrations. Supabase warned that `supabase/seed.sql` does not exist.
+- Type generation passed and updated `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed.
+
+## Latest access grant management validation results
 
 Commands run:
 
@@ -181,7 +232,6 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Manual Google OAuth smoke test**: Configure Google OAuth credentials locally, set `.env.local`, add one bootstrap super admin email, run the app, and verify `/login -> /auth/callback -> /dashboard`.
-2. **Admin access grant management task**: Build a super-admin-only admin surface or server action to create staff access grants and assign roles.
-3. **Local Database Seed Setup**: Add `supabase/seed.sql` containing mock data for local development (profiles, groups, students, announcements, events) to populate the UI.
-4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
+1. **Manual Google OAuth and grant-management smoke test**: Configure Google OAuth credentials locally, sign in as a bootstrap super admin, visit `/admin/access-grants`, create a grant, and verify audit log rows.
+2. **Local Database Seed Setup**: Add `supabase/seed.sql` containing mock data for local development (profiles, groups, students, announcements, events) to populate the UI.
+3. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.

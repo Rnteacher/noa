@@ -1,46 +1,30 @@
-# Handoff - AUTH-001 Google OAuth and protected routes
+# Handoff - ADMIN-001 Staff access grant management
 
 ## Summary
 
-Implemented Google OAuth entry points, protected route routing, first-run staff access control, access-grant database tables, bootstrap super admin support, and server-only profile sync utilities. Moved the existing staff shell to `/dashboard` and made `/` redirect based on the current access state.
+Built the first super-admin-only staff access grant management surface at `/admin/access-grants`. The page lists existing grants, creates grants, edits active state and roles, and writes audit log entries through server-only privileged code.
 
 ## Files changed
 
-- `.gitignore`: Added an exception so `.env.example` can be version-controlled while real env files stay ignored.
-- `.env.example`: Added `BOOTSTRAP_SUPER_ADMIN_EMAILS`.
-- `supabase/migrations/20260707115303_staff_access_grants.sql`: Added staff access grants, grant roles, indexes, trigger, RLS, and grants.
-- `src/types/supabase.ts`: Regenerated local Supabase database types.
-- `src/proxy.ts`: Added Next.js 16 Proxy route protection.
-- `src/app/page.tsx`: Replaced the dashboard shell with auth-state redirects.
-- `src/app/(app)/dashboard/page.tsx`: Moved the existing dashboard shell here.
-- `src/app/(public)/login/page.tsx`: Added Google sign-in page.
-- `src/app/(public)/access-denied/page.tsx`: Added access denied page.
-- `src/app/(public)/access-pending/page.tsx`: Added access pending page.
-- `src/app/auth/callback/route.ts`: Added OAuth callback, domain validation, profile sync, and redirect handling.
-- `src/app/auth/sign-out/route.ts`: Added sign-out route.
-- `src/lib/env.ts`: Restricted to client-safe environment values.
-- `src/lib/env.server.ts`: Added server-only environment helper and service-role key guard.
-- `src/lib/auth/access.ts`: Added email/domain access helpers.
-- `src/lib/auth/admin.ts`: Added server-only service-role Supabase client factory.
-- `src/lib/auth/profile.ts`: Added OAuth profile sync, grants, bootstrap roles, and pending profile handling.
-- `src/lib/auth/session.ts`: Added server-side current access state helper.
-- `src/lib/supabase/server.ts`: Updated session-refresh wording for Proxy.
-- `src/i18n/he.json`: Added auth UI strings.
-- `src/i18n/en.json`: Added auth UI strings.
-- `docs/03_DATA_MODEL_DRAFT.md`: Documented staff access grant tables.
-- `docs/04_RBAC_MATRIX.md`: Added super-admin grant management permission.
-- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`: Added local Google OAuth setup instructions.
-- `docs/11_DECISION_LOG.md`: Logged access grant, bootstrap, pending profile, and Proxy decisions.
-- `docs/12_CURRENT_STATE.md`: Updated auth/access status, validation results, and next tasks.
+- `src/app/(app)/admin/access-grants/page.tsx`: Added the super-admin-only grant management page.
+- `src/lib/admin/access-grants.ts`: Added server actions for grant create/update, role replacement, active toggles, and audit logging.
+- `src/lib/audit/log.ts`: Added server-only audit log helper.
+- `src/lib/auth/roles.ts`: Added shared typed app role list.
+- `src/app/(app)/dashboard/page.tsx`: Added a minimal super-admin-only link to access grant management.
+- `src/i18n/he.json`: Added Hebrew UI strings for access grant management.
+- `src/i18n/en.json`: Added English UI strings for access grant management.
+- `docs/07_LOCAL_SUPABASE_WORKFLOW.md`: Added Windows OAuth env troubleshooting note.
+- `docs/11_DECISION_LOG.md`: Logged the grant mutation and audit model.
+- `docs/12_CURRENT_STATE.md`: Updated access grant management status, validation results, and next tasks.
 - `docs/handoff.md`: Replaced with this handoff.
 
 ## Decisions made
 
-- Used access grants as the normal first-run activation path.
-- Added `BOOTSTRAP_SUPER_ADMIN_EMAILS` for first-run super admin access after Google OAuth and allowed-domain validation.
-- Created inactive pending profiles for valid-domain users without grants, bootstrap entries, or existing active roles.
-- Used `src/proxy.ts` because Next.js 16.2.10 documents Proxy as the current request-interception convention and deprecates `middleware.ts`.
-- Kept `SUPABASE_SERVICE_ROLE_KEY` in a server-only module and only used it for OAuth callback profile/grant synchronization.
+- The admin surface is server-rendered and uses server actions rather than client-side Supabase mutations.
+- `/admin/access-grants` requires an active staff session through Proxy and also checks `current_user_is_super_admin` on the page.
+- Every mutation repeats the super-admin check before using the service-role client.
+- Audit logs are inserted by a server-only helper using the service-role client, never by browser code.
+- Role edits replace the selected grant role set from submitted checkbox state.
 
 ## Tests/checks run
 
@@ -64,8 +48,6 @@ Result:
 
 ## Documentation updated
 
-- `docs/03_DATA_MODEL_DRAFT.md`
-- `docs/04_RBAC_MATRIX.md`
 - `docs/07_LOCAL_SUPABASE_WORKFLOW.md`
 - `docs/11_DECISION_LOG.md`
 - `docs/12_CURRENT_STATE.md`
@@ -73,15 +55,15 @@ Result:
 
 ## Known risks
 
-- Google OAuth was implemented and compiled, but a browser OAuth smoke test still requires real local Google OAuth credentials.
-- `BOOTSTRAP_SUPER_ADMIN_EMAILS` is powerful and should be removed or tightly controlled after first production admin setup.
-- No admin UI exists yet for creating `staff_access_grants`; this currently requires SQL, seed/import, or future server actions.
+- The UI and server actions compile, but a browser smoke test still requires a real logged-in super admin session.
+- Grant role replacement is implemented as delete then insert inside server action flow, not as a dedicated database RPC transaction.
+- Server action errors currently surface through Next.js error handling; there is no inline form error UI yet.
 
 ## Open questions
 
-- Should bootstrap also create a durable `staff_access_grants` row for auditability, or remain env-only?
-- Should grant activation consume or deactivate a grant after first use, or should grants remain reusable for account recovery?
+- Should grant role replacement move into a dedicated database RPC for stricter transaction boundaries?
+- Should access grant changes also create notifications for newly granted staff later?
 
 ## Recommended next task
 
-Assign to Gemini or GPT: configure and smoke test local Google OAuth end to end, then build a super-admin-only staff access grant management action or admin screen.
+Configure local Google OAuth, sign in as a bootstrap super admin, smoke test `/admin/access-grants`, and verify that grant mutation audit entries are written.

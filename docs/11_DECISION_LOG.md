@@ -250,3 +250,15 @@ Rationale:
 - The project uses Next.js 16.2.10.
 - In Next.js 16, the current documented convention is Proxy; `middleware.ts` is deprecated in favor of `proxy.ts`.
 - Request-level protection still runs before app routes, auth callback routes are explicitly exempted, and protected routes require an active staff profile with roles.
+
+## 2026-07-07 - Staff access grant mutation model
+
+Decision:
+
+Manage staff access grants through server actions that first verify the current session is `super_admin`, then perform grant and audit writes with the server-only service-role client.
+
+Rationale:
+
+- Grant management controls who can enter the staff app and must not rely on client-side checks.
+- Existing RLS still limits direct client access to super admins.
+- Server actions make it possible to normalize input, replace role assignments, and write trusted audit log entries without exposing service-role keys to the browser.

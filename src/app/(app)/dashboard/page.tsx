@@ -1,4 +1,6 @@
 import { t } from "@/lib/i18n";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import {
   Bell,
   Search,
@@ -11,9 +13,13 @@ import {
   Settings,
   MessageSquare,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: isSuperAdmin } = await supabase.rpc("current_user_is_super_admin");
+
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 flex justify-center items-stretch font-sans">
       {/* Mobile-first layout container: max-w-md on desktop, full-width on mobile */}
@@ -81,6 +87,27 @@ export default function DashboardPage() {
               className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl py-2.5 pr-10 pl-4 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 focus:outline-none cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-colors"
             />
           </div>
+
+          {isSuperAdmin ? (
+            <Link
+              href="/admin/access-grants"
+              className="flex items-center justify-between rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-emerald-900 dark:text-emerald-100 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-950/50"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-sm font-bold">
+                    {t("admin.accessGrants.shortLink")}
+                  </span>
+                  <span className="block text-xs text-emerald-700 dark:text-emerald-300">
+                    {t("admin.accessGrants.shortDescription")}
+                  </span>
+                </span>
+              </span>
+            </Link>
+          ) : null}
 
           {/* Today at Chamama */}
           <section className="space-y-3">
