@@ -10,18 +10,24 @@ INSERT INTO public.school_years (
   name,
   starts_on,
   ends_on,
-  is_current
+  is_current,
+  created_at,
+  updated_at
 ) VALUES (
   '26000000-0000-0000-0000-000000002026',
   '2026-2027 Academic Year',
   '2026-09-01',
   '2027-06-30',
-  true
+  true,
+  '2026-09-01 08:00:00+00',
+  '2026-09-01 08:00:00+00'
 ) ON CONFLICT (id) DO NOTHING;
 
 
 -- 2. AUTH USERS (Supabase GoTrue Schema)
--- Deterministic IDs and encrypted password hashes (using a standard bcrypt placeholder hash for "password123")
+-- Local development only: these deterministic fake auth.users rows support local profile foreign keys.
+-- Do not use this pattern for production data, real staff accounts, or real student data.
+-- Password hash is for the local mock password "password123".
 INSERT INTO auth.users (
   id,
   email,
@@ -34,12 +40,14 @@ INSERT INTO auth.users (
   created_at,
   updated_at
 ) VALUES
-('ad100000-0000-0000-0000-000000000001', 'super.admin@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now()),
-('ma200000-0000-0000-0000-000000000001', 'manager.one@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now()),
-('me300000-0000-0000-0000-000000000001', 'mentor.one@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now()),
-('me300000-0000-0000-0000-000000000002', 'mentor.two@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now()),
-('ms400000-0000-0000-0000-000000000001', 'master.one@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now()),
-('co500000-0000-0000-0000-000000000001', 'counselor.one@example.test', '$2a$10$7h9t1s2B6g98R98kR98kRuG3B1B1B1B1B1B1B1B1B1B1B1B1B1B1B', now(), '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', now(), now())
+('a1000000-0000-4000-8000-000000000001', 'super.admin@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000002', 'manager.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000003', 'mentor.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000004', 'mentor.two@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000005', 'master.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000006', 'counselor.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000007', 'leadership.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000008', 'staff.one@example.test', '$2b$10$tIYdMAMlzQuMp3LcuJqCGedv/3QyNW7JfPyYQP/tXR.OMTVl7A3.a', '2026-09-01 08:00:00+00', '{"provider": "email", "providers": ["email"]}', '{}', 'authenticated', 'authenticated', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -54,29 +62,34 @@ INSERT INTO public.profiles (
   created_at,
   updated_at
 ) VALUES
-('ad100000-0000-0000-0000-000000000001', 'Super Admin User', 'super.admin@example.test', NULL, '+972500000001', true, now(), now()),
-('ma200000-0000-0000-0000-000000000001', 'Manager One User', 'manager.one@example.test', NULL, '+972500000002', true, now(), now()),
-('me300000-0000-0000-0000-000000000001', 'Mentor One User', 'mentor.one@example.test', NULL, '+972500000003', true, now(), now()),
-('me300000-0000-0000-0000-000000000002', 'Mentor Two User', 'mentor.two@example.test', NULL, '+972500000004', true, now(), now()),
-('ms400000-0000-0000-0000-000000000001', 'Master One User', 'master.one@example.test', NULL, '+972500000005', true, now(), now()),
-('co500000-0000-0000-0000-000000000001', 'Counselor One User', 'counselor.one@example.test', NULL, '+972500000006', true, now(), now())
+('a1000000-0000-4000-8000-000000000001', 'Super Admin User', 'super.admin@example.test', NULL, '+972500000001', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000002', 'Manager One User', 'manager.one@example.test', NULL, '+972500000002', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000003', 'Mentor One User', 'mentor.one@example.test', NULL, '+972500000003', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000004', 'Mentor Two User', 'mentor.two@example.test', NULL, '+972500000004', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000005', 'Master One User', 'master.one@example.test', NULL, '+972500000005', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000006', 'Counselor One User', 'counselor.one@example.test', NULL, '+972500000006', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000007', 'Leadership One User', 'leadership.one@example.test', NULL, '+972500000007', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('a1000000-0000-4000-8000-000000000008', 'Staff One User', 'staff.one@example.test', NULL, '+972500000008', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 4. PROFILE ROLES
-INSERT INTO public.profile_roles (profile_id, role) VALUES
-('ad100000-0000-0000-0000-000000000001', 'super_admin'),
-('ad100000-0000-0000-0000-000000000001', 'staff'),
-('ma200000-0000-0000-0000-000000000001', 'manager'),
-('ma200000-0000-0000-0000-000000000001', 'staff'),
-('me300000-0000-0000-0000-000000000001', 'mentor'),
-('me300000-0000-0000-0000-000000000001', 'staff'),
-('me300000-0000-0000-0000-000000000002', 'mentor'),
-('me300000-0000-0000-0000-000000000002', 'staff'),
-('ms400000-0000-0000-0000-000000000001', 'master'),
-('ms400000-0000-0000-0000-000000000001', 'staff'),
-('co500000-0000-0000-0000-000000000001', 'counselor'),
-('co500000-0000-0000-0000-000000000001', 'staff')
+INSERT INTO public.profile_roles (id, profile_id, role, created_at) VALUES
+('41000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'super_admin', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000001', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000003', 'a1000000-0000-4000-8000-000000000002', 'manager', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000004', 'a1000000-0000-4000-8000-000000000002', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000003', 'mentor', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000006', 'a1000000-0000-4000-8000-000000000003', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000007', 'a1000000-0000-4000-8000-000000000004', 'mentor', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000008', 'a1000000-0000-4000-8000-000000000004', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000009', 'a1000000-0000-4000-8000-000000000005', 'master', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000010', 'a1000000-0000-4000-8000-000000000005', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000011', 'a1000000-0000-4000-8000-000000000006', 'counselor', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000012', 'a1000000-0000-4000-8000-000000000006', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000013', 'a1000000-0000-4000-8000-000000000007', 'leadership', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000014', 'a1000000-0000-4000-8000-000000000007', 'staff', '2026-09-01 08:00:00+00'),
+('41000000-0000-4000-8000-000000000015', 'a1000000-0000-4000-8000-000000000008', 'staff', '2026-09-01 08:00:00+00')
 ON CONFLICT (profile_id, role) DO NOTHING;
 
 
@@ -86,25 +99,31 @@ INSERT INTO public.student_groups (
   school_year_id,
   name,
   layer,
-  is_active
-) VALUES 
-('11000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Software Engineers', 'Tenth', true),
-('11000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Robotics League', 'Eleventh', true)
+  is_active,
+  created_at,
+  updated_at
+) VALUES
+('11000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Software Engineers', 'Tenth', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('11000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Robotics League', 'Eleventh', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 6. GROUP MENTORS
 INSERT INTO public.group_mentors (
+  id,
   group_id,
   mentor_id,
   is_primary,
   active_from,
-  active_until
+  active_until,
+  created_at,
+  updated_at
 ) VALUES
-('11000000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('11000000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000002', false, '2026-09-01', NULL),
-('11000000-0000-0000-0000-000000000002', 'me300000-0000-0000-0000-000000000002', true, '2026-09-01', NULL)
-ON CONFLICT DO NOTHING;
+('42000000-0000-4000-8000-000000000001', '11000000-0000-0000-0000-000000000001', 'a1000000-0000-4000-8000-000000000003', true, '2026-09-01', NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('42000000-0000-4000-8000-000000000002', '11000000-0000-0000-0000-000000000001', 'a1000000-0000-4000-8000-000000000004', false, '2026-09-01', NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('42000000-0000-4000-8000-000000000003', '11000000-0000-0000-0000-000000000002', 'a1000000-0000-4000-8000-000000000004', true, '2026-09-01', NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('42000000-0000-4000-8000-000000000004', '11000000-0000-0000-0000-000000000002', 'a1000000-0000-4000-8000-000000000003', false, '2026-09-01', NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 7. STUDENTS
@@ -119,14 +138,16 @@ INSERT INTO public.students (
   secondary_phone,
   emergency_contact_name,
   emergency_contact_phone,
-  is_active
+  is_active,
+  created_at,
+  updated_at
 ) VALUES
-('55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Alice', 'Smith', NULL, '+972511111111', '+972511111112', 'Mary Smith', '+972511111113', true),
-('55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Bob', 'Johnson', NULL, '+972522222221', NULL, 'Robert Johnson', '+972522222222', true),
-('55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Charlie', 'Brown', NULL, '+972533333331', NULL, 'Lucy Brown', '+972533333332', true),
-('55000000-0000-0000-0000-000000000004', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'David', 'Davis', NULL, '+972544444441', NULL, 'Sarah Davis', '+972544444442', true),
-('55000000-0000-0000-0000-000000000005', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'Eva', 'Green', NULL, '+972555555551', NULL, 'John Green', '+972555555552', true),
-('55000000-0000-0000-0000-000000000006', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'Frank', 'White', NULL, '+972566666661', NULL, 'Elizabeth White', '+972566666662', true)
+('55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Alice', 'Smith', NULL, '+972511111111', '+972511111112', 'Mary Smith', '+972511111113', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Bob', 'Johnson', NULL, '+972522222221', NULL, 'Robert Johnson', '+972522222222', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000001', 'Charlie', 'Brown', NULL, '+972533333331', NULL, 'Lucy Brown', '+972533333332', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('55000000-0000-0000-0000-000000000004', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'David', 'Davis', NULL, '+972544444441', NULL, 'Sarah Davis', '+972544444442', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('55000000-0000-0000-0000-000000000005', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'Eva', 'Green', NULL, '+972555555551', NULL, 'John Green', '+972555555552', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('55000000-0000-0000-0000-000000000006', '26000000-0000-0000-0000-000000002026', '11000000-0000-0000-0000-000000000002', 'Frank', 'White', NULL, '+972566666661', NULL, 'Elizabeth White', '+972566666662', true, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -141,57 +162,64 @@ INSERT INTO public.projects (
   status_note,
   is_current,
   created_by,
-  updated_by
+  updated_by,
+  created_at,
+  updated_at
 ) VALUES
-('77000000-0000-0000-0000-000000000001', '55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Task Manager App', 'A mobile app to keep track of school assignments.', 'green', 'Everything is on schedule.', true, 'ma200000-0000-0000-0000-000000000001', 'ma200000-0000-0000-0000-000000000001'),
-('77000000-0000-0000-0000-000000000002', '55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Local Garden Automation', 'Using sensors to water garden automatically.', 'yellow', 'Waiting for hardware parts to arrive.', true, 'ms400000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001'),
-('77000000-0000-0000-0000-000000000003', '55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', 'Smart Garbage Sorter', 'AI camera that sorts trash dynamically.', 'red', 'Struggling with Tensorflow integration.', true, 'ms400000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001'),
-('77000000-0000-0000-0000-000000000004', '55000000-0000-0000-0000-000000000004', '26000000-0000-0000-0000-000000002026', 'Self-Balancing Robot', 'A two-wheeled balance robot.', 'green', 'PID controllers configured.', true, 'ms400000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001'),
-('77000000-0000-0000-0000-000000000005', '55000000-0000-0000-0000-000000000005', '26000000-0000-0000-0000-000000002026', 'Solar Tracking Panel', 'Panel that moves according to sunlight.', 'green', 'First prototype completed.', true, 'ms400000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001'),
-('77000000-0000-0000-0000-000000000006', '55000000-0000-0000-0000-000000000006', '26000000-0000-0000-0000-000000002026', 'Robot Arm Grabber', 'ARM-based robotic arm.', 'yellow', 'Motor power supply issues.', true, 'ms400000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001')
+('77000000-0000-0000-0000-000000000001', '55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Task Manager App', 'A mobile app to keep track of school assignments.', 'green', 'Everything is on schedule.', true, 'a1000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002', '2026-09-02 09:00:00+00', '2026-09-02 09:00:00+00'),
+('77000000-0000-0000-0000-000000000002', '55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Local Garden Automation', 'Using sensors to water a garden automatically.', 'yellow', 'Waiting for hardware parts to arrive.', true, 'a1000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000005', '2026-09-02 09:10:00+00', '2026-09-02 09:10:00+00'),
+('77000000-0000-0000-0000-000000000003', '55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', 'Smart Sorter', 'A camera-assisted model that sorts classroom recycling.', 'red', 'Struggling with model training and integration.', true, 'a1000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000005', '2026-09-02 09:20:00+00', '2026-09-02 09:20:00+00'),
+('77000000-0000-0000-0000-000000000004', '55000000-0000-0000-0000-000000000004', '26000000-0000-0000-0000-000000002026', 'Self-Balancing Robot', 'A two-wheeled balance robot.', 'green', 'Controller tuning is stable.', true, 'a1000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000005', '2026-09-02 09:30:00+00', '2026-09-02 09:30:00+00'),
+('77000000-0000-0000-0000-000000000005', '55000000-0000-0000-0000-000000000005', '26000000-0000-0000-0000-000000002026', 'Solar Tracking Panel', 'A panel that moves according to sunlight.', 'green', 'First prototype completed.', true, 'a1000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000005', '2026-09-02 09:40:00+00', '2026-09-02 09:40:00+00'),
+('77000000-0000-0000-0000-000000000006', '55000000-0000-0000-0000-000000000006', '26000000-0000-0000-0000-000000002026', 'Robot Arm Grabber', 'An ARM-based robotic arm.', 'yellow', 'Motor power supply issues.', true, 'a1000000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000005', '2026-09-02 09:50:00+00', '2026-09-02 09:50:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 9. STUDENT MASTERS
 INSERT INTO public.student_masters (
+  id,
   student_id,
   project_id,
   master_id,
   is_primary,
   active_from,
-  active_until
+  active_until,
+  created_at,
+  updated_at
 ) VALUES
-('55000000-0000-0000-0000-000000000001', '77000000-0000-0000-0000-000000000001', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('55000000-0000-0000-0000-000000000002', '77000000-0000-0000-0000-000000000002', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('55000000-0000-0000-0000-000000000003', '77000000-0000-0000-0000-000000000003', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('55000000-0000-0000-0000-000000000004', '77000000-0000-0000-0000-000000000004', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('55000000-0000-0000-0000-000000000005', '77000000-0000-0000-0000-000000000005', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL),
-('55000000-0000-0000-0000-000000000006', '77000000-0000-0000-0000-000000000006', 'ms400000-0000-0000-0000-000000000001', true, '2026-09-01', NULL)
-ON CONFLICT DO NOTHING;
+('43000000-0000-4000-8000-000000000001', '55000000-0000-0000-0000-000000000001', '77000000-0000-0000-0000-000000000001', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:00:00+00', '2026-09-02 10:00:00+00'),
+('43000000-0000-4000-8000-000000000002', '55000000-0000-0000-0000-000000000002', '77000000-0000-0000-0000-000000000002', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:10:00+00', '2026-09-02 10:10:00+00'),
+('43000000-0000-4000-8000-000000000003', '55000000-0000-0000-0000-000000000003', '77000000-0000-0000-0000-000000000003', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:20:00+00', '2026-09-02 10:20:00+00'),
+('43000000-0000-4000-8000-000000000004', '55000000-0000-0000-0000-000000000004', '77000000-0000-0000-0000-000000000004', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:30:00+00', '2026-09-02 10:30:00+00'),
+('43000000-0000-4000-8000-000000000005', '55000000-0000-0000-0000-000000000005', '77000000-0000-0000-0000-000000000005', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:40:00+00', '2026-09-02 10:40:00+00'),
+('43000000-0000-4000-8000-000000000006', '55000000-0000-0000-0000-000000000006', '77000000-0000-0000-0000-000000000006', 'a1000000-0000-4000-8000-000000000005', true, '2026-09-01', NULL, '2026-09-02 10:50:00+00', '2026-09-02 10:50:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 10. STUDENT EMOTIONAL STATUSES (History Included)
 INSERT INTO public.student_emotional_statuses (
+  id,
   student_id,
   status,
   note,
   created_by,
   created_at
 ) VALUES
-('55000000-0000-0000-0000-000000000001', 'green', 'Doing great academically and socially.', 'me300000-0000-0000-0000-000000000001', now() - interval '2 days'),
-('55000000-0000-0000-0000-000000000002', 'green', 'Happy, participating well.', 'me300000-0000-0000-0000-000000000001', now() - interval '5 days'),
-('55000000-0000-0000-0000-000000000002', 'yellow', 'Appears tired and stressed lately.', 'me300000-0000-0000-0000-000000000001', now() - interval '1 day'),
-('55000000-0000-0000-0000-000000000003', 'green', 'Initial interview went fine.', 'me300000-0000-0000-0000-000000000001', now() - interval '10 days'),
-('55000000-0000-0000-0000-000000000003', 'yellow', 'Complained about workload.', 'me300000-0000-0000-0000-000000000001', now() - interval '5 days'),
-('55000000-0000-0000-0000-000000000003', 'red', 'Missing classes, family concerns reported.', 'co500000-0000-0000-0000-000000000001', now() - interval '1 day'),
-('55000000-0000-0000-0000-000000000004', 'green', 'Highly engaged and collaborative.', 'me300000-0000-0000-0000-000000000002', now() - interval '4 days'),
-('55000000-0000-0000-0000-000000000005', 'green', 'Consistent performer, very communicative.', 'me300000-0000-0000-0000-000000000002', now() - interval '3 days'),
-('55000000-0000-0000-0000-000000000006', 'yellow', 'Struggling with time management.', 'me300000-0000-0000-0000-000000000002', now() - interval '2 days')
-ON CONFLICT DO NOTHING;
+('44000000-0000-4000-8000-000000000001', '55000000-0000-0000-0000-000000000001', 'green', 'Doing well academically and socially.', 'a1000000-0000-4000-8000-000000000003', '2026-09-08 09:00:00+00'),
+('44000000-0000-4000-8000-000000000002', '55000000-0000-0000-0000-000000000002', 'green', 'Participating well.', 'a1000000-0000-4000-8000-000000000003', '2026-09-05 09:00:00+00'),
+('44000000-0000-4000-8000-000000000003', '55000000-0000-0000-0000-000000000002', 'yellow', 'Appears tired and stressed lately.', 'a1000000-0000-4000-8000-000000000003', '2026-09-09 09:00:00+00'),
+('44000000-0000-4000-8000-000000000004', '55000000-0000-0000-0000-000000000003', 'green', 'Initial interview went fine.', 'a1000000-0000-4000-8000-000000000003', '2026-09-01 09:00:00+00'),
+('44000000-0000-4000-8000-000000000005', '55000000-0000-0000-0000-000000000003', 'yellow', 'Reported a heavy workload.', 'a1000000-0000-4000-8000-000000000003', '2026-09-05 10:00:00+00'),
+('44000000-0000-4000-8000-000000000006', '55000000-0000-0000-0000-000000000003', 'red', 'Missing classes and family concerns reported.', 'a1000000-0000-4000-8000-000000000006', '2026-09-09 10:00:00+00'),
+('44000000-0000-4000-8000-000000000007', '55000000-0000-0000-0000-000000000004', 'green', 'Highly engaged and collaborative.', 'a1000000-0000-4000-8000-000000000004', '2026-09-06 09:00:00+00'),
+('44000000-0000-4000-8000-000000000008', '55000000-0000-0000-0000-000000000005', 'green', 'Consistent performer and communicative.', 'a1000000-0000-4000-8000-000000000004', '2026-09-07 09:00:00+00'),
+('44000000-0000-4000-8000-000000000009', '55000000-0000-0000-0000-000000000006', 'yellow', 'Struggling with time management.', 'a1000000-0000-4000-8000-000000000004', '2026-09-08 10:00:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 11. STUDENT GOALS
 INSERT INTO public.student_goals (
+  id,
   student_id,
   school_year_id,
   title,
@@ -200,36 +228,43 @@ INSERT INTO public.student_goals (
   is_primary,
   visible_to_student,
   created_by,
-  updated_by
+  updated_by,
+  created_at,
+  updated_at
 ) VALUES
-('55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Complete Next.js layout', 'Establish structure and basic routing.', 'completed', false, false, 'me300000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001'),
-('55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Integrate Supabase Auth', 'Google OAuth with domain restrictions.', 'active', true, false, 'me300000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001'),
-('55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Assemble breadboard circuit', 'Wire sensors and check power flow.', 'active', true, false, 'me300000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001'),
-('55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', 'Train basic sorting model', 'Train CNN classifier on trash dataset.', 'paused', false, false, 'me300000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001')
-ON CONFLICT DO NOTHING;
+('45000000-0000-4000-8000-000000000001', '55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Complete Next.js layout', 'Establish structure and basic routing.', 'completed', false, false, 'a1000000-0000-4000-8000-000000000003', 'a1000000-0000-4000-8000-000000000003', '2026-09-03 09:00:00+00', '2026-09-07 09:00:00+00'),
+('45000000-0000-4000-8000-000000000002', '55000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Integrate Supabase Auth', 'Google OAuth with domain restrictions.', 'active', true, false, 'a1000000-0000-4000-8000-000000000003', 'a1000000-0000-4000-8000-000000000003', '2026-09-08 09:00:00+00', '2026-09-08 09:00:00+00'),
+('45000000-0000-4000-8000-000000000003', '55000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Assemble breadboard circuit', 'Wire sensors and check power flow.', 'active', true, false, 'a1000000-0000-4000-8000-000000000003', 'a1000000-0000-4000-8000-000000000003', '2026-09-08 10:00:00+00', '2026-09-08 10:00:00+00'),
+('45000000-0000-4000-8000-000000000004', '55000000-0000-0000-0000-000000000003', '26000000-0000-0000-0000-000000002026', 'Train basic sorting model', 'Train a classifier on a mock recycling dataset.', 'paused', false, false, 'a1000000-0000-4000-8000-000000000003', 'a1000000-0000-4000-8000-000000000003', '2026-09-05 09:00:00+00', '2026-09-09 09:00:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 12. STUDENT MESSAGES (Staff Notes)
 INSERT INTO public.student_messages (
+  id,
   student_id,
   author_id,
   body,
   tags,
-  is_important
+  is_important,
+  created_at,
+  updated_at
 ) VALUES
-('55000000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001', 'Alice completed the first task and is moving very fast.', array['project'::public.student_message_tag], false),
-('55000000-0000-0000-0000-000000000003', 'co500000-0000-0000-0000-000000000001', 'Charlie missed three sessions this week. Highly concerned about family issues.', array['attendance'::public.student_message_tag, 'family'::public.student_message_tag], true)
-ON CONFLICT DO NOTHING;
+('46000000-0000-4000-8000-000000000001', '55000000-0000-0000-0000-000000000001', 'a1000000-0000-4000-8000-000000000003', 'Alice completed the first task and is moving quickly.', array['project'::public.student_message_tag], false, '2026-09-08 11:00:00+00', '2026-09-08 11:00:00+00'),
+('46000000-0000-4000-8000-000000000002', '55000000-0000-0000-0000-000000000003', 'a1000000-0000-4000-8000-000000000006', 'Charlie missed three sessions this week. Follow-up is needed.', array['attendance'::public.student_message_tag, 'family'::public.student_message_tag], true, '2026-09-09 11:00:00+00', '2026-09-09 11:00:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 13. FOLLOWED STUDENTS
 INSERT INTO public.followed_students (
+  id,
   profile_id,
   student_id,
-  notification_level
+  notification_level,
+  created_at
 ) VALUES
-('me300000-0000-0000-0000-000000000001', '55000000-0000-0000-0000-000000000001', 'all'),
-('me300000-0000-0000-0000-000000000002', '55000000-0000-0000-0000-000000000003', 'important')
+('47000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000003', '55000000-0000-0000-0000-000000000001', 'all', '2026-09-08 12:00:00+00'),
+('47000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000004', '55000000-0000-0000-0000-000000000003', 'important', '2026-09-08 12:10:00+00')
 ON CONFLICT (profile_id, student_id) DO NOTHING;
 
 
@@ -244,30 +279,34 @@ INSERT INTO public.announcements (
   requires_acknowledgement,
   push_enabled,
   published_at,
-  expires_at
+  expires_at,
+  created_at,
+  updated_at
 ) VALUES
-('88000000-0000-0000-0000-000000000001', 'Welcome to the New School Year', 'Welcome back everyone! Lets make this school year productive and amazing.', 'ad100000-0000-0000-0000-000000000001', 'all_staff', true, false, false, now() - interval '2 days', NULL),
-('88000000-0000-0000-0000-000000000002', 'Submit Mentor Feedback Report', 'All mentors are required to submit their weekly group summary by Thursday noon.', 'ma200000-0000-0000-0000-000000000001', 'roles', false, true, true, now() - interval '5 hours', now() + interval '3 days')
+('88000000-0000-0000-0000-000000000001', 'Welcome to the New School Year', 'Welcome back everyone. Let us make this school year productive and focused.', 'a1000000-0000-4000-8000-000000000001', 'all_staff', true, false, false, '2026-09-01 12:00:00+00', NULL, '2026-09-01 12:00:00+00', '2026-09-01 12:00:00+00'),
+('88000000-0000-0000-0000-000000000002', 'Submit Mentor Feedback Report', 'All mentors are required to submit their weekly group summary by Thursday noon.', 'a1000000-0000-4000-8000-000000000002', 'roles', false, true, true, '2026-09-09 07:00:00+00', '2026-09-12 07:00:00+00', '2026-09-09 07:00:00+00', '2026-09-09 07:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 15. ANNOUNCEMENT TARGET ROLES
 INSERT INTO public.announcement_target_roles (
+  id,
   announcement_id,
   role
 ) VALUES
-('88000000-0000-0000-0000-000000000002', 'mentor')
+('48000000-0000-4000-8000-000000000001', '88000000-0000-0000-0000-000000000002', 'mentor')
 ON CONFLICT (announcement_id, role) DO NOTHING;
 
 
 -- 16. ANNOUNCEMENT READS
 INSERT INTO public.announcement_reads (
+  id,
   announcement_id,
   profile_id,
   read_at
 ) VALUES
-('88000000-0000-0000-0000-000000000001', 'me300000-0000-0000-0000-000000000001', now() - interval '1 day'),
-('88000000-0000-0000-0000-000000000002', 'me300000-0000-0000-0000-000000000001', now() - interval '2 hours')
+('49000000-0000-4000-8000-000000000001', '88000000-0000-0000-0000-000000000001', 'a1000000-0000-4000-8000-000000000003', '2026-09-02 08:00:00+00'),
+('49000000-0000-4000-8000-000000000002', '88000000-0000-0000-0000-000000000002', 'a1000000-0000-4000-8000-000000000003', '2026-09-09 10:00:00+00')
 ON CONFLICT (announcement_id, profile_id) DO NOTHING;
 
 
@@ -283,19 +322,23 @@ INSERT INTO public.calendar_events (
   visibility,
   location,
   color_key,
-  created_by
+  created_by,
+  updated_by,
+  created_at,
+  updated_at
 ) VALUES
-('99000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Staff Preparation Seminar', 'Multi-day seminar to prepare for the upcoming school year.', '2026-08-25 09:00:00+03', '2026-08-27 16:00:00+03', false, 'staff_only', 'Main Auditorium', 'blue', 'ad100000-0000-0000-0000-000000000001'),
-('99000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Tenth Grade Parents Evening', 'Initial meeting with parents of Tenth graders.', '2026-11-15 16:30:00+03', '2026-11-15 19:30:00+03', false, 'groups', 'Library Hall', 'green', 'ma200000-0000-0000-0000-000000000001')
+('99000000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Staff Preparation Seminar', 'Multi-day seminar to prepare for the upcoming school year.', '2026-08-25 09:00:00+03', '2026-08-27 16:00:00+03', false, 'staff_only', 'Main Auditorium', 'blue', 'a1000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', '2026-08-01 09:00:00+00', '2026-08-01 09:00:00+00'),
+('99000000-0000-0000-0000-000000000002', '26000000-0000-0000-0000-000000002026', 'Tenth Grade Family Evening', 'Initial meeting with families of Tenth grade students.', '2026-11-15 16:30:00+03', '2026-11-15 19:30:00+03', false, 'groups', 'Library Hall', 'green', 'a1000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002', '2026-10-01 09:00:00+00', '2026-10-01 09:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 18. CALENDAR EVENT GROUPS
 INSERT INTO public.calendar_event_groups (
+  id,
   event_id,
   group_id
 ) VALUES
-('99000000-0000-0000-0000-000000000002', '11000000-0000-0000-0000-000000000001')
+('4a000000-0000-4000-8000-000000000001', '99000000-0000-0000-0000-000000000002', '11000000-0000-0000-0000-000000000001')
 ON CONFLICT (event_id, group_id) DO NOTHING;
 
 
@@ -313,33 +356,39 @@ INSERT INTO public.learning_groups (
   active_from,
   active_until,
   is_active,
-  created_by
+  created_by,
+  updated_by,
+  created_at,
+  updated_at
 ) VALUES
-('aa100000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Software Development Lab', 'monday', '11:30:00', '13:30:00', 'me300000-0000-0000-0000-000000000001', 'Room 102', 'Weekly hands-on coding and architecture sessions.', '2026-09-01', '2027-06-30', true, 'ma200000-0000-0000-0000-000000000001')
+('aa100000-0000-0000-0000-000000000001', '26000000-0000-0000-0000-000000002026', 'Software Development Lab', 'monday', '11:30:00', '13:30:00', 'a1000000-0000-4000-8000-000000000003', 'Room 102', 'Weekly hands-on coding and architecture sessions.', '2026-09-01', '2027-06-30', true, 'a1000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002', '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 20. LEARNING GROUP TARGET GROUPS
 INSERT INTO public.learning_group_target_groups (
+  id,
   learning_group_id,
   group_id
 ) VALUES
-('aa100000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001')
+('4b000000-0000-4000-8000-000000000001', 'aa100000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001')
 ON CONFLICT (learning_group_id, group_id) DO NOTHING;
 
 
 -- 21. NOTIFICATIONS
 INSERT INTO public.notifications (
+  id,
   profile_id,
   type,
   title,
   body,
   deep_link,
   read_at,
-  sent_at
+  sent_at,
+  created_at
 ) VALUES
-('me300000-0000-0000-0000-000000000001', 'emotional_status_changed', 'Critical Emotional Status', 'Charlies emotional status has been updated to RED.', '/students/55000000-0000-0000-0000-000000000003', NULL, now() - interval '1 hour')
-ON CONFLICT DO NOTHING;
+('4c000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000003', 'emotional_status_changed', 'Critical Emotional Status', 'Charlie''s emotional status has been updated to red.', '/students/55000000-0000-0000-0000-000000000003', NULL, '2026-09-09 12:00:00+00', '2026-09-09 12:00:00+00')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 22. STAFF ACCESS GRANTS
@@ -347,32 +396,41 @@ INSERT INTO public.staff_access_grants (
   id,
   email,
   is_active,
-  created_by
+  created_by,
+  created_at,
+  updated_at
 ) VALUES
-('bb200000-0000-0000-0000-000000000001', 'super.admin@example.test', true, NULL),
-('bb200000-0000-0000-0000-000000000002', 'manager.one@example.test', true, NULL),
-('bb200000-0000-0000-0000-000000000003', 'mentor.one@example.test', true, NULL),
-('bb200000-0000-0000-0000-000000000004', 'mentor.two@example.test', true, NULL),
-('bb200000-0000-0000-0000-000000000005', 'master.one@example.test', true, NULL),
-('bb200000-0000-0000-0000-000000000006', 'counselor.one@example.test', true, NULL)
+('bb200000-0000-0000-0000-000000000001', 'super.admin@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000002', 'manager.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000003', 'mentor.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000004', 'mentor.two@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000005', 'master.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000006', 'counselor.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000007', 'leadership.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00'),
+('bb200000-0000-0000-0000-000000000008', 'staff.one@example.test', true, NULL, '2026-09-01 08:00:00+00', '2026-09-01 08:00:00+00')
 ON CONFLICT (id) DO NOTHING;
 
 
 -- 23. STAFF ACCESS GRANT ROLES
 INSERT INTO public.staff_access_grant_roles (
+  id,
   grant_id,
-  role
+  role,
+  created_at
 ) VALUES
-('bb200000-0000-0000-0000-000000000001', 'super_admin'),
-('bb200000-0000-0000-0000-000000000001', 'staff'),
-('bb200000-0000-0000-0000-000000000002', 'manager'),
-('bb200000-0000-0000-0000-000000000002', 'staff'),
-('bb200000-0000-0000-0000-000000000003', 'mentor'),
-('bb200000-0000-0000-0000-000000000003', 'staff'),
-('bb200000-0000-0000-0000-000000000004', 'mentor'),
-('bb200000-0000-0000-0000-000000000004', 'staff'),
-('bb200000-0000-0000-0000-000000000005', 'master'),
-('bb200000-0000-0000-0000-000000000005', 'staff'),
-('bb200000-0000-0000-0000-000000000006', 'counselor'),
-('bb200000-0000-0000-0000-000000000006', 'staff')
+('4d000000-0000-4000-8000-000000000001', 'bb200000-0000-0000-0000-000000000001', 'super_admin', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000002', 'bb200000-0000-0000-0000-000000000001', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000003', 'bb200000-0000-0000-0000-000000000002', 'manager', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000004', 'bb200000-0000-0000-0000-000000000002', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000005', 'bb200000-0000-0000-0000-000000000003', 'mentor', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000006', 'bb200000-0000-0000-0000-000000000003', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000007', 'bb200000-0000-0000-0000-000000000004', 'mentor', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000008', 'bb200000-0000-0000-0000-000000000004', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000009', 'bb200000-0000-0000-0000-000000000005', 'master', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000010', 'bb200000-0000-0000-0000-000000000005', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000011', 'bb200000-0000-0000-0000-000000000006', 'counselor', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000012', 'bb200000-0000-0000-0000-000000000006', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000013', 'bb200000-0000-0000-0000-000000000007', 'leadership', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000014', 'bb200000-0000-0000-0000-000000000007', 'staff', '2026-09-01 08:00:00+00'),
+('4d000000-0000-4000-8000-000000000015', 'bb200000-0000-0000-0000-000000000008', 'staff', '2026-09-01 08:00:00+00')
 ON CONFLICT (grant_id, role) DO NOTHING;
