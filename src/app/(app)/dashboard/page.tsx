@@ -1,17 +1,15 @@
 import { t } from "@/lib/i18n";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/ui";
 import {
   Bell,
   Search,
   CheckCircle2,
   Calendar,
   User,
-  Home,
   Users,
   CalendarDays,
-  Settings,
-  MessageSquare,
   Sparkles,
   ShieldCheck,
 } from "lucide-react";
@@ -21,28 +19,19 @@ export default async function DashboardPage() {
   const { data: isSuperAdmin } = await supabase.rpc("current_user_is_super_admin");
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 flex justify-center items-stretch font-sans">
-      {/* Mobile-first layout container: max-w-md on desktop, full-width on mobile */}
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border-x border-zinc-200 dark:border-zinc-800 flex flex-col shadow-2xl relative pb-20">
-        
-        {/* Top Header */}
-        <header className="sticky top-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm z-10 border-b border-zinc-100 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-emerald-500/20">
-              C
-            </div>
-            <span className="font-bold text-lg text-zinc-900 dark:text-zinc-50 tracking-tight">
-              {t("app.title")}
-            </span>
-          </div>
-          <button className="relative p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-zinc-900" />
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col border-x border-line bg-surface-raised">
+      <AppHeader
+        title={t("app.title")}
+        trailing={
+          <button className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-secondary transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            <Bell aria-hidden="true" className="h-5 w-5" />
+            <span className="absolute top-2 end-2 h-2 w-2 rounded-full bg-status-critical ring-2 ring-surface-raised" />
           </button>
-        </header>
+        }
+      />
 
-        {/* Scrollable Dashboard Area */}
-        <main className="flex-1 overflow-y-auto p-4 space-y-6">
+      {/* Scrollable Dashboard Area */}
+      <main className="flex-1 p-4 space-y-6">
           
           {/* Welcome Dashboard Section */}
           <section className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-lg shadow-emerald-600/10">
@@ -325,32 +314,6 @@ export default async function DashboardPage() {
           </section>
 
         </main>
-
-        {/* Bottom Navigation */}
-        <nav className="absolute bottom-0 inset-x-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm border-t border-zinc-150 dark:border-zinc-800 flex items-center justify-around py-2 px-1 z-10">
-          <button className="flex flex-col items-center gap-1.5 text-emerald-600 font-semibold text-[10px]">
-            <Home className="w-5 h-5" />
-            <span>{t("nav.dashboard")}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium hover:text-zinc-600 dark:hover:text-zinc-300">
-            <Users className="w-5 h-5" />
-            <span>{t("nav.students")}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium hover:text-zinc-600 dark:hover:text-zinc-300">
-            <CalendarDays className="w-5 h-5" />
-            <span>{t("nav.calendar")}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium hover:text-zinc-600 dark:hover:text-zinc-300">
-            <MessageSquare className="w-5 h-5" />
-            <span>{t("nav.announcements")}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium hover:text-zinc-600 dark:hover:text-zinc-300">
-            <Settings className="w-5 h-5" />
-            <span>{t("nav.settings")}</span>
-          </button>
-        </nav>
-
-      </div>
     </div>
   );
 }

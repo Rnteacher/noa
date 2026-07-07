@@ -2,7 +2,6 @@ import { Inbox, Search } from 'lucide-react';
 import {
   Alert,
   AppHeader,
-  BottomNav,
   Card,
   EmptyState,
   ListRow,
@@ -17,11 +16,11 @@ import { t } from '@/lib/i18n';
  * Internal component showcase for the base UI kit. Protected like every
  * other app route by src/proxy.ts; renders static examples only, so it is
  * independent of seed data. Section headings are component identifiers,
- * not user-facing copy.
+ * not user-facing copy. The bottom nav comes from the shared (app) layout.
  */
 export default function UiShowcasePage() {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-surface pb-24">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <AppHeader
         title={t('app.title')}
         backHref="/dashboard"
@@ -152,8 +151,6 @@ export default function UiShowcasePage() {
           </Card>
         </section>
       </main>
-
-      <BottomNav />
     </div>
   );
 }
