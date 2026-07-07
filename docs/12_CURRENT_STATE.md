@@ -53,6 +53,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - `docs/parallel/`
   - `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`
   - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
+  - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
 
 ## Database foundation status
 
@@ -156,13 +157,19 @@ A draft local development seed exists at:
 
 - `supabase/seeds/dev_seed.sql`
 
-The parallel Gemini handoff is stored at:
+The parallel Gemini handoff and review handoff are stored at:
 
 - `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`
+- `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
 
-The seed is intentionally not connected to `supabase/config.toml` yet. Local `supabase db reset` still uses the configured `./seed.sql` path and will not automatically run `supabase/seeds/dev_seed.sql`.
+The seed is intentionally not connected to `supabase/config.toml` yet. Local `supabase db reset` still uses the default settings (no seed or configured `./seed.sql` path) and will not automatically run `supabase/seeds/dev_seed.sql`.
 
-The draft seed includes mock English-only data across the current schema, including draft `auth.users` rows. Those `auth.users` inserts need review against the local Supabase Auth schema before the seed is activated.
+Status:
+- `supabase/seeds/dev_seed.sql` was reviewed and fixed.
+- Manual execution of the seed file after `supabase db reset` passed successfully.
+- Direct `auth.users` inserts are compatible with the current local Supabase Auth schema for local development/profile FK seeding.
+- Client password sign-in for mock auth users has not been validated/tested.
+- The seed remains disconnected from `supabase/config.toml` until automatic seeding is approved by the team.
 
 ## Latest validation results
 
@@ -275,6 +282,6 @@ Created/maintained docs for:
 ## Next recommended tasks
 
 1. **Manual Google OAuth and grant-management smoke test**: Configure Google OAuth credentials locally, sign in as a bootstrap super admin, visit `/admin/access-grants`, create a grant, and verify audit log rows.
-2. **Review and activate the draft development seed**: Validate `supabase/seeds/dev_seed.sql`, especially the draft `auth.users` inserts, then decide whether to copy/rename it to `supabase/seed.sql` or update `supabase/config.toml`.
+2. **Activate the reviewed development seed for local db reset**: Enable automatic seeding on database resets by configuring the seed file or settings.
 3. **Design tokens and base components**: Start implementation from the new `docs/design/05_VISUAL_SYSTEM_DIRECTION.md` and shared component patterns.
 4. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.

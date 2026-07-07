@@ -1,41 +1,34 @@
-# Handoff - Documentation sync after parallel work
+# Handoff — Documentation Sync after Development Seed Review
 
 ## Summary
 
-Updated the central project documentation after merging parallel work. The current project state now records the implemented Google OAuth/protected route foundation, the super-admin staff access grant management surface, the UX design documentation package, and the draft development seed.
+Synchronized the central documentation after reviewing and validating the local development seed. The database, auth logic, access controls, visual wireframes, and seeding resources have been successfully structured and verified.
 
 ## Current implemented foundation
 
-- Google OAuth routes and protected routing exist.
-- First-run access control exists through staff access grants and bootstrap super admin emails.
-- `/admin/access-grants` exists as the first super-admin-only grant management surface.
-- Grant mutations are server-side and audit logged.
-
-## Parallel work now recorded
-
-- UX design foundation docs were added under `docs/design/`.
-- Claude's UI foundation handoff is stored at `docs/parallel/CLAUDE_UI_FOUNDATION_HANDOFF.md`.
-- A draft local development seed was added at `supabase/seeds/dev_seed.sql`.
-- Gemini's seed handoff is stored at `docs/parallel/GEMINI_DEV_SEED_HANDOFF.md`.
+- **Google OAuth and Route Protection**: Enforced on authentication callback, routing logic, and session lookups.
+- **First-Run Access Control**: Google sign-in restricts access using `GOOGLE_ALLOWED_DOMAIN` and whitelisted staff email grants.
+- **Access Grant Management**: `/admin/access-grants` is available for super-admins to manage email permissions, roles, and log audit entries.
+- **UX Design Foundation**: Detailed design wireframes and guidelines are available under `docs/design/`.
+- **Reviewed Development Seed**: `supabase/seeds/dev_seed.sql` has been fully reviewed and fixed. Manual execution against the local database succeeded cleanly.
 
 ## Seed status
 
-The draft seed is not enabled. It remains disconnected from `supabase/config.toml`, so `supabase db reset` will not automatically run `supabase/seeds/dev_seed.sql`.
-
-The seed includes draft `auth.users` rows and needs review against the local Supabase Auth schema before activation.
+- The seed remains **disabled** (not connected to `supabase/config.toml`). Database resets will not load it automatically.
+- Direct `auth.users` mock records in the seed are verified to be fully compatible with the current local Supabase Auth schema for profile mapping and testing.
+- Client password sign-in has not been tested.
 
 ## Files changed
 
-- `docs/12_CURRENT_STATE.md`: Added UX design foundation status, parallel handoff references, draft seed status, and updated next tasks.
-- `docs/handoff.md`: Replaced with this current sync handoff.
+- `docs/12_CURRENT_STATE.md`: Registered the review handoff, updated the seed status, and updated the next recommended task.
+- `docs/handoff.md`: Updated to this current handoff summary.
 
 ## Decisions made
 
-- No application code was changed.
-- No migrations were changed.
-- No i18n files were changed.
-- The draft dev seed remains disabled until reviewed.
-- `docs/07_LOCAL_SUPABASE_WORKFLOW.md` already used `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET`, so it was not changed.
+- No application code changed.
+- No migrations changed.
+- No translation files changed.
+- Local seed config remains disconnected to prevent automatic database load until team approval.
 
 ## Tests/checks run
 
@@ -48,21 +41,19 @@ git diff --check
 
 Result:
 
-- `npm run check:no-hebrew-in-code`: Passed.
+- `check:no-hebrew-in-code`: Passed.
 - `npm run lint`: Passed.
 - `npm run build`: Passed.
-- `git diff --check`: Passed with Windows line-ending normalization warnings only.
+- `git diff --check`: Passed.
 
 ## Known risks
 
-- The draft development seed includes direct `auth.users` inserts and may need adjustment before it can run safely on local Supabase.
-- The design docs are planning artifacts; implementation still needs design tokens and shared components.
+- Seeding direct auth records is validated only for schema/profile compatibility; password auth via client sign-in remains untested.
 
 ## Open questions
 
-- Should the draft seed be activated by copying it to `supabase/seed.sql`, or should `supabase/config.toml` be updated after review?
-- Should the current local starter script containing OAuth environment variables be moved to an untracked example template before the repo is shared?
+- None.
 
 ## Recommended next task
 
-Review `supabase/seeds/dev_seed.sql`, especially the draft `auth.users` inserts, then decide how to activate local seed data.
+Activate the reviewed development seed for local db reset, or perform a manual Google OAuth and access-grants smoke test.
