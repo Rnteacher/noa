@@ -133,12 +133,16 @@ export default async function DashboardPage() {
             >
               <Search aria-hidden="true" className="h-5 w-5" />
             </Link>
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-secondary">
+            <Link
+              href="/notifications"
+              aria-label={t('more.notifications')}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-secondary transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
               <Bell aria-hidden="true" className="h-5 w-5" />
               {dashboard.requiredAcknowledgements.length > 0 ? (
                 <span className="absolute top-2 end-2 h-2 w-2 rounded-full bg-status-critical ring-2 ring-surface-raised" />
               ) : null}
-            </span>
+            </Link>
           </>
         }
       />

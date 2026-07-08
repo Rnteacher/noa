@@ -23,6 +23,7 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **Staff-facing announcements read and acknowledgement exist**: `/announcements` and `/announcements/[announcementId]` show visible announcements and support read acknowledgement through RLS-safe server actions.
 - **Admin announcement management v1 exists**: `/admin/announcements` allows managers and super admins (or leadership role holders, for creation) to view an active announcements list/table, read acknowledgement progress counters, compose and publish new announcements (pinned state, target roles, target student groups, requires acknowledgement), and delete announcements they manage. Creation/deletion are RLS-safe and write secure audit logs (`announcement.created`, `announcement.deleted`).
 - **Admin calendar management v1 exists**: `/admin/calendar` lets managers and super admins list events (with today/week/month/upcoming filters), create events, edit events inline, and delete events, using the existing `calendar_events`/`calendar_event_groups` schema and RLS (no migration added). Group targeting is supported when visibility is `groups`. Mutations audit `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted`, and revalidate both `/admin/calendar` and `/dashboard` so dashboard calendar sections reflect changes. Google Calendar sync, recurrence, drag-and-drop, and the full Day/Week/Year-Gantt view switcher remain deferred.
+- **Notification delivery & bottom-nav badges v1 exists (Hardened)**: Student card updates automatically dispatch in-app notifications to active followers of the student (excluding the change actor). The database function `create_student_change_notification` is security-hardened against direct client calls, fake actor ID spoofing, unauthorized notification creation, and event spamming, enforcing active staff status, active student validation, strict event type allowlists, and per-event caller authorization checks. Generates privacy-preserving text formatting internally (hides emotional note/color, raw message body, and goal descriptions). `/notifications` lists user's notifications. Unread notifications display distinct styling and can be marked as read individually or in bulk. Mobile `BottomNav` overlays unread notification badges on the `More` tab item. Web Push delivery remains deferred.
 
 ## Student card status details
 
@@ -36,8 +37,8 @@ See `docs/12_CURRENT_STATE.md` ("Student card status") for the full breakdown of
 
 ## Next task options
 
-- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, goal management, follow/unfollow, student photo uploads, the admin shell/announcements management, and calendar management.
+- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, goal management, follow/unfollow, student photo uploads, the admin shell/announcements management, calendar management, and notifications.
 - Primary/central goal follow-up after uniqueness is enforced or otherwise guaranteed.
-- Notification delivery and bottom-nav badges.
+- Web Push delivery and push subscription management.
 - Calendar management follow-up: view switcher (Day/Week/Month/Year-Gantt), drag-and-drop, recurrence, Google Calendar outbound sync indicators.
 - Learning groups weekly editor (`/admin/learning-groups`).

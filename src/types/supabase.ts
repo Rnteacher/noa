@@ -1396,6 +1396,14 @@ export type Database = {
       }
     }
     Functions: {
+      create_student_change_notification: {
+        Args: {
+          actor_id: string
+          event_type: string
+          target_student_id: string
+        }
+        Returns: undefined
+      }
       current_profile_id: { Args: never; Returns: string }
       current_user_can_manage_student_photo: {
         Args: { target_student_id: string }

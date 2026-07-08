@@ -31,6 +31,7 @@
   "common.loading": "Loading...",
   "common.searchPlaceholder": "Search student...",
   "common.back": "Back",
+  "common.view": "View",
   "status.positive": "On track",
   "status.caution": "Needs attention",
   "status.critical": "Needs intervention",
@@ -378,5 +379,15 @@
   "students.goals.deleteFailed": "Failed to delete the goal. Please try again.",
   "students.goals.invalidStatus": "The selected goal status is invalid.",
   "students.goals.notFound": "The goal could not be loaded.",
-  "students.goals.manageForbidden": "You do not have permission to manage this student's goals."
+  "students.goals.manageForbidden": "You do not have permission to manage this student's goals.",
+  "notifications.title": "Notifications",
+  "notifications.emptyTitle": "No notifications",
+  "notifications.emptyDescription": "When changes happen for students you follow, they will appear here.",
+  "notifications.markRead": "Mark as read",
+  "notifications.markAllRead": "Mark all as read",
+  "notifications.unread": "Unread",
+  "notifications.error.failedToLoad": "Failed to load notifications.",
+  "notifications.error.failedToUpdate": "Failed to update notifications. Please try again.",
+  "more.notifications": "Notifications",
+  "more.notificationsDescription": "View updates and changes for followed students"
 }

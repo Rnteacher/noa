@@ -31,6 +31,7 @@
   "common.loading": "טוען...",
   "common.searchPlaceholder": "חיפוש תלמיד...",
   "common.back": "חזרה",
+  "common.view": "צפייה",
   "status.positive": "תקין",
   "status.caution": "דורש תשומת לב",
   "status.critical": "דורש התערבות",
@@ -378,5 +379,15 @@
   "students.goals.deleteFailed": "מחיקת המטרה נכשלה. יש לנסות שנית.",
   "students.goals.invalidStatus": "מצב המטרה שנבחר אינו תקין.",
   "students.goals.notFound": "לא ניתן לטעון את המטרה.",
-  "students.goals.manageForbidden": "אין לך הרשאה לנהל את המטרות של התלמיד הזה."
+  "students.goals.manageForbidden": "אין לך הרשאה לנהל את המטרות של התלמיד הזה.",
+  "notifications.title": "התראות",
+  "notifications.emptyTitle": "אין התראות חדשות",
+  "notifications.emptyDescription": "כאשר יתרחשו שינויים בתלמידים אחריהם אתם עוקבים, הם יופיעו כאן.",
+  "notifications.markRead": "סמן כנקרא",
+  "notifications.markAllRead": "סמן הכל כנקרא",
+  "notifications.unread": "לא נקרא",
+  "notifications.error.failedToLoad": "טעינת ההתראות נכשלה.",
+  "notifications.error.failedToUpdate": "עדכון ההתראות נכשל. יש לנסות שנית.",
+  "more.notifications": "התראות",
+  "more.notificationsDescription": "צפייה בעדכונים ושינויים בתלמידים במעקב"
 }

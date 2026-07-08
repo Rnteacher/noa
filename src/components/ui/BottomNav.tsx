@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { CalendarDays, Ellipsis, Home, Megaphone, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,6 +22,21 @@ const NAV_ITEMS = [
  */
 export function BottomNav() {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    import('@/features/notifications/actions')
+      .then((mod) => mod.getUnreadNotificationCountAction())
+      .then((count) => {
+        if (active) setUnreadCount(count);
+      })
+      .catch((err) => console.error('Failed to load unread count in BottomNav:', err));
+
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   return (
     <nav
@@ -44,7 +60,17 @@ export function BottomNav() {
                   : 'font-medium text-ink-muted hover:text-ink-secondary'
               )}
             >
-              <Icon aria-hidden="true" className="h-5 w-5" />
+              <div className="relative">
+                <Icon aria-hidden="true" className="h-5 w-5" />
+                {href === '/more' && unreadCount > 0 ? (
+                  <span
+                    className="absolute -top-1.5 -end-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-critical px-1 text-[9px] font-bold text-white ring-2 ring-surface-raised"
+                    aria-label={t('notifications.unread')}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
+              </div>
               <span>{t(labelKey)}</span>
             </Link>
           );

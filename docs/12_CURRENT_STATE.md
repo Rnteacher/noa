@@ -41,7 +41,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
   - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
   - `src/app/(app)/admin/calendar/DeleteCalendarEventButton.tsx` (calendar event deletion client button)
-  - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
+  - `src/app/(app)/more/page.tsx` (more tools route page)
+  - `src/app/(app)/notifications/page.tsx` (notifications feed page)
+  - `src/app/(app)/notifications/MarkNotificationReadButton.tsx` (mark single notification read client button component)
+  - `src/app/(app)/notifications/MarkAllNotificationsReadButton.tsx` (mark all notifications read client button component)
   - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
 - `src/components/` (UI elements and layouts)
   - `src/components/ui/` (base components: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`)
@@ -79,10 +82,17 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `calendar/`
     - `src/features/calendar/admin-queries.ts` (Admin calendar server-side queries)
     - `src/features/calendar/admin-actions.ts` (Admin calendar Server Actions)
-  - `admin/`, `auth/`, `notifications/`
+  - `notifications/`
+    - `src/features/notifications/queries.ts` (Notifications server-side queries)
+    - `src/features/notifications/actions.ts` (Notifications Server Actions)
+  - `admin/`, `auth/`
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
   - `supabase/migrations/20260707115303_staff_access_grants.sql`
+  - `supabase/migrations/20260708184000_student_photos.sql`
+  - `supabase/migrations/20260708190500_harden_student_photo_updates.sql`
+  - `supabase/migrations/20260708234000_notifications_system.sql`
+  - `supabase/migrations/20260708235000_harden_notifications_rpc.sql`
   - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
@@ -116,6 +126,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_ADMIN_DESKTOP_SHELL_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_ANNOUNCEMENTS_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_CALENDAR_V1_HANDOFF.md`
+  - `docs/parallel/GPT_NOTIFICATIONS_BADGES_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -326,6 +337,24 @@ Status:
   - Draft mode and scheduled publishing (deferred as they are not supported by seed schemas).
   - Push notification delivery (V1 does not implement push notifications).
   - Rich text formatting (beyond plain text area) and attachments upload.
+
+## Notification delivery & bottom-nav badges v1 status
+
+In-app notifications are delivered to staff members who follow specific students when those students' cards are updated.
+
+Status:
+- Updates on student cards (message creation, project status, emotional status, goal creation/modification/deletion, photo changes) trigger server actions that execute the database function `create_student_change_notification`.
+- The database function `create_student_change_notification` is security-hardened against direct client calls, fake actor ID spoofing, unauthorized notification creation, and event spamming, enforcing active staff status, active student validation, strict event type allowlists, and per-event caller authorization checks.
+- Notifications are RLS-visible only to their recipient (`profile_id = auth.uid()`).
+- Privacy guidelines are strictly followed: message notifications, emotional status updates, goal mutations, and photo updates are generic and omit sensitive details (no raw message body, no emotional note/color, no goal details).
+- Actor who makes the change is automatically excluded from notification delivery.
+- `/notifications` lists recent notifications for the current authenticated user.
+- Unread status is indicated with distinct borders/colors and a blue badge.
+- Interactive client buttons permit marking a single notification or all notifications as read under `useTransition`.
+- Mobile BottomNav displays a numeric unread badge overlay on the `More` tab item by dynamically fetching counts.
+- `/more` page displays a notification card displaying the live unread count and routing to `/notifications`.
+- Dashboard header Bell icon routes to `/notifications`.
+- Web Push delivery, service workers, and VAPID registration remain deferred.
 
 ## Admin calendar management v1 status
 
@@ -650,6 +679,6 @@ Created/maintained docs for:
 
 1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, and calendar event creation/editing/deletion.
 2. **Primary/central goal follow-up**: Add safe primary/central goal management after enforcing or otherwise guaranteeing one primary goal per student.
-3. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
+3. **Web Push delivery & push subscription management**: Implement browser Web Push notifications, service worker registration, VAPID key pairs, and client push subscription endpoints. In-app notification delivery and BottomNav badges are fully completed.
 4. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
 5. **Learning groups weekly editor**: Implement `/admin/learning-groups` per the admin desktop UX design doc.
