@@ -36,6 +36,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
 - `src/components/` (UI elements and layouts)
   - `src/components/ui/` (base components: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`)
+  - `src/components/layout/` (structural layouts: `AdminShell`)
 - `src/lib/` (general utilities)
   - `src/lib/cn.ts` (Tailwind class-joining utility helper)
   - `src/lib/env.ts` (Zod environment variable schema validation)
@@ -97,6 +98,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_FOLLOW_STUDENT_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_PHOTO_UPLOADS_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_PHOTO_SECURITY_HARDENING_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_DESKTOP_SHELL_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -209,11 +211,12 @@ Status:
 The layout and navigation shell integration is complete.
 
 Status:
-- `BottomNav` is rendered once in the protected app layout (`src/app/(app)/layout.tsx`) as a persistent global element.
-- `AppHeader` is rendered per-page to support individual screen actions, custom titles, and back link navigation affordances.
+- `BottomNav` is rendered in the protected app layout (`src/app/(app)/layout.tsx`) as a persistent element for staff-facing mobile routes. It is conditionally hidden on admin routes.
+- `AppHeader` is rendered per-page to support individual screen actions, custom titles, and back link navigation affordances in the mobile staff app.
 - `/today`, `/students`, `/announcements`, and `/more` exist as protected placeholder routes returning placeholder content via the i18n layer.
 - Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
-- Admin-specific layouts (desktop side-nav for administration screens) are deferred.
+- `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
+- `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
 - Real dashboard data queries and status aggregations are implemented in Dashboard v1.
 
 ## Dashboard v1 status
@@ -232,10 +235,7 @@ Status:
   - Followed students count (v1 summary card linking to the students tab).
   - Super-admin access-grants shortcut (visible only to users with `super_admin` role).
 - Deferred features:
-  - Announcement detail viewing and acknowledgement mutation flow.
-  - Full announcements module page.
-  - Calendar event detail viewing and editing/creation.
-  - Student search capability and detailed student cards are implemented in Student search/card v1.
+  - Calendar event detail viewing and editing/creation (deferred to future calendar management task).
   - Live followed-student change feed.
   - Bottom navigation activity badges.
 - Access enforcement:
@@ -550,7 +550,8 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, and student photo uploads.
-2. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
-3. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
-4. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, and the admin layout navigation sidebar.
+2. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
+3. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
+4. **Announcement management composer**: Build the admin-facing announcements dashboard table, filters, read progress reports, and audience builder side panel.
+5. **Calendar management**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, and Google Calendar sync indicators.

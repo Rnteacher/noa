@@ -2,13 +2,15 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal, follow/unfollow, and student-photo workflows running against the local Supabase schema, storage bucket, and seed.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal, follow/unfollow, student-photo, and admin layout shell workflows running against the local Supabase schema, storage bucket, and seed.
 
 ## Current Implemented Foundation
 
 - **Local seed is active**: `supabase/seeds/dev_seed.sql` is enabled through `supabase/config.toml` and loads during `supabase db reset`.
 - **OAuth/access grants foundation exists**: Google OAuth routing, protected app access, active profile checks, bootstrap super admin support, and super-admin access grant management are implemented.
-- **UI base components and app shell exist**: Design tokens, `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`, and the protected app shell are in place.
+- **UI base components exist**: Design tokens, `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`, and protected app shell layouts are in place.
+- **Staff mobile shell exists**: `/dashboard`, `/today`, `/students`, `/announcements`, and `/more` render protected app pages using the persistent mobile `BottomNav` layout.
+- **Admin desktop shell v1 exists**: `/admin/*` routes are detected by a path-aware protected layout wrapper (`src/app/(app)/layout.tsx`) and render the desktop-first `AdminShell` component (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff app, and a collapsible menu drawer for mobile viewports.
 - **Dashboard v1 exists**: `/dashboard` reads live RLS-scoped announcements, acknowledgements, events, followed-student counts, and the super-admin access-grants shortcut.
 - **Student search/card exists**: `/students` lists active students and `/students/[studentId]` renders identity, contacts, current project, masters, emotional status, goals, and recent messages.
 - **Student message composer exists**: Active staff can add student-card update messages; inserts use request-scoped Supabase clients and audit `student_message.created`.
@@ -20,19 +22,18 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **Student Photo Uploads v1 exists (Security Hardened)**: Authorized active group mentors, managers, and super admins can upload or replace a student's profile photo from the student card. Photos are stored in a private Supabase Storage bucket (`student-photos`) and retrieved dynamically via secure signed URLs. Photo updates are column-safe: direct table-level update policies on `public.students` are disabled, and updates are restricted to the `photo_url` column via a secure RPC helper (`update_student_photo_path`) validating user permissions and expected storage paths. Advanced image cropping, image moderation, and bulk photo import remain deferred.
 - **Announcements read path and acknowledgement v1 exist**: `/announcements` and `/announcements/[announcementId]` show visible announcements and support read acknowledgement through RLS-safe server actions.
 
-## Student Photo Uploads v1 Notes
+## Admin-Specific Desktop Layout Shell v1 Notes
 
-- **Migrations were added**:
-  - `supabase/migrations/20260708184000_student_photos.sql` creates the private storage bucket `student-photos` with a 5MB size limit and allowed MIME types (`image/jpeg`, `image/png`, `image/webp`).
-  - `supabase/migrations/20260708190500_harden_student_photo_updates.sql` drops the broad table update policy and replaces it with a security definer RPC helper `public.update_student_photo_path(target_student_id uuid, new_photo_path text)`.
-- **Storage policies**: Restricts reads to active staff members and restricts writes (inserts, updates, deletes) to staff members who pass the `current_user_can_manage_student_photo` helper (based on file paths matching `students/{studentId}/{filename}`).
-- **Table safety**: No direct update access to student rows is permitted; photo URL updates occur strictly via the RPC function which validates user authorization and path format.
-- **UI Toggle**: The student card identity header displays the `<PhotoUploadForm>` component below the student's photo/avatar for authorized users, allowing image selection and automatic upload triggers.
-- **Audit trail**: Photo updates are audited as `student_photo.updated` using the privileged audit log helper.
+- **Least risky path-aware wrapper**: The wrapper detects `/admin` paths in `src/app/(app)/layout.tsx` to conditionally toggle the desktop side navigation shell, completely avoiding risky route-group file moves that would break parallel git branches.
+- **Access grants integration**: `/admin/access-grants` uses the new `AdminShell` frame, adapting its padding margins to fit the layout width, and maintains all super-admin session security checks and audit log actions.
+- **Desktop Sidebar Navigation**: Displays active links for Access grants and muted, non-clickable placeholders for future admin modules (Calendar, Learning groups, Announcements, Students, Groups, Users, Import/Export, Settings).
+- **RTL Support**: Follows logical CSS direction guidelines (`border-e`, `start-0`, flex positioning), working natively for Hebrew/Arabic layout structures.
+- **Mobile Support**: The desktop sidebar collapses on narrow screen sizes into a clean, top-header bar with a toggleable modal overlay drawer.
 
 ## Next Task Options
 
-- **Authenticated browser smoke test** for dashboard, students, announcements, messages, project status, emotional status, goals, follow/unfollow, and student photo uploads.
-- **Admin-specific desktop layout shell**.
+- **Authenticated browser smoke test** for dashboard, students, announcements, messages, project status, emotional status, goals, follow/unfollow, student photo uploads, and the admin layout navigation sidebar.
 - **Goal editing/deletion follow-up**.
 - **Notification delivery & bottom-nav badges**.
+- **Announcement management composer** (admin-facing announcements dashboard).
+- **Calendar management** (admin Gantt calendar & slots editor).

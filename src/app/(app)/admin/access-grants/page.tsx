@@ -134,7 +134,7 @@ export default async function AccessGrantsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-950 px-4 py-6">
+    <main className="p-4 md:p-6 lg:p-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
