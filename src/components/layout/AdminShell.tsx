@@ -47,11 +47,11 @@ export function AdminShell({ children }: AdminShellProps) {
       icon: BookOpen, 
       enabled: false 
     },
-    { 
-      href: '#', 
-      labelKey: 'admin.nav.announcements', 
-      icon: Megaphone, 
-      enabled: false 
+    {
+      href: '/admin/announcements',
+      labelKey: 'admin.nav.announcements',
+      icon: Megaphone,
+      enabled: true
     },
     { 
       href: '#', 

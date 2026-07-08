@@ -32,6 +32,9 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/PhotoUploadForm.tsx` (student photo upload client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
+  - `src/app/(app)/admin/announcements/page.tsx` (admin announcements list page)
+  - `src/app/(app)/admin/announcements/AnnouncementForm.tsx` (admin announcement creation client form)
+  - `src/app/(app)/admin/announcements/DeleteAnnouncementButton.tsx` (admin announcement deletion client button)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
   - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
 - `src/components/` (UI elements and layouts)
@@ -63,8 +66,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
     - `src/features/students/actions.ts` (Students Server Actions)
   - `announcements/`
     - `src/features/announcements/queries.ts` (Announcements server-side queries)
+    - `src/features/announcements/admin-queries.ts` (Admin announcements server-side queries)
     - `src/features/announcements/types.ts` (Announcements TypeScript definitions)
     - `src/features/announcements/actions.ts` (Announcements Server Actions)
+    - `src/features/announcements/admin-actions.ts` (Admin announcements Server Actions)
   - `calendar/`, `admin/`, `auth/`, `notifications/`
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
@@ -99,6 +104,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_PHOTO_UPLOADS_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_PHOTO_SECURITY_HARDENING_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_DESKTOP_SHELL_V1_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_ANNOUNCEMENTS_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -283,9 +289,9 @@ Status:
   - Student project title/master assignment editing.
   - Student status push notifications.
 
-## Announcements read v1 status
+## Announcements read and management v1 status
 
-Personal announcements reading path and read acknowledgements are implemented.
+Personal announcements reading path, read acknowledgements, and administrator management compose workflows are implemented.
 
 Status:
 - `/announcements` lists recent RLS-visible announcements, indicating their pinned status and acknowledgement state.
@@ -293,10 +299,18 @@ Status:
 - Acknowledgement-required announcements can be acknowledged by the current authenticated user via an interactive confirmation button.
 - Both read queries and acknowledgement write actions use the normal server Supabase client (`createClient()`) to respect database Row-Level Security (RLS) policies; the service-role client is completely avoided.
 - Dashboard required acknowledgement rows now link to the respective announcement detail flow.
-- Anonymous requests to `/announcements` or `/announcements/[announcementId]` redirect to `/login`.
+- `/admin/announcements` allows managers and super admins (or leadership role holders) to view a list/table of active announcements, see read acknowledgement progress counters, and delete announcements they manage.
+- Dynamic checkbox selectors allow targeting: all staff, specific roles (strictly validated against database `app_role` enum values: `'staff'`, `'mentor'`, `'master'`, `'counselor'`, `'leadership'`, `'manager'`, and `'super_admin'`; the invalid role `'teacher'` was removed), and specific learning groups (fetched dynamically from `student_groups`).
+- Announcements can be composed with custom settings like pinned status (`is_pinned`) and acknowledgement requirements (`requires_acknowledgement`).
+- Deletion is fully protected by RLS delete policies (restricted to managers and super admins) and audited via `announcement.deleted` audit logs.
+- Creation is protected by RLS insert policies (restricted to leadership or above) and audited via `announcement.created` audit logs.
+- RLS database queries and mutations are verified through transaction-rollback SQL probes covering creation permissions, normal staff restriction, invalid role rejection, group targeting, and manager-only delete policies.
+- Anonymous requests to `/announcements`, `/announcements/[announcementId]`, or `/admin/announcements` redirect to `/login`.
 - Deferred features:
-  - Announcement creation, editing, targeting, and management composer.
-  - Push/notification sending flow triggers.
+  - Announcement inline editing/updating.
+  - Draft mode and scheduled publishing (deferred as they are not supported by seed schemas).
+  - Push notification delivery (V1 does not implement push notifications).
+  - Rich text formatting (beyond plain text area) and attachments upload.
 
 ## UX design foundation status
 
@@ -550,8 +564,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, and the admin layout navigation sidebar.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, and announcements creation/deletion/targeting.
 2. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
 3. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
-4. **Announcement management composer**: Build the admin-facing announcements dashboard table, filters, read progress reports, and audience builder side panel.
-5. **Calendar management**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, and Google Calendar sync indicators.
+4. **Calendar management**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, and Google Calendar sync indicators.
