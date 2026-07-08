@@ -22,6 +22,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/today/page.tsx` (protected placeholder tab route)
   - `src/app/(app)/students/page.tsx` (student search list page)
   - `src/app/(app)/students/[studentId]/page.tsx` (student detail card page)
+  - `src/app/(app)/students/[studentId]/MessageComposer.tsx` (student message composer client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -51,6 +52,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `students/`
     - `src/features/students/queries.ts` (Students server-side queries)
     - `src/features/students/types.ts` (Students TypeScript definitions)
+    - `src/features/students/actions.ts` (Students Server Actions)
   - `announcements/`
     - `src/features/announcements/queries.ts` (Announcements server-side queries)
     - `src/features/announcements/types.ts` (Announcements TypeScript definitions)
@@ -79,6 +81,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_DASHBOARD_V1_HANDOFF.md`
   - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
   - `docs/parallel/GPT_SEED_ACTIVATION_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_MESSAGE_COMPOSER_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -204,12 +207,29 @@ Status:
   - Announcement detail viewing and acknowledgement mutation flow.
   - Full announcements module page.
   - Calendar event detail viewing and editing/creation.
-  - Student search capability and detailed student cards.
+  - Student search capability and detailed student cards are implemented in Student search/card v1.
   - Live followed-student change feed.
   - Bottom navigation activity badges.
 - Access enforcement:
   - Anonymous `/dashboard` requests are protected by routing middleware and redirect to `/login`.
   - Authenticated browser smoke testing should still be performed locally once Google OAuth credentials or mock authentication methods are established.
+
+## Student card status
+
+Student search page and detailed student cards with message posting are implemented.
+
+Status:
+- `/students` displays active student list with full name, group, and current project details, supporting ILIKE name search filtering.
+- `/students/[studentId]` shows the identity, follow state, group mentors, contacts, current project, masters, emotional status, goals, and recent messages list.
+- Authenticated active staff members can add new update messages to a student card via the mounted `<MessageComposer>` form.
+- Message inserts use the standard request-scoped Supabase server client and respect database Row-Level Security (RLS) policies.
+- Successfully created messages trigger a secure audit log write (`student_message.created`).
+- Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
+- Deferred features:
+  - Message editing or deletion (except admin soft deletion which remains deferred).
+  - Realtime updates on the message stream.
+  - Student goal or status updates/creation.
+  - Follow/unfollow click mutation integrations.
 
 ## Announcements read v1 status
 
@@ -400,7 +420,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, and announcement acknowledgement workflows.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, and student card message posting workflows.
 2. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
-3. **Student card message composer or mutation flows**: Implement posting new messages from the student card interface, editing student goals/statuses, and audit logs.
+3. **Student goals/status mutation flows**: Implement editing and creation flows for student goals, project status, and emotional status from the student card interface.
 4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.

@@ -16,6 +16,7 @@ import type {
   TrafficLightStatus,
 } from '@/features/students/types';
 import { t } from '@/lib/i18n';
+import { MessageComposer } from './MessageComposer';
 
 type StudentCardPageProps = {
   params: Promise<{
@@ -309,6 +310,8 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
             />
           )}
         </Card>
+
+        <MessageComposer studentId={studentId} />
 
         <Alert variant="info" title={t('students.card.readOnlyTitle')}>
           {t('students.card.readOnlyDescription')}

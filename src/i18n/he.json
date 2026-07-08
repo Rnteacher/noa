@@ -198,5 +198,15 @@
   "announcements.error.notFound": "ההכרזה לא נמצאה או שאינה זמינה יותר.",
   "announcements.error.failedToAcknowledge": "אישור קריאת ההכרזה נכשל. יש לנסות שנית.",
   "announcements.error.failedToLoad": "טעינת ההכרזות נכשלה.",
-  "announcements.error.notRequired": "אין צורך באישור קריאה עבור הכרזה זו."
+  "announcements.error.notRequired": "אין צורך באישור קריאה עבור הכרזה זו.",
+  "students.messages.composerTitle": "הוספת עדכון",
+  "students.messages.bodyLabel": "תוכן העדכון",
+  "students.messages.bodyPlaceholder": "כתבו כאן את העדכון או ההערה שלכם...",
+  "students.messages.tagLabel": "תגית / קטגוריה",
+  "students.messages.importantToggle": "סימון כעדכון חשוב (שולח התראה לעוקבים)",
+  "students.messages.sendButton": "שליחת עדכון",
+  "students.messages.emptyBody": "תוכן העדכון אינו יכול להיות ריק.",
+  "students.messages.bodyTooLong": "תוכן העדכון ארוך מדי (מקסימום 2000 תווים).",
+  "students.messages.createFailed": "שליחת העדכון נכשלה. יש לנסות שנית.",
+  "students.card.invalidStudentId": "מזהה התלמיד אינו תקין."
 }

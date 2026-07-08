@@ -198,5 +198,15 @@
   "announcements.error.notFound": "Announcement not found or no longer available.",
   "announcements.error.failedToAcknowledge": "Failed to confirm read. Please try again.",
   "announcements.error.failedToLoad": "Could not load announcements.",
-  "announcements.error.notRequired": "Confirmation is not required for this announcement."
+  "announcements.error.notRequired": "Confirmation is not required for this announcement.",
+  "students.messages.composerTitle": "Add Update Message",
+  "students.messages.bodyLabel": "Message content",
+  "students.messages.bodyPlaceholder": "Type your update or observation here...",
+  "students.messages.tagLabel": "Select Tag",
+  "students.messages.importantToggle": "Mark as Important (notifies followers)",
+  "students.messages.sendButton": "Post Update",
+  "students.messages.emptyBody": "Message body cannot be empty.",
+  "students.messages.bodyTooLong": "Message content exceeds limit of 2000 characters.",
+  "students.messages.createFailed": "Failed to post message. Please try again.",
+  "students.card.invalidStudentId": "The student ID format is invalid."
 }
