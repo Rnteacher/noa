@@ -94,8 +94,8 @@
   "students.card.messagesTitle": "Messages",
   "students.card.noMessagesTitle": "No messages",
   "students.card.noMessagesDescription": "Recent active staff messages will appear here.",
-  "students.card.readOnlyTitle": "Read-only view",
-  "students.card.readOnlyDescription": "Editing, status updates, and follow controls are deferred to later versions.",
+  "students.card.readOnlyTitle": "Deferred edit areas",
+  "students.card.readOnlyDescription": "Emotional status, goals, follow controls, and photo changes remain deferred.",
   "students.follow.following": "Following",
   "students.follow.notFollowing": "Not followed",
   "students.goals.primary": "Primary goal",
@@ -214,5 +214,13 @@
   "students.messages.deleteForbidden": "You do not have permission to delete this message.",
   "students.messages.deleteFailed": "Failed to delete message. Please try again.",
   "students.card.invalidIdFormat": "The ID format is invalid.",
-  "students.messages.alreadyDeleted": "This message has already been deleted."
+  "students.messages.alreadyDeleted": "This message has already been deleted.",
+  "students.projectStatus.editTitle": "Update project status",
+  "students.projectStatus.selectLabel": "Project status",
+  "students.projectStatus.submitButton": "Save status",
+  "students.projectStatus.updateSuccess": "Project status was updated.",
+  "students.projectStatus.invalidStatus": "The selected project status is invalid.",
+  "students.projectStatus.projectNotFound": "The current project could not be loaded.",
+  "students.projectStatus.updateForbidden": "You do not have permission to update this project status.",
+  "students.projectStatus.updateFailed": "Failed to update project status. Please try again."
 }

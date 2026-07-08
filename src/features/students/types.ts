@@ -30,6 +30,7 @@ export type StudentContact = {
 
 export type StudentPerson = {
   id: string;
+  profileId: string | null;
   fullName: string;
   isPrimary: boolean;
 };
@@ -70,6 +71,7 @@ export type StudentCardData = {
     status: TrafficLightStatus;
     statusSince: string | null;
     masters: StudentPerson[];
+    canUpdateStatus: boolean;
   } | null;
   emotionalStatus: {
     status: TrafficLightStatus;

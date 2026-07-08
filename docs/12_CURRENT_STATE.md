@@ -24,6 +24,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/page.tsx` (student detail card page)
   - `src/app/(app)/students/[studentId]/MessageComposer.tsx` (student message composer client component)
   - `src/app/(app)/students/[studentId]/DeleteMessageButton.tsx` (student message deletion client component)
+  - `src/app/(app)/students/[studentId]/ProjectStatusForm.tsx` (project traffic-light status update client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -84,6 +85,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_SEED_ACTIVATION_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_MESSAGE_COMPOSER_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_MESSAGE_SOFT_DELETE_V1_HANDOFF.md`
+  - `docs/parallel/GPT_PROJECT_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -218,7 +220,7 @@ Status:
 
 ## Student card status
 
-Student search page and detailed student cards with message posting are implemented.
+Student search page and detailed student cards with message posting and project status updates are implemented.
 
 Status:
 - `/students` displays active student list with full name, group, and current project details, supporting ILIKE name search filtering.
@@ -227,12 +229,20 @@ Status:
 - Message inserts use the standard request-scoped Supabase server client and respect database Row-Level Security (RLS) policies.
 - Message soft deletion is implemented: users can soft-delete their own messages, and super admins can soft-delete any message. Deletions are performed under the RLS model.
 - Successfully created and deleted messages write secure audit logs (`student_message.created` and `student_message.deleted`).
+- Authorized project masters assigned to the current project can update the project traffic-light status from the Current project section.
+- Managers can update project traffic-light status because the existing schema helper `current_user_can_update_student_project` explicitly includes `current_user_is_manager_or_super_admin`.
+- Super admins can update any project traffic-light status through the same existing schema/RLS authorization path.
+- Project status updates use the normal request-scoped Supabase client, update only `projects.status` and updater metadata, and write secure audit logs (`project.status_updated`).
+- No project-status migration was added; Project Status Mutation v1 uses the existing `projects.status` field, `traffic_light_status` enum, current-project model, and RLS helper/policy.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
   - Message editing.
   - Permanent message deletion.
   - Realtime updates on the message stream.
-  - Student goal or status updates/creation.
+  - Emotional status mutation flow.
+  - Student goals mutation flow.
+  - Student project title/master assignment editing.
+  - Student status notifications.
   - Follow/unfollow click mutation integrations.
 
 ## Announcements read v1 status
@@ -371,6 +381,32 @@ Results:
 - `npm run build` passed.
 - `git diff --check` passed.
 
+## Latest project status mutation validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and loaded `supabase/seeds/dev_seed.sql`.
+- Type generation passed and refreshed `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Anonymous `GET /students/55000000-0000-0000-0000-000000000001` returned `307` to `/login`.
+- Rollback-only database RLS probes confirmed normal staff changed 0 project rows, manager changed 1 row, and super admin changed 1 row.
+- The seeded master assignment starts on `2026-09-01`, so it is not active on `2026-07-08` and changed 0 rows under the unmodified seed. A rollback-only probe that temporarily moved that assignment start date earlier confirmed an active current-project master can change 1 project row; the transaction was rolled back and the seed state remained unchanged.
+- Authenticated browser smoke testing of the mutation was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
+
 Remaining Google OAuth setup:
 
 - Create Google OAuth credentials outside the repo.
@@ -425,6 +461,7 @@ Created/maintained docs for:
 ## Next recommended tasks
 
 1. **Authenticated browser smoke test for dashboard/students/announcements/messages**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, and soft deletion workflows.
-2. **Student goals/status mutation flows**: Implement editing and creation flows for student goals, project status, and emotional status from the student card interface.
-3. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
-4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
+2. **Student emotional status mutation flow**: Implement the authorized emotional traffic-light update flow from the student card.
+3. **Student goals mutation flow**: Implement editing and creation flows for student goals from the student card interface.
+4. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
+5. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.

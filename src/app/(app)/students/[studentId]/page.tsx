@@ -18,6 +18,7 @@ import type {
 import { t } from '@/lib/i18n';
 import { MessageComposer } from './MessageComposer';
 import { DeleteMessageButton } from './DeleteMessageButton';
+import { ProjectStatusForm } from './ProjectStatusForm';
 import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
@@ -249,6 +250,18 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
                 </p>
                 <PeopleList people={data.project.masters} />
               </div>
+              {data.project.canUpdateStatus && data.project.id ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                    {t('students.projectStatus.editTitle')}
+                  </p>
+                  <ProjectStatusForm
+                    studentId={studentId}
+                    projectId={data.project.id}
+                    currentStatus={data.project.status}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : (
             <EmptyState

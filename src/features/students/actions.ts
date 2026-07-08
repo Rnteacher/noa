@@ -2,10 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/lib/audit/log';
+import type { TrafficLightStatus } from '@/features/students/types';
 import { revalidatePath } from 'next/cache';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED_TAGS = ['general', 'project', 'emotional', 'attendance', 'family', 'incident'] as const;
+const ALLOWED_PROJECT_STATUSES = ['green', 'yellow', 'red'] as const;
 
 export type CreateStudentMessageResult = {
   success: boolean;
@@ -200,3 +202,134 @@ export async function deleteStudentMessage(
 }
 
 export type DeleteStudentMessageFn = typeof deleteStudentMessage;
+
+export type UpdateProjectStatusResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateProjectStatus(
+  studentId: string,
+  projectId: string,
+  newStatus: TrafficLightStatus
+): Promise<UpdateProjectStatusResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(projectId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  if (!ALLOWED_PROJECT_STATUSES.includes(newStatus)) {
+    return { success: false, error: 'students.projectStatus.invalidStatus' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .select('id, student_id, status, status_note, is_current, updated_by, updated_at')
+    .eq('id', projectId)
+    .eq('student_id', studentId)
+    .eq('is_current', true)
+    .maybeSingle();
+
+  if (projectError || !project) {
+    return { success: false, error: 'students.projectStatus.projectNotFound' };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const [rowPermissionResult, managerOrSuperAdminResult, projectMasterAssignmentResult] =
+    await Promise.all([
+      supabase.rpc('current_user_can_update_student_project', {
+        target_student_id: studentId,
+      }),
+      supabase.rpc('current_user_is_manager_or_super_admin'),
+      supabase
+        .from('student_masters')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('project_id', projectId)
+        .eq('master_id', user.id)
+        .lte('active_from', today)
+        .or(`active_until.is.null,active_until.gte.${today}`)
+        .maybeSingle(),
+    ]);
+
+  const hasAllowedRoleOrRelationship = Boolean(
+    (managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error) ||
+      (projectMasterAssignmentResult.data && !projectMasterAssignmentResult.error)
+  );
+
+  if (
+    rowPermissionResult.error ||
+    !rowPermissionResult.data ||
+    !hasAllowedRoleOrRelationship
+  ) {
+    return { success: false, error: 'students.projectStatus.updateForbidden' };
+  }
+
+  if (project.status === newStatus) {
+    return { success: true, error: null };
+  }
+
+  const { data: updatedProject, error: updateError } = await supabase
+    .from('projects')
+    .update({
+      status: newStatus,
+      updated_by: user.id,
+    })
+    .eq('id', projectId)
+    .eq('student_id', studentId)
+    .eq('is_current', true)
+    .select('id, student_id, status, status_note, is_current, updated_by, updated_at')
+    .single();
+
+  if (updateError || !updatedProject) {
+    return { success: false, error: 'students.projectStatus.updateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'project.status_updated',
+      entityType: 'project',
+      entityId: projectId,
+      beforeData: project,
+      afterData: updatedProject,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for project status update:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateProjectStatusFn = typeof updateProjectStatus;

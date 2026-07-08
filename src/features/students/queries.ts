@@ -35,6 +35,8 @@ type ProfileRelation = { full_name: string };
 type PersonAssignmentRow = {
   id: string;
   is_primary: boolean;
+  mentor_id?: string;
+  master_id?: string;
   profiles: ProfileRelation | ProfileRelation[] | null;
 };
 
@@ -284,20 +286,54 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
 
   let projectMasters: StudentPerson[] = [];
   const project = projectResult.data;
+  let canUpdateProjectStatus = false;
 
   if (project?.project_id) {
-    const { data: masters } = await supabase
-      .from('student_masters')
-      .select('id, is_primary, profiles:master_id(full_name)')
-      .eq('student_id', studentId)
-      .eq('project_id', project.project_id)
-      .is('active_until', null)
-      .order('is_primary', { ascending: false });
+    const today = new Date().toISOString().slice(0, 10);
+    const [
+      mastersResult,
+      rowPermissionResult,
+      managerOrSuperAdminResult,
+      projectMasterAssignmentResult,
+    ] = await Promise.all([
+      supabase
+        .from('student_masters')
+        .select('id, master_id, is_primary, profiles:master_id(full_name)')
+        .eq('student_id', studentId)
+        .eq('project_id', project.project_id)
+        .is('active_until', null)
+        .order('is_primary', { ascending: false }),
+      supabase.rpc('current_user_can_update_student_project', {
+        target_student_id: studentId,
+      }),
+      supabase.rpc('current_user_is_manager_or_super_admin'),
+      supabase
+        .from('student_masters')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('project_id', project.project_id)
+        .eq('master_id', userId)
+        .lte('active_from', today)
+        .or(`active_until.is.null,active_until.gte.${today}`)
+        .maybeSingle(),
+    ]);
 
-    projectMasters = ((masters ?? []) as PersonAssignmentRow[]).flatMap((row) => {
+    canUpdateProjectStatus = Boolean(
+      rowPermissionResult.data &&
+        !rowPermissionResult.error &&
+        ((managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error) ||
+          (projectMasterAssignmentResult.data && !projectMasterAssignmentResult.error))
+    );
+
+    projectMasters = ((mastersResult.data ?? []) as PersonAssignmentRow[]).flatMap((row) => {
       const profile = relationOne(row.profiles);
       return profile
-        ? [{ id: row.id, fullName: profile.full_name, isPrimary: row.is_primary }]
+        ? [{
+            id: row.id,
+            profileId: row.master_id ?? null,
+            fullName: profile.full_name,
+            isPrimary: row.is_primary,
+          }]
         : [];
     });
   }
@@ -327,7 +363,12 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     (row) => {
       const profile = relationOne(row.profiles);
       return profile
-        ? [{ id: row.id, fullName: profile.full_name, isPrimary: row.is_primary }]
+        ? [{
+            id: row.id,
+            profileId: row.mentor_id ?? null,
+            fullName: profile.full_name,
+            isPrimary: row.is_primary,
+          }]
         : [];
     }
   );
@@ -368,6 +409,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
             status: project.status,
             statusSince: project.updated_at,
             masters: projectMasters,
+            canUpdateStatus: canUpdateProjectStatus,
           }
         : null,
     emotionalStatus:

@@ -94,8 +94,8 @@
   "students.card.messagesTitle": "הודעות",
   "students.card.noMessagesTitle": "אין הודעות",
   "students.card.noMessagesDescription": "הודעות צוות פעילות אחרונות יופיעו כאן.",
-  "students.card.readOnlyTitle": "תצוגה לקריאה בלבד",
-  "students.card.readOnlyDescription": "עריכה, עדכוני סטטוס ובקרות מעקב יתווספו בגרסאות מאוחרות יותר.",
+  "students.card.readOnlyTitle": "עריכות שעדיין נדחו",
+  "students.card.readOnlyDescription": "עריכת מצב רגשי, מטרות, מעקב ותמונת תלמיד עדיין נדחו לגרסאות הבאות.",
   "students.follow.following": "במעקב",
   "students.follow.notFollowing": "לא במעקב",
   "students.goals.primary": "מטרה ראשית",
@@ -214,5 +214,13 @@
   "students.messages.deleteForbidden": "אין לכם הרשאה למחוק עדכון זה.",
   "students.messages.deleteFailed": "מחיקת העדכון נכשלה. יש לנסות שנית.",
   "students.card.invalidIdFormat": "פורמט מזהה לא תקין.",
-  "students.messages.alreadyDeleted": "עדכון זה כבר נמחק."
+  "students.messages.alreadyDeleted": "עדכון זה כבר נמחק.",
+  "students.projectStatus.editTitle": "עדכון מצב פרויקט",
+  "students.projectStatus.selectLabel": "מצב פרויקט",
+  "students.projectStatus.submitButton": "שמירת מצב",
+  "students.projectStatus.updateSuccess": "מצב הפרויקט עודכן.",
+  "students.projectStatus.invalidStatus": "מצב הפרויקט שנבחר אינו תקין.",
+  "students.projectStatus.projectNotFound": "לא ניתן לטעון את הפרויקט הנוכחי.",
+  "students.projectStatus.updateForbidden": "אין לך הרשאה לעדכן את מצב הפרויקט הזה.",
+  "students.projectStatus.updateFailed": "עדכון מצב הפרויקט נכשל. יש לנסות שנית."
 }
