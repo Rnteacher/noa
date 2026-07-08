@@ -26,6 +26,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/DeleteMessageButton.tsx` (student message deletion client component)
   - `src/app/(app)/students/[studentId]/ProjectStatusForm.tsx` (project traffic-light status update client component)
   - `src/app/(app)/students/[studentId]/EmotionalStatusForm.tsx` (emotional traffic-light status update client component)
+  - `src/app/(app)/students/[studentId]/GoalForm.tsx` (student goal creation client component)
+  - `src/app/(app)/students/[studentId]/GoalStatusForm.tsx` (per-goal status update client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -88,6 +90,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_MESSAGE_SOFT_DELETE_V1_HANDOFF.md`
   - `docs/parallel/GPT_PROJECT_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_EMOTIONAL_STATUS_MUTATION_V1_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_GOALS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -222,7 +225,7 @@ Status:
 
 ## Student card status
 
-Student search page and detailed student cards with message posting, project status updates, and emotional status updates are implemented.
+Student search page and detailed student cards with message posting, project status updates, emotional status updates, and goal management are implemented.
 
 Status:
 - `/students` displays active student list with full name, group, and current project details, supporting ILIKE name search filtering.
@@ -243,13 +246,19 @@ Status:
 - Emotional status updates append a new `student_emotional_statuses` history row (status and `created_by` only) through the normal request-scoped Supabase client and write secure audit logs (`student_emotional_status.updated`) containing only status transition metadata.
 - Emotional free-text notes remain hidden and are not editable in Emotional Status Mutation v1; the mutation never reads or writes the `note` column.
 - No emotional-status migration was added; Emotional Status Mutation v1 uses the existing `student_emotional_statuses` append-only table, `traffic_light_status` enum, `latest_student_emotional_statuses` view, and the existing insert RLS policy/helper.
+- Authorized active group mentors can create student goals and update goal status from the Goals section.
+- Managers and super admins can manage goals because the existing schema helper `current_user_can_update_student_goals` explicitly includes `current_user_is_manager_or_super_admin`.
+- Counselors cannot manage goals; the existing schema helper does not include the counselor role, matching the RBAC matrix.
+- Goal mutations update goals in place through the normal request-scoped Supabase client, touch only intentionally exposed columns (`title` and `description` on create, `status` and `updated_by` on update), and write secure audit logs (`student_goal.created` and `student_goal.updated`).
+- Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card. Hard goal deletion (manager/super-admin-only RLS) and goal title/description editing remain deferred.
+- No goals migration was added; Student Goals Mutation v1 uses the existing `student_goals` table, `goal_status` enum, and the existing insert/update RLS policies/helper.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
   - Message editing.
   - Permanent message deletion.
   - Realtime updates on the message stream.
   - Emotional free-text notes viewing/editing surface.
-  - Student goals mutation flow.
+  - Goal title/description editing, hard deletion, and primary/central goal management.
   - Student project title/master assignment editing.
   - Student status notifications.
   - Follow/unfollow click mutation integrations.
@@ -390,6 +399,32 @@ Results:
 - `npm run build` passed.
 - `git diff --check` passed.
 
+## Latest student goals mutation validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and loaded `supabase/seeds/dev_seed.sql`.
+- Type generation passed; `src/types/supabase.ts` was regenerated with no changes because no migration was added.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Anonymous `GET /students/55000000-0000-0000-0000-000000000001` returned `307` to `/login`.
+- Rollback-only database RLS probes confirmed: unrelated staff goal insert denied, counselor goal insert denied, manager goal insert allowed, super admin goal insert allowed, unrelated staff goal update changed 0 rows, manager goal update changed 1 row, and a manager update spoofing another user's `updated_by` denied by the update policy's with-check clause.
+- The seeded mentor assignment starts on `2026-09-01`, so it is not active on `2026-07-08` and the unmodified mentor probes were denied. Rollback-only probes that temporarily moved that assignment start date earlier confirmed an active group mentor can insert a goal and update a goal's status; the transactions were rolled back and the seed state remained unchanged.
+- Authenticated browser smoke testing of the mutation was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
+
 ## Latest emotional status mutation validation results
 
 Commands run:
@@ -495,7 +530,8 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, and emotional status updates.
-2. **Student goals mutation flow**: Implement editing and creation flows for student goals from the student card interface.
-3. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, and goal management.
+2. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
+3. **Follow/unfollow mutation**: Implement the follow toggle on the student card and list.
 4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
+5. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.

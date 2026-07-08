@@ -20,6 +20,8 @@ import { MessageComposer } from './MessageComposer';
 import { DeleteMessageButton } from './DeleteMessageButton';
 import { ProjectStatusForm } from './ProjectStatusForm';
 import { EmotionalStatusForm } from './EmotionalStatusForm';
+import { GoalForm } from './GoalForm';
+import { GoalStatusForm } from './GoalStatusForm';
 import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
@@ -317,32 +319,53 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
         </Card>
 
         <Card title={t('students.card.goalsTitle')}>
-          {data.goals.length > 0 ? (
-            <div className="-mx-4 -my-4 divide-y divide-line">
-              {data.goals.map((goal) => (
-                <ListRow
-                  key={goal.id}
-                  leading={<Goal aria-hidden="true" className="h-4 w-4 text-ink-muted" />}
-                  title={goal.title}
-                  subtitle={goal.description ?? goalStatusLabel(goal.status)}
-                  trailing={
-                    <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-ink-secondary">
-                      {goal.isPrimary
-                        ? t('students.goals.primary')
-                        : goalStatusLabel(goal.status)}
-                    </span>
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Goal aria-hidden="true" className="h-5 w-5" />}
-              title={t('students.card.noGoalsTitle')}
-              description={t('students.card.noGoalsDescription')}
-              className="border-0 px-2 py-4"
-            />
-          )}
+          <div className="space-y-4">
+            {data.goals.length > 0 ? (
+              <div className="space-y-3">
+                {data.goals.map((goal) => (
+                  <div key={goal.id} className="rounded-xl border border-line bg-surface p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink">{goal.title}</p>
+                        <p className="mt-1 text-xs text-ink-muted">
+                          {goal.description ?? goalStatusLabel(goal.status)}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-ink-secondary">
+                        {goal.isPrimary
+                          ? t('students.goals.primary')
+                          : goalStatusLabel(goal.status)}
+                      </span>
+                    </div>
+                    {data.canManageGoals ? (
+                      <div className="mt-3 border-t border-line pt-3">
+                        <GoalStatusForm
+                          studentId={studentId}
+                          goalId={goal.id}
+                          currentStatus={goal.status}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Goal aria-hidden="true" className="h-5 w-5" />}
+                title={t('students.card.noGoalsTitle')}
+                description={t('students.card.noGoalsDescription')}
+                className="border-0 px-2 py-4"
+              />
+            )}
+            {data.canManageGoals ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                  {t('students.goals.addTitle')}
+                </p>
+                <GoalForm studentId={studentId} />
+              </div>
+            ) : null}
+          </div>
         </Card>
 
         <Card title={t('students.card.messagesTitle')}>

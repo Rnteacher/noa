@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, and emotional-status workflows running against the local Supabase schema and seed.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, and student-goal workflows running against the local Supabase schema and seed.
 
 ## Current implemented foundation
 
@@ -15,17 +15,20 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **Student message soft delete exists**: Authors can soft-delete their own messages and super admins can soft-delete any message; updates use RLS and audit `student_message.deleted`.
 - **Project status mutation v1 exists**: Authorized current-project masters, managers allowed by the existing schema helper, and super admins can update the current project traffic-light status from the student card. The action updates only status/updater metadata and audits `project.status_updated`.
 - **Emotional status mutation v1 exists**: Authorized active group mentors, counselors and managers allowed by the existing schema helper, and super admins can update the emotional traffic-light status from the student card. The action appends a new `student_emotional_statuses` history row (status and `created_by` only), never reads or writes the sensitive `note` column, and audits `student_emotional_status.updated`.
+- **Student goals mutation v1 exists**: Authorized active group mentors, managers allowed by the existing schema helper, and super admins can create goals and update goal status (including archiving via the `archived` status) from the student card. Counselors are excluded, matching the schema helper and RBAC matrix. The actions touch only intentionally exposed columns and audit `student_goal.created` and `student_goal.updated`.
 - **Announcements read path and acknowledgement v1 exist**: `/announcements` and `/announcements/[announcementId]` show visible announcements and support read acknowledgement through RLS-safe server actions.
 
-## Emotional status mutation notes
+## Student goals mutation notes
 
-- No migration was added. The implementation uses the existing append-only `student_emotional_statuses` table, the `traffic_light_status` enum, the `latest_student_emotional_statuses` view, and the existing insert RLS policy backed by `current_user_can_update_student_emotional_status`.
-- The v1 UI is a compact selector and submit button in the Emotional status section. Unauthorized users do not see edit controls.
-- Emotional free-text notes remain hidden and not editable; goal editing, project title/master assignment editing, photo changes, follow mutations, and notifications remain deferred.
+- No migration was added. The implementation uses the existing `student_goals` table, the `goal_status` enum (`active`, `completed`, `paused`, `archived`), and the existing insert/update RLS policies backed by `current_user_can_update_student_goals`.
+- Goals are updated in place; archiving is a status change to `archived`, and archived goals are filtered out of the student card query.
+- The v1 UI shows goal rows to all staff, with a compact per-goal status selector and an add-goal form (title plus optional description) for authorized users only. Unauthorized users do not see edit controls.
+- Goal title/description editing, hard deletion, primary/central goal management, follow mutations, photo changes, and notifications remain deferred.
 
 ## Next task options
 
-- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, and audit rows.
-- Student goals mutation flow.
+- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, goal management, and audit rows.
 - Student photo uploads.
+- Follow/unfollow mutation.
 - Admin-specific desktop layout shell.
+- Goal editing/deletion follow-up.

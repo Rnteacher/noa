@@ -2,13 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/lib/audit/log';
-import type { TrafficLightStatus } from '@/features/students/types';
+import type { GoalStatus, TrafficLightStatus } from '@/features/students/types';
 import { revalidatePath } from 'next/cache';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED_TAGS = ['general', 'project', 'emotional', 'attendance', 'family', 'incident'] as const;
 const ALLOWED_PROJECT_STATUSES = ['green', 'yellow', 'red'] as const;
 const ALLOWED_EMOTIONAL_STATUSES = ['green', 'yellow', 'red'] as const;
+const ALLOWED_GOAL_STATUSES = ['active', 'completed', 'paused', 'archived'] as const;
+const GOAL_TITLE_MAX_LENGTH = 120;
+const GOAL_DESCRIPTION_MAX_LENGTH = 1000;
 
 export type CreateStudentMessageResult = {
   success: boolean;
@@ -470,3 +473,259 @@ export async function updateEmotionalStatus(
 }
 
 export type UpdateEmotionalStatusFn = typeof updateEmotionalStatus;
+
+type GoalManagementCheck = {
+  allowed: boolean;
+};
+
+async function verifyGoalManagementPermission(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  studentId: string,
+  studentGroupId: string
+): Promise<GoalManagementCheck> {
+  const today = new Date().toISOString().slice(0, 10);
+  const [rowPermissionResult, managerOrSuperAdminResult, mentorAssignmentResult] =
+    await Promise.all([
+      supabase.rpc('current_user_can_update_student_goals', {
+        target_student_id: studentId,
+      }),
+      supabase.rpc('current_user_is_manager_or_super_admin'),
+      supabase
+        .from('group_mentors')
+        .select('id')
+        .eq('group_id', studentGroupId)
+        .eq('mentor_id', userId)
+        .lte('active_from', today)
+        .or(`active_until.is.null,active_until.gte.${today}`)
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  const hasAllowedRoleOrRelationship = Boolean(
+    (managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error) ||
+      (mentorAssignmentResult.data && !mentorAssignmentResult.error)
+  );
+
+  return {
+    allowed: Boolean(
+      rowPermissionResult.data &&
+        !rowPermissionResult.error &&
+        hasAllowedRoleOrRelationship
+    ),
+  };
+}
+
+export type CreateStudentGoalResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function createStudentGoal(
+  studentId: string,
+  title: string,
+  description: string
+): Promise<CreateStudentGoalResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId)) {
+    return { success: false, error: 'students.card.invalidStudentId' };
+  }
+
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) {
+    return { success: false, error: 'students.goals.titleRequired' };
+  }
+
+  if (trimmedTitle.length > GOAL_TITLE_MAX_LENGTH) {
+    return { success: false, error: 'students.goals.titleTooLong' };
+  }
+
+  const trimmedDescription = description.trim();
+  if (trimmedDescription.length > GOAL_DESCRIPTION_MAX_LENGTH) {
+    return { success: false, error: 'students.goals.descriptionTooLong' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id, group_id, school_year_id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const { allowed } = await verifyGoalManagementPermission(
+    supabase,
+    user.id,
+    studentId,
+    student.group_id
+  );
+
+  if (!allowed) {
+    return { success: false, error: 'students.goals.manageForbidden' };
+  }
+
+  const { data: insertedGoal, error: insertError } = await supabase
+    .from('student_goals')
+    .insert({
+      student_id: studentId,
+      school_year_id: student.school_year_id,
+      title: trimmedTitle,
+      description: trimmedDescription || null,
+      created_by: user.id,
+      updated_by: user.id,
+    })
+    .select('id, student_id, school_year_id, title, description, status, is_primary, created_by, updated_by, created_at, updated_at')
+    .single();
+
+  if (insertError || !insertedGoal) {
+    return { success: false, error: 'students.goals.createFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_goal.created',
+      entityType: 'student_goal',
+      entityId: insertedGoal.id,
+      afterData: insertedGoal,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student goal creation:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type CreateStudentGoalFn = typeof createStudentGoal;
+
+export type UpdateStudentGoalStatusResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateStudentGoalStatus(
+  studentId: string,
+  goalId: string,
+  newStatus: GoalStatus
+): Promise<UpdateStudentGoalStatusResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(goalId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  if (!ALLOWED_GOAL_STATUSES.includes(newStatus)) {
+    return { success: false, error: 'students.goals.invalidStatus' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id, group_id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const { data: goal, error: goalError } = await supabase
+    .from('student_goals')
+    .select('id, student_id, title, status, is_primary, updated_by, updated_at')
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (goalError || !goal) {
+    return { success: false, error: 'students.goals.notFound' };
+  }
+
+  const { allowed } = await verifyGoalManagementPermission(
+    supabase,
+    user.id,
+    studentId,
+    student.group_id
+  );
+
+  if (!allowed) {
+    return { success: false, error: 'students.goals.manageForbidden' };
+  }
+
+  if (goal.status === newStatus) {
+    return { success: true, error: null };
+  }
+
+  const { data: updatedGoal, error: updateError } = await supabase
+    .from('student_goals')
+    .update({
+      status: newStatus,
+      updated_by: user.id,
+    })
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .select('id, student_id, title, status, is_primary, updated_by, updated_at')
+    .single();
+
+  if (updateError || !updatedGoal) {
+    return { success: false, error: 'students.goals.updateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_goal.updated',
+      entityType: 'student_goal',
+      entityId: goalId,
+      beforeData: goal,
+      afterData: updatedGoal,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student goal status update:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateStudentGoalStatusFn = typeof updateStudentGoalStatus;

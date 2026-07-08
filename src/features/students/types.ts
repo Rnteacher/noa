@@ -78,6 +78,7 @@ export type StudentCardData = {
     statusSince: string | null;
   } | null;
   canUpdateEmotionalStatus: boolean;
+  canManageGoals: boolean;
   goals: StudentGoal[];
   messages: StudentMessage[];
   isFollowed: boolean;

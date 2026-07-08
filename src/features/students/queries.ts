@@ -90,6 +90,7 @@ function emptyStudentCard(error: string | null): StudentCardData {
     project: null,
     emotionalStatus: null,
     canUpdateEmotionalStatus: false,
+    canManageGoals: false,
     goals: [],
     messages: [],
     isFollowed: false,
@@ -289,11 +290,15 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
 
   const [
     emotionalRowPermissionResult,
+    goalsRowPermissionResult,
     emotionalManagerOrSuperAdminResult,
     counselorRoleResult,
     mentorAssignmentResult,
   ] = await Promise.all([
     supabase.rpc('current_user_can_update_student_emotional_status', {
+      target_student_id: studentId,
+    }),
+    supabase.rpc('current_user_can_update_student_goals', {
       target_student_id: studentId,
     }),
     supabase.rpc('current_user_is_manager_or_super_admin'),
@@ -309,13 +314,25 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       .maybeSingle(),
   ]);
 
+  const isManagerOrSuperAdmin = Boolean(
+    emotionalManagerOrSuperAdminResult.data && !emotionalManagerOrSuperAdminResult.error
+  );
+  const isActiveGroupMentor = Boolean(
+    mentorAssignmentResult.data && !mentorAssignmentResult.error
+  );
+
   const canUpdateEmotionalStatus = Boolean(
     emotionalRowPermissionResult.data &&
       !emotionalRowPermissionResult.error &&
-      ((emotionalManagerOrSuperAdminResult.data &&
-        !emotionalManagerOrSuperAdminResult.error) ||
+      (isManagerOrSuperAdmin ||
         (counselorRoleResult.data && !counselorRoleResult.error) ||
-        (mentorAssignmentResult.data && !mentorAssignmentResult.error))
+        isActiveGroupMentor)
+  );
+
+  const canManageGoals = Boolean(
+    goalsRowPermissionResult.data &&
+      !goalsRowPermissionResult.error &&
+      (isManagerOrSuperAdmin || isActiveGroupMentor)
   );
 
   let projectMasters: StudentPerson[] = [];
@@ -453,6 +470,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
           }
         : null,
     canUpdateEmotionalStatus,
+    canManageGoals,
     goals: ((goalsResult.data ?? []) as GoalRow[]).map((goal) => ({
       id: goal.id,
       title: goal.title,
