@@ -91,6 +91,7 @@ function emptyStudentCard(error: string | null): StudentCardData {
     emotionalStatus: null,
     canUpdateEmotionalStatus: false,
     canManageGoals: false,
+    canManagePhoto: false,
     goals: [],
     messages: [],
     isFollowed: false,
@@ -291,6 +292,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
   const [
     emotionalRowPermissionResult,
     goalsRowPermissionResult,
+    photoRowPermissionResult,
     emotionalManagerOrSuperAdminResult,
     counselorRoleResult,
     mentorAssignmentResult,
@@ -299,6 +301,9 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       target_student_id: studentId,
     }),
     supabase.rpc('current_user_can_update_student_goals', {
+      target_student_id: studentId,
+    }),
+    supabase.rpc('current_user_can_manage_student_photo', {
       target_student_id: studentId,
     }),
     supabase.rpc('current_user_is_manager_or_super_admin'),
@@ -332,6 +337,12 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
   const canManageGoals = Boolean(
     goalsRowPermissionResult.data &&
       !goalsRowPermissionResult.error &&
+      (isManagerOrSuperAdmin || isActiveGroupMentor)
+  );
+
+  const canManagePhoto = Boolean(
+    photoRowPermissionResult.data &&
+      !photoRowPermissionResult.error &&
       (isManagerOrSuperAdmin || isActiveGroupMentor)
   );
 
@@ -439,12 +450,24 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       };
     });
 
+  let photoUrl: string | null = null;
+  if (studentRow.photo_url) {
+    if (studentRow.photo_url.startsWith('http://') || studentRow.photo_url.startsWith('https://')) {
+      photoUrl = studentRow.photo_url;
+    } else {
+      const { data: signedData } = await supabase.storage
+        .from('student-photos')
+        .createSignedUrl(studentRow.photo_url, 3600);
+      photoUrl = signedData?.signedUrl ?? null;
+    }
+  }
+
   return {
     student: {
       id: studentRow.id,
       fullName: fullName(studentRow.first_name, studentRow.last_name),
       initials: initials(studentRow.first_name, studentRow.last_name),
-      photoUrl: studentRow.photo_url,
+      photoUrl: photoUrl,
       groupName: group?.name ?? null,
       groupLayer: group?.layer ?? null,
       updatedAt: studentRow.updated_at,
@@ -471,6 +494,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
         : null,
     canUpdateEmotionalStatus,
     canManageGoals,
+    canManagePhoto,
     goals: ((goalsResult.data ?? []) as GoalRow[]).map((goal) => ({
       id: goal.id,
       title: goal.title,

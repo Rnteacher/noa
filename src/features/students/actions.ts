@@ -918,3 +918,165 @@ export async function unfollowStudent(
 }
 
 export type UnfollowStudentFn = typeof unfollowStudent;
+
+export type UpdateStudentPhotoResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateStudentPhoto(
+  studentId: string,
+  formData: FormData
+): Promise<UpdateStudentPhotoResult> {
+  const supabase = await createClient();
+
+  // 1. Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  // 2. Validate input
+  if (!UUID_PATTERN.test(studentId)) {
+    return { success: false, error: 'students.card.invalidStudentId' };
+  }
+
+  const file = formData.get('file') as File | null;
+  if (!file) {
+    return { success: false, error: 'students.photo.errorNoFile' };
+  }
+
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { success: false, error: 'students.photo.errorType' };
+  }
+
+  if (file.size > 5242880) { // 5MB limit
+    return { success: false, error: 'students.photo.errorSize' };
+  }
+
+  // 3. Check active staff
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  // 4. Verify student exists
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id, group_id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  // 5. Verify permissions
+  const today = new Date().toISOString().slice(0, 10);
+  const [permissionResult, managerOrSuperAdminResult, mentorAssignmentResult] = await Promise.all([
+    supabase.rpc('current_user_can_manage_student_photo', { target_student_id: studentId }),
+    supabase.rpc('current_user_is_manager_or_super_admin'),
+    supabase
+      .from('group_mentors')
+      .select('id')
+      .eq('group_id', student.group_id)
+      .eq('mentor_id', user.id)
+      .lte('active_from', today)
+      .or(`active_until.is.null,active_until.gte.${today}`)
+      .limit(1)
+      .maybeSingle()
+  ]);
+
+  const isManagerOrSuperAdmin = Boolean(managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error);
+  const isActiveGroupMentor = Boolean(mentorAssignmentResult.data && !mentorAssignmentResult.error);
+  const hasPermission = Boolean(
+    permissionResult.data &&
+    !permissionResult.error &&
+    (isManagerOrSuperAdmin || isActiveGroupMentor)
+  );
+
+  if (!hasPermission) {
+    return { success: false, error: 'students.photo.errorForbidden' };
+  }
+
+  // 6. Upload file to storage
+  let ext = 'jpg';
+  if (file.type === 'image/png') ext = 'png';
+  if (file.type === 'image/webp') ext = 'webp';
+  const filePath = `students/${studentId}/profile.${ext}`;
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { error: uploadError } = await supabase.storage
+      .from('student-photos')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      return { success: false, error: 'students.photo.errorUpload' };
+    }
+  } catch (err) {
+    console.error('Storage processing error:', err);
+    return { success: false, error: 'students.photo.errorUpload' };
+  }
+
+  // 7. Get old photo url for audit log
+  const { data: studentBefore } = await supabase
+    .from('students')
+    .select('photo_url')
+    .eq('id', studentId)
+    .single();
+
+  // 8. Update student photo url via secure RPC
+  const { error: updateError } = await supabase.rpc('update_student_photo_path', {
+    target_student_id: studentId,
+    new_photo_path: filePath,
+  });
+
+  if (updateError) {
+    console.error('Database update RPC error:', updateError);
+    return { success: false, error: 'students.photo.errorUpload' };
+  }
+
+  // Fetch updated row for the audit log
+  const { data: studentAfter } = await supabase
+    .from('students')
+    .select('id, photo_url')
+    .eq('id', studentId)
+    .single();
+
+  // 9. Write audit log
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_photo.updated',
+      entityType: 'student',
+      entityId: studentId,
+      beforeData: studentBefore ? { photo_url: studentBefore.photo_url } : null,
+      afterData: studentAfter ? { photo_url: studentAfter.photo_url } : null,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student photo update:', auditError);
+  }
+
+  // 10. Revalidate path
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateStudentPhotoFn = typeof updateStudentPhoto;

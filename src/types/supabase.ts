@@ -1449,6 +1449,10 @@ export type Database = {
         Returns: boolean
       }
       current_user_is_super_admin: { Args: never; Returns: boolean }
+      update_student_photo_path: {
+        Args: { new_photo_path: string; target_student_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       announcement_target_type: "all_staff" | "roles" | "groups" | "users"

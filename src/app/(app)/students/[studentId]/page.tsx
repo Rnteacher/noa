@@ -23,6 +23,7 @@ import { EmotionalStatusForm } from './EmotionalStatusForm';
 import { GoalForm } from './GoalForm';
 import { GoalStatusForm } from './GoalStatusForm';
 import { FollowButton } from './FollowButton';
+import { PhotoUploadForm } from './PhotoUploadForm';
 import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
@@ -172,8 +173,22 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
       <main className="flex-1 space-y-4 p-4">
         <Card>
           <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xl font-bold text-accent">
-              {student.initials}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full overflow-hidden bg-accent-soft text-xl font-bold text-accent">
+                {student.photoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={student.photoUrl}
+                    alt={student.fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  student.initials
+                )}
+              </div>
+              {data.canManagePhoto ? (
+                <PhotoUploadForm studentId={studentId} hasPhoto={!!student.photoUrl} />
+              ) : null}
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl font-bold text-ink">{student.fullName}</h1>

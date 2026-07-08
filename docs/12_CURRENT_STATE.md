@@ -29,6 +29,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/GoalForm.tsx` (student goal creation client component)
   - `src/app/(app)/students/[studentId]/GoalStatusForm.tsx` (per-goal status update client component)
   - `src/app/(app)/students/[studentId]/FollowButton.tsx` (student follow/unfollow client component)
+  - `src/app/(app)/students/[studentId]/PhotoUploadForm.tsx` (student photo upload client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -94,6 +95,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_GOALS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
   - `docs/parallel/GPT_FOLLOW_STUDENT_V1_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_PHOTO_UPLOADS_V1_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_PHOTO_SECURITY_HARDENING_HANDOFF.md`
 
 ## Database foundation status
 
@@ -117,6 +120,20 @@ It defines:
 - `staff_access_grant_roles`: roles attached to each grant.
 - RLS policies allowing only super admins to manage grants.
 - Authenticated grants matching the existing RLS approach.
+
+The third migration `supabase/migrations/20260708184000_student_photos.sql` is verified locally.
+
+It defines:
+- A private storage bucket `student-photos` with a 5MB size limit and allowed MIME types (`image/jpeg`, `image/png`, `image/webp`).
+- Storage object RLS policies allowing active staff to read/select photos, and authorized staff (verified by `current_user_can_manage_student_photo`) to insert/update/delete objects.
+- A table-level RLS update policy on `public.students` allowing authorized staff to update the student row (dropped in the fourth migration).
+
+The fourth migration `supabase/migrations/20260708190500_harden_student_photo_updates.sql` is verified locally.
+
+It defines:
+- Drops the broad `Authorized staff can update student photos on student row` policy on `public.students`.
+- Creates a secure security definer RPC function `public.update_student_photo_path(target_student_id uuid, new_photo_path text)` which restricts updates strictly to the `photo_url` column, validates active user permissions, and enforces that the image path matches the specific student's directory (`students/{studentId}/...`).
+- Grants execute access on the RPC exclusively to the `authenticated` role.
 
 ## Auth and access-control status
 
@@ -255,6 +272,7 @@ Status:
 - Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card. Hard goal deletion (manager/super-admin-only RLS) and goal title/description editing remain deferred.
 - No goals migration was added; Student Goals Mutation v1 uses the existing `student_goals` table, `goal_status` enum, and the existing insert/update RLS policies/helper.
 - Active staff can follow and unfollow students on their student cards. The follow state is scoped to the current user's profile and uses the existing `followed_students` schema and RLS policies (no database migration was added). Following/unfollowing performs idempotent inserts/deletes, writes secure audit logs (`student_follow.created` and `student_follow.deleted`), and revalidation refreshes both the student card and the dashboard followed-student count.
+- Authorized group mentors, managers, and super admins can upload or replace a student's profile photo from the student card using the `<PhotoUploadForm>` component. Photos are stored in a private Supabase Storage bucket (`student-photos`) and retrieved dynamically via secure signed URLs. Photo updates write secure audit logs (`student_photo.updated`) and are secure and column-safe: direct table-level update policies on `public.students` are disabled, and updates are restricted strictly to the `photo_url` column via a secure RPC helper (`update_student_photo_path`) validating user permissions and expected storage paths. Advanced image cropping, image moderation, and bulk photo import remain deferred.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
   - Message editing.
@@ -532,8 +550,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, and follow/unfollow updates.
-2. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
-3. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
-4. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
-5. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, and student photo uploads.
+2. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
+3. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
+4. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
