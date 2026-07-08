@@ -729,3 +729,192 @@ export async function updateStudentGoalStatus(
 }
 
 export type UpdateStudentGoalStatusFn = typeof updateStudentGoalStatus;
+
+export type FollowStudentResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function followStudent(
+  studentId: string
+): Promise<FollowStudentResult> {
+  const supabase = await createClient();
+
+  // 1. Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  // 2. Validate input
+  if (!UUID_PATTERN.test(studentId)) {
+    return { success: false, error: 'students.card.invalidStudentId' };
+  }
+
+  // 3. Check active staff
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  // 4. Defensive check: is target student visible?
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  // 5. Idempotency check: check if already followed
+  const { data: existing, error: existingError } = await supabase
+    .from('followed_students')
+    .select('id, profile_id, student_id, notification_level, created_at')
+    .eq('profile_id', user.id)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (existingError) {
+    return { success: false, error: 'students.follow.errorFollow' };
+  }
+
+  if (existing) {
+    return { success: true, error: null };
+  }
+
+  // 6. Insert followed student row
+  const { data: inserted, error: insertError } = await supabase
+    .from('followed_students')
+    .insert({
+      profile_id: user.id,
+      student_id: studentId,
+      notification_level: 'all',
+    })
+    .select('id, profile_id, student_id, notification_level, created_at')
+    .single();
+
+  if (insertError || !inserted) {
+    return { success: false, error: 'students.follow.errorFollow' };
+  }
+
+  // 7. Write audit log
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_follow.created',
+      entityType: 'followed_students',
+      entityId: inserted.id,
+      afterData: inserted,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student follow creation:', auditError);
+  }
+
+  // 8. Revalidate paths
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}
+
+export type FollowStudentFn = typeof followStudent;
+
+export async function unfollowStudent(
+  studentId: string
+): Promise<FollowStudentResult> {
+  const supabase = await createClient();
+
+  // 1. Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  // 2. Validate input
+  if (!UUID_PATTERN.test(studentId)) {
+    return { success: false, error: 'students.card.invalidStudentId' };
+  }
+
+  // 3. Check active staff
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  // 4. Defensive check: is target student visible?
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  // 5. Idempotency check: check if followed
+  const { data: existing, error: existingError } = await supabase
+    .from('followed_students')
+    .select('id, profile_id, student_id, notification_level, created_at')
+    .eq('profile_id', user.id)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (existingError) {
+    return { success: false, error: 'students.follow.errorUnfollow' };
+  }
+
+  if (!existing) {
+    return { success: true, error: null };
+  }
+
+  // 6. Delete followed student row
+  const { error: deleteError } = await supabase
+    .from('followed_students')
+    .delete()
+    .eq('profile_id', user.id)
+    .eq('student_id', studentId);
+
+  if (deleteError) {
+    return { success: false, error: 'students.follow.errorUnfollow' };
+  }
+
+  // 7. Write audit log
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_follow.deleted',
+      entityType: 'followed_students',
+      entityId: existing.id,
+      beforeData: existing,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student follow deletion:', auditError);
+  }
+
+  // 8. Revalidate paths
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}
+
+export type UnfollowStudentFn = typeof unfollowStudent;

@@ -22,6 +22,7 @@ import { ProjectStatusForm } from './ProjectStatusForm';
 import { EmotionalStatusForm } from './EmotionalStatusForm';
 import { GoalForm } from './GoalForm';
 import { GoalStatusForm } from './GoalStatusForm';
+import { FollowButton } from './FollowButton';
 import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
@@ -188,15 +189,7 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
                 })}
               </p>
             </div>
-            {data.isFollowed ? (
-              <span className="rounded-full bg-accent-soft px-2 py-1 text-xs font-semibold text-accent">
-                {t('students.follow.following')}
-              </span>
-            ) : (
-              <span className="rounded-full bg-surface-sunken px-2 py-1 text-xs font-semibold text-ink-muted">
-                {t('students.follow.notFollowing')}
-              </span>
-            )}
+            <FollowButton studentId={studentId} isFollowed={data.isFollowed} />
           </div>
 
           <div className="mt-4 space-y-2">

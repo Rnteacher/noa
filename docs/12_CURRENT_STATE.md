@@ -28,6 +28,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/EmotionalStatusForm.tsx` (emotional traffic-light status update client component)
   - `src/app/(app)/students/[studentId]/GoalForm.tsx` (student goal creation client component)
   - `src/app/(app)/students/[studentId]/GoalStatusForm.tsx` (per-goal status update client component)
+  - `src/app/(app)/students/[studentId]/FollowButton.tsx` (student follow/unfollow client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -92,6 +93,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_EMOTIONAL_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_GOALS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
+  - `docs/parallel/GPT_FOLLOW_STUDENT_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -252,6 +254,7 @@ Status:
 - Goal mutations update goals in place through the normal request-scoped Supabase client, touch only intentionally exposed columns (`title` and `description` on create, `status` and `updated_by` on update), and write secure audit logs (`student_goal.created` and `student_goal.updated`).
 - Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card. Hard goal deletion (manager/super-admin-only RLS) and goal title/description editing remain deferred.
 - No goals migration was added; Student Goals Mutation v1 uses the existing `student_goals` table, `goal_status` enum, and the existing insert/update RLS policies/helper.
+- Active staff can follow and unfollow students on their student cards. The follow state is scoped to the current user's profile and uses the existing `followed_students` schema and RLS policies (no database migration was added). Following/unfollowing performs idempotent inserts/deletes, writes secure audit logs (`student_follow.created` and `student_follow.deleted`), and revalidation refreshes both the student card and the dashboard followed-student count.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
   - Message editing.
@@ -260,8 +263,7 @@ Status:
   - Emotional free-text notes viewing/editing surface.
   - Goal title/description editing, hard deletion, and primary/central goal management.
   - Student project title/master assignment editing.
-  - Student status notifications.
-  - Follow/unfollow click mutation integrations.
+  - Student status push notifications.
 
 ## Announcements read v1 status
 
@@ -530,8 +532,8 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, and goal management.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, and follow/unfollow updates.
 2. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
-3. **Follow/unfollow mutation**: Implement the follow toggle on the student card and list.
-4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
-5. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
+3. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
+4. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
+5. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
