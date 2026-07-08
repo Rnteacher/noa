@@ -35,6 +35,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/announcements/page.tsx` (admin announcements list page)
   - `src/app/(app)/admin/announcements/AnnouncementForm.tsx` (admin announcement creation client form)
   - `src/app/(app)/admin/announcements/DeleteAnnouncementButton.tsx` (admin announcement deletion client button)
+  - `src/app/(app)/admin/calendar/page.tsx` (admin calendar management list/filter/create page)
+  - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
+  - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
+  - `src/app/(app)/admin/calendar/DeleteCalendarEventButton.tsx` (calendar event deletion client button)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
   - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
 - `src/components/` (UI elements and layouts)
@@ -70,7 +74,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
     - `src/features/announcements/types.ts` (Announcements TypeScript definitions)
     - `src/features/announcements/actions.ts` (Announcements Server Actions)
     - `src/features/announcements/admin-actions.ts` (Admin announcements Server Actions)
-  - `calendar/`, `admin/`, `auth/`, `notifications/`
+  - `calendar/`
+    - `src/features/calendar/admin-queries.ts` (Admin calendar server-side queries)
+    - `src/features/calendar/admin-actions.ts` (Admin calendar Server Actions)
+  - `admin/`, `auth/`, `notifications/`
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
   - `supabase/migrations/20260707115303_staff_access_grants.sql`
@@ -105,6 +112,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_PHOTO_SECURITY_HARDENING_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_DESKTOP_SHELL_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_ANNOUNCEMENTS_V1_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_CALENDAR_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -223,6 +231,7 @@ Status:
 - Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
 - `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
 - `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
+- The `AdminShell` Calendar nav item is now enabled and links to `/admin/calendar`, matching the newly implemented admin calendar management route. Remaining placeholders (Learning groups, Students, Groups, Users, Import/Export, Settings) stay muted and non-clickable.
 - Real dashboard data queries and status aggregations are implemented in Dashboard v1.
 
 ## Dashboard v1 status
@@ -311,6 +320,25 @@ Status:
   - Draft mode and scheduled publishing (deferred as they are not supported by seed schemas).
   - Push notification delivery (V1 does not implement push notifications).
   - Rich text formatting (beyond plain text area) and attachments upload.
+
+## Admin calendar management v1 status
+
+The first admin-facing calendar event management workflow is implemented at:
+
+- `/admin/calendar`
+
+Status:
+
+- No migration was added. The implementation uses the existing `calendar_events` table, `calendar_event_groups` junction table, and `event_visibility` enum (`all_school`, `groups`, `staff_only`, `leadership_only`) exactly as defined in the initial migration.
+- Managers and super admins can create, update, and delete calendar events, because the existing RLS insert/update/delete policies on `calendar_events` explicitly check `current_user_is_manager_or_super_admin()`. No other role (including leadership, mentors, masters, and counselors) can mutate calendar events; this was verified with rollback-only database probes.
+- Supported fields in v1: `title` (required), `description` (optional), `starts_at`/`ends_at` (required, validated client- and server-side, and enforced at the database level by the `calendar_events_time_order` check constraint), `is_all_day`, `visibility`, and `location` (optional). The current school year (`school_years.is_current = true`) is resolved automatically on create; there is no school-year picker in v1.
+- Target-group selection is supported when `visibility = 'groups'`: selected `student_groups` rows are inserted into `calendar_event_groups`, and updates fully replace the target-group set (clear then re-insert) inside the same server action.
+- Edit is implemented as an inline per-row form (toggle via `CalendarEventRow`) that reuses `CalendarEventForm` in edit mode. Delete is implemented (hard delete, RLS-restricted to managers/super admins); there is no soft-delete/archive column on `calendar_events`, so deletion is permanent.
+- The admin table supports four date-range filters: upcoming (default), today, this week, and this month, using the same day/week boundary logic already used by the dashboard queries.
+- **RLS/RETURNING finding:** `calendar_events`' SELECT policy (`current_user_can_read_calendar_event`) re-queries the table by id inside a `security definer` function. Postgres evaluates that subquery against the same command's snapshot, so it cannot see a row the same `INSERT`/`UPDATE` statement just wrote. Requesting `.select()` (i.e., `RETURNING`) immediately after an insert/update on this table therefore fails RLS even for fully authorized managers/super admins — confirmed by direct rollback-only SQL probes. The server actions work around this by never chaining `.select()` after insert/update on `calendar_events` (generating the row id client-side with `crypto.randomUUID()` for create, and reading before/after audit data from already-fetched or already-known values instead of `RETURNING`). This is an application-layer workaround, not a schema change or an RLS bypass; all mutations still go through the normal request-scoped Supabase client and the existing RLS policies.
+- Audit logging: successful mutations write `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted` through the existing privileged server-only audit helper, capturing before/after event metadata and target group ids where relevant.
+- Revalidation: all three actions revalidate both `/admin/calendar` and `/dashboard`, so dashboard "Today"/"This week" sections reflect newly created or edited events without a manual refresh once Next.js re-renders the dashboard route.
+- Deferred: Google Calendar sync (the `google_calendar_event_id` column exists but is unused), recurrence (the `recurrence_rule` column exists but has no interpretation logic), drag-and-drop/resizing, the full Day/Week/Year-Gantt view switcher, push notifications for events (`push_enabled` column exists but is unused), and a school-year picker.
 
 ## UX design foundation status
 
@@ -432,6 +460,33 @@ Results:
 - `npm run lint` passed.
 - `npm run build` passed.
 - `git diff --check` passed.
+
+## Latest admin calendar management validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and loaded `supabase/seeds/dev_seed.sql`. No migration was added, so this was a sanity re-check rather than a required step.
+- Type generation passed; `src/types/supabase.ts` showed no diff, confirming no schema drift.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed, with `/admin/calendar` registered as a dynamic route alongside the existing routes.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Anonymous `GET /admin/calendar`, `GET /dashboard`, and `GET /admin/announcements` all returned `307` to `/login` against the production build (confirming the new route is protected and existing routes still compile/serve without regression).
+- Rollback-only database RLS probes confirmed: unrelated staff insert denied, leadership-only insert denied (leadership is not manager/super admin), manager insert with group targeting succeeded and inserted exactly one `calendar_event_groups` row, super admin update (no `RETURNING`) succeeded, unrelated staff update and delete affected 0 rows, a mentor could not delete another event's target-group rows, and an end-before-start insert was rejected by the `calendar_events_time_order` check constraint even for an authorized manager.
+- A rollback-only probe also confirmed a manager-created `all_school`-visibility event for "today" is readable by an unrelated staff member using the exact date-range predicate the dashboard query uses, verifying the dashboard regression path end-to-end at the database level.
+- Seed event/group-link row counts were verified unchanged after all probes (2 events, 1 group link).
+- Authenticated browser smoke testing of the mutation flows was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side validation, build checks, and database authorization probes passed.
 
 ## Latest student goals mutation validation results
 
@@ -564,7 +619,8 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, and announcements creation/deletion/targeting.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, and calendar event creation/editing/deletion.
 2. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
 3. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
-4. **Calendar management**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, and Google Calendar sync indicators.
+4. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
+5. **Learning groups weekly editor**: Implement `/admin/learning-groups` per the admin desktop UX design doc.

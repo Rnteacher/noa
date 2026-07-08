@@ -35,11 +35,11 @@ export function AdminShell({ children }: AdminShellProps) {
       icon: Lock, 
       enabled: true 
     },
-    { 
-      href: '#', 
-      labelKey: 'admin.nav.calendar', 
-      icon: Calendar, 
-      enabled: false 
+    {
+      href: '/admin/calendar',
+      labelKey: 'admin.nav.calendar',
+      icon: Calendar,
+      enabled: true
     },
     { 
       href: '#', 
