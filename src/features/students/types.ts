@@ -77,6 +77,7 @@ export type StudentCardData = {
     status: TrafficLightStatus;
     statusSince: string | null;
   } | null;
+  canUpdateEmotionalStatus: boolean;
   goals: StudentGoal[];
   messages: StudentMessage[];
   isFollowed: boolean;

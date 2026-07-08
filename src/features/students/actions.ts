@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED_TAGS = ['general', 'project', 'emotional', 'attendance', 'family', 'incident'] as const;
 const ALLOWED_PROJECT_STATUSES = ['green', 'yellow', 'red'] as const;
+const ALLOWED_EMOTIONAL_STATUSES = ['green', 'yellow', 'red'] as const;
 
 export type CreateStudentMessageResult = {
   success: boolean;
@@ -333,3 +334,139 @@ export async function updateProjectStatus(
 }
 
 export type UpdateProjectStatusFn = typeof updateProjectStatus;
+
+export type UpdateEmotionalStatusResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateEmotionalStatus(
+  studentId: string,
+  newStatus: TrafficLightStatus
+): Promise<UpdateEmotionalStatusResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId)) {
+    return { success: false, error: 'students.card.invalidStudentId' };
+  }
+
+  if (!ALLOWED_EMOTIONAL_STATUSES.includes(newStatus)) {
+    return { success: false, error: 'students.emotionalStatus.invalidStatus' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id, group_id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const [
+    rowPermissionResult,
+    managerOrSuperAdminResult,
+    counselorRoleResult,
+    mentorAssignmentResult,
+  ] = await Promise.all([
+    supabase.rpc('current_user_can_update_student_emotional_status', {
+      target_student_id: studentId,
+    }),
+    supabase.rpc('current_user_is_manager_or_super_admin'),
+    supabase.rpc('current_user_has_role', { required_role: 'counselor' }),
+    supabase
+      .from('group_mentors')
+      .select('id')
+      .eq('group_id', student.group_id)
+      .eq('mentor_id', user.id)
+      .lte('active_from', today)
+      .or(`active_until.is.null,active_until.gte.${today}`)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const hasAllowedRoleOrRelationship = Boolean(
+    (managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error) ||
+      (counselorRoleResult.data && !counselorRoleResult.error) ||
+      (mentorAssignmentResult.data && !mentorAssignmentResult.error)
+  );
+
+  if (
+    rowPermissionResult.error ||
+    !rowPermissionResult.data ||
+    !hasAllowedRoleOrRelationship
+  ) {
+    return { success: false, error: 'students.emotionalStatus.updateForbidden' };
+  }
+
+  // Read only status metadata for the audit trail; the sensitive note field stays untouched.
+  const { data: latestStatus } = await supabase
+    .from('latest_student_emotional_statuses')
+    .select('emotional_status_id, status, created_at')
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (latestStatus?.status === newStatus) {
+    return { success: true, error: null };
+  }
+
+  const { data: insertedStatus, error: insertError } = await supabase
+    .from('student_emotional_statuses')
+    .insert({
+      student_id: studentId,
+      status: newStatus,
+      created_by: user.id,
+    })
+    .select('id, student_id, status, created_by, created_at')
+    .single();
+
+  if (insertError || !insertedStatus) {
+    return { success: false, error: 'students.emotionalStatus.updateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_emotional_status.updated',
+      entityType: 'student_emotional_status',
+      entityId: insertedStatus.id,
+      beforeData: latestStatus
+        ? {
+            emotional_status_id: latestStatus.emotional_status_id,
+            student_id: studentId,
+            status: latestStatus.status,
+            created_at: latestStatus.created_at,
+          }
+        : null,
+      afterData: insertedStatus,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for emotional status update:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateEmotionalStatusFn = typeof updateEmotionalStatus;

@@ -89,6 +89,7 @@ function emptyStudentCard(error: string | null): StudentCardData {
     mentors: [],
     project: null,
     emotionalStatus: null,
+    canUpdateEmotionalStatus: false,
     goals: [],
     messages: [],
     isFollowed: false,
@@ -284,12 +285,44 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       .maybeSingle(),
   ]);
 
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [
+    emotionalRowPermissionResult,
+    emotionalManagerOrSuperAdminResult,
+    counselorRoleResult,
+    mentorAssignmentResult,
+  ] = await Promise.all([
+    supabase.rpc('current_user_can_update_student_emotional_status', {
+      target_student_id: studentId,
+    }),
+    supabase.rpc('current_user_is_manager_or_super_admin'),
+    supabase.rpc('current_user_has_role', { required_role: 'counselor' }),
+    supabase
+      .from('group_mentors')
+      .select('id')
+      .eq('group_id', studentRow.group_id)
+      .eq('mentor_id', userId)
+      .lte('active_from', today)
+      .or(`active_until.is.null,active_until.gte.${today}`)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const canUpdateEmotionalStatus = Boolean(
+    emotionalRowPermissionResult.data &&
+      !emotionalRowPermissionResult.error &&
+      ((emotionalManagerOrSuperAdminResult.data &&
+        !emotionalManagerOrSuperAdminResult.error) ||
+        (counselorRoleResult.data && !counselorRoleResult.error) ||
+        (mentorAssignmentResult.data && !mentorAssignmentResult.error))
+  );
+
   let projectMasters: StudentPerson[] = [];
   const project = projectResult.data;
   let canUpdateProjectStatus = false;
 
   if (project?.project_id) {
-    const today = new Date().toISOString().slice(0, 10);
     const [
       mastersResult,
       rowPermissionResult,
@@ -419,6 +452,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
             statusSince: emotionalResult.data.created_at,
           }
         : null,
+    canUpdateEmotionalStatus,
     goals: ((goalsResult.data ?? []) as GoalRow[]).map((goal) => ({
       id: goal.id,
       title: goal.title,

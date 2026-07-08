@@ -25,6 +25,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/MessageComposer.tsx` (student message composer client component)
   - `src/app/(app)/students/[studentId]/DeleteMessageButton.tsx` (student message deletion client component)
   - `src/app/(app)/students/[studentId]/ProjectStatusForm.tsx` (project traffic-light status update client component)
+  - `src/app/(app)/students/[studentId]/EmotionalStatusForm.tsx` (emotional traffic-light status update client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -86,6 +87,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_MESSAGE_COMPOSER_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_MESSAGE_SOFT_DELETE_V1_HANDOFF.md`
   - `docs/parallel/GPT_PROJECT_STATUS_MUTATION_V1_HANDOFF.md`
+  - `docs/parallel/GPT_EMOTIONAL_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -220,7 +222,7 @@ Status:
 
 ## Student card status
 
-Student search page and detailed student cards with message posting and project status updates are implemented.
+Student search page and detailed student cards with message posting, project status updates, and emotional status updates are implemented.
 
 Status:
 - `/students` displays active student list with full name, group, and current project details, supporting ILIKE name search filtering.
@@ -234,12 +236,19 @@ Status:
 - Super admins can update any project traffic-light status through the same existing schema/RLS authorization path.
 - Project status updates use the normal request-scoped Supabase client, update only `projects.status` and updater metadata, and write secure audit logs (`project.status_updated`).
 - No project-status migration was added; Project Status Mutation v1 uses the existing `projects.status` field, `traffic_light_status` enum, current-project model, and RLS helper/policy.
+- Authorized active group mentors can update the emotional traffic-light status from the Emotional status section.
+- Counselors can update emotional traffic-light status because the existing schema helper `current_user_can_update_student_emotional_status` explicitly includes `current_user_has_role('counselor')`.
+- Managers can update emotional traffic-light status because the same existing schema helper explicitly includes `current_user_is_manager_or_super_admin`.
+- Super admins can update any student's emotional traffic-light status through the same existing schema/RLS authorization path.
+- Emotional status updates append a new `student_emotional_statuses` history row (status and `created_by` only) through the normal request-scoped Supabase client and write secure audit logs (`student_emotional_status.updated`) containing only status transition metadata.
+- Emotional free-text notes remain hidden and are not editable in Emotional Status Mutation v1; the mutation never reads or writes the `note` column.
+- No emotional-status migration was added; Emotional Status Mutation v1 uses the existing `student_emotional_statuses` append-only table, `traffic_light_status` enum, `latest_student_emotional_statuses` view, and the existing insert RLS policy/helper.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
   - Message editing.
   - Permanent message deletion.
   - Realtime updates on the message stream.
-  - Emotional status mutation flow.
+  - Emotional free-text notes viewing/editing surface.
   - Student goals mutation flow.
   - Student project title/master assignment editing.
   - Student status notifications.
@@ -381,6 +390,32 @@ Results:
 - `npm run build` passed.
 - `git diff --check` passed.
 
+## Latest emotional status mutation validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and loaded `supabase/seeds/dev_seed.sql`.
+- Type generation passed; `src/types/supabase.ts` was regenerated with no changes because no migration was added.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Anonymous `GET /students/55000000-0000-0000-0000-000000000001` returned `307` to `/login`.
+- Rollback-only database RLS probes confirmed: unrelated staff insert denied, counselor insert allowed, manager insert allowed, super admin insert allowed, and a counselor insert spoofing another user's `created_by` denied.
+- The seeded mentor assignment starts on `2026-09-01`, so it is not active on `2026-07-08` and the unmodified mentor probe was denied. A rollback-only probe that temporarily moved that assignment start date earlier confirmed an active group mentor can insert an emotional status row; the transaction was rolled back and the seed state remained unchanged.
+- Authenticated browser smoke testing of the mutation was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
+
 ## Latest project status mutation validation results
 
 Commands run:
@@ -460,8 +495,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, and soft deletion workflows.
-2. **Student emotional status mutation flow**: Implement the authorized emotional traffic-light update flow from the student card.
-3. **Student goals mutation flow**: Implement editing and creation flows for student goals from the student card interface.
-4. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
-5. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status mutations**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, and emotional status updates.
+2. **Student goals mutation flow**: Implement editing and creation flows for student goals from the student card interface.
+3. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
+4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.

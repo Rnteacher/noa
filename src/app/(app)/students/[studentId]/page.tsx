@@ -19,6 +19,7 @@ import { t } from '@/lib/i18n';
 import { MessageComposer } from './MessageComposer';
 import { DeleteMessageButton } from './DeleteMessageButton';
 import { ProjectStatusForm } from './ProjectStatusForm';
+import { EmotionalStatusForm } from './EmotionalStatusForm';
 import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
@@ -274,32 +275,45 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
         </Card>
 
         <Card title={t('students.card.emotionalTitle')}>
-          {data.emotionalStatus ? (
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-ink">
-                  {t('students.card.emotionalStatusLabel')}
-                </p>
-                <p className="mt-1 text-xs text-ink-muted">
-                  {t('students.card.statusSince', {
-                    date: formatDateTime(data.emotionalStatus.statusSince),
-                  })}
-                </p>
+          <div className="space-y-4">
+            {data.emotionalStatus ? (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-ink">
+                    {t('students.card.emotionalStatusLabel')}
+                  </p>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    {t('students.card.statusSince', {
+                      date: formatDateTime(data.emotionalStatus.statusSince),
+                    })}
+                  </p>
+                </div>
+                <StatusBadge
+                  variant={statusVariant(data.emotionalStatus.status)}
+                  label={statusLabel(data.emotionalStatus.status)}
+                  size="sm"
+                />
               </div>
-              <StatusBadge
-                variant={statusVariant(data.emotionalStatus.status)}
-                label={statusLabel(data.emotionalStatus.status)}
-                size="sm"
+            ) : (
+              <EmptyState
+                icon={<HeartPulse aria-hidden="true" className="h-5 w-5" />}
+                title={t('students.card.noEmotionalTitle')}
+                description={t('students.card.noEmotionalDescription')}
+                className="border-0 px-2 py-4"
               />
-            </div>
-          ) : (
-            <EmptyState
-              icon={<HeartPulse aria-hidden="true" className="h-5 w-5" />}
-              title={t('students.card.noEmotionalTitle')}
-              description={t('students.card.noEmotionalDescription')}
-              className="border-0 px-2 py-4"
-            />
-          )}
+            )}
+            {data.canUpdateEmotionalStatus ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                  {t('students.emotionalStatus.editTitle')}
+                </p>
+                <EmotionalStatusForm
+                  studentId={studentId}
+                  currentStatus={data.emotionalStatus?.status ?? null}
+                />
+              </div>
+            ) : null}
+          </div>
         </Card>
 
         <Card title={t('students.card.goalsTitle')}>

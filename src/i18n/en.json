@@ -95,7 +95,7 @@
   "students.card.noMessagesTitle": "No messages",
   "students.card.noMessagesDescription": "Recent active staff messages will appear here.",
   "students.card.readOnlyTitle": "Deferred edit areas",
-  "students.card.readOnlyDescription": "Emotional status, goals, follow controls, and photo changes remain deferred.",
+  "students.card.readOnlyDescription": "Goal editing, follow controls, and photo changes remain deferred.",
   "students.follow.following": "Following",
   "students.follow.notFollowing": "Not followed",
   "students.goals.primary": "Primary goal",
@@ -222,5 +222,12 @@
   "students.projectStatus.invalidStatus": "The selected project status is invalid.",
   "students.projectStatus.projectNotFound": "The current project could not be loaded.",
   "students.projectStatus.updateForbidden": "You do not have permission to update this project status.",
-  "students.projectStatus.updateFailed": "Failed to update project status. Please try again."
+  "students.projectStatus.updateFailed": "Failed to update project status. Please try again.",
+  "students.emotionalStatus.editTitle": "Update emotional status",
+  "students.emotionalStatus.selectLabel": "Emotional status",
+  "students.emotionalStatus.submitButton": "Save status",
+  "students.emotionalStatus.updateSuccess": "Emotional status was updated.",
+  "students.emotionalStatus.invalidStatus": "The selected emotional status is invalid.",
+  "students.emotionalStatus.updateForbidden": "You do not have permission to update this emotional status.",
+  "students.emotionalStatus.updateFailed": "Failed to update emotional status. Please try again."
 }
