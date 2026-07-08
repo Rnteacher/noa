@@ -193,5 +193,10 @@
   "admin.accessGrants.roles.counselor": "Counselor",
   "admin.accessGrants.roles.leadership": "Leadership",
   "admin.accessGrants.roles.manager": "Manager",
-  "admin.accessGrants.roles.super_admin": "Super admin"
+  "admin.accessGrants.roles.super_admin": "Super admin",
+  "announcements.pinned": "Pinned",
+  "announcements.error.notFound": "Announcement not found or no longer available.",
+  "announcements.error.failedToAcknowledge": "Failed to confirm read. Please try again.",
+  "announcements.error.failedToLoad": "Could not load announcements.",
+  "announcements.error.notRequired": "Confirmation is not required for this announcement."
 }

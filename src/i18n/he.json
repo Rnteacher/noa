@@ -193,5 +193,10 @@
   "admin.accessGrants.roles.counselor": "יועץ",
   "admin.accessGrants.roles.leadership": "הנהלה",
   "admin.accessGrants.roles.manager": "מנהל",
-  "admin.accessGrants.roles.super_admin": "מנהל מערכת"
+  "admin.accessGrants.roles.super_admin": "מנהל מערכת",
+  "announcements.pinned": "נעוץ",
+  "announcements.error.notFound": "ההכרזה לא נמצאה או שאינה זמינה יותר.",
+  "announcements.error.failedToAcknowledge": "אישור קריאת ההכרזה נכשל. יש לנסות שנית.",
+  "announcements.error.failedToLoad": "טעינת ההכרזות נכשלה.",
+  "announcements.error.notRequired": "אין צורך באישור קריאה עבור הכרזה זו."
 }

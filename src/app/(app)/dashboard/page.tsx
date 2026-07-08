@@ -62,7 +62,7 @@ function AnnouncementRow({
 }) {
   return (
     <ListRow
-      href="/announcements"
+      href={`/announcements/${announcement.id}`}
       className={emphasize ? 'bg-status-caution-soft/40' : undefined}
       leading={
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
