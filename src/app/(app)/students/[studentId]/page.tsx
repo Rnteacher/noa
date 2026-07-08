@@ -22,6 +22,8 @@ import { ProjectStatusForm } from './ProjectStatusForm';
 import { EmotionalStatusForm } from './EmotionalStatusForm';
 import { GoalForm } from './GoalForm';
 import { GoalStatusForm } from './GoalStatusForm';
+import { GoalDetailsForm } from './GoalDetailsForm';
+import { DeleteGoalButton } from './DeleteGoalButton';
 import { FollowButton } from './FollowButton';
 import { PhotoUploadForm } from './PhotoUploadForm';
 import { createClient } from '@/lib/supabase/server';
@@ -346,12 +348,25 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
                       </span>
                     </div>
                     {data.canManageGoals ? (
-                      <div className="mt-3 border-t border-line pt-3">
+                      <div className="mt-3 space-y-3 border-t border-line pt-3">
+                        <GoalDetailsForm
+                          studentId={studentId}
+                          goalId={goal.id}
+                          currentTitle={goal.title}
+                          currentDescription={goal.description}
+                        />
                         <GoalStatusForm
                           studentId={studentId}
                           goalId={goal.id}
                           currentStatus={goal.status}
                         />
+                        {data.canDeleteGoals ? (
+                          <DeleteGoalButton
+                            studentId={studentId}
+                            goalId={goal.id}
+                            goalTitle={goal.title}
+                          />
+                        ) : null}
                       </div>
                     ) : null}
                   </div>

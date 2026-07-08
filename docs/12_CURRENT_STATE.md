@@ -28,6 +28,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/EmotionalStatusForm.tsx` (emotional traffic-light status update client component)
   - `src/app/(app)/students/[studentId]/GoalForm.tsx` (student goal creation client component)
   - `src/app/(app)/students/[studentId]/GoalStatusForm.tsx` (per-goal status update client component)
+  - `src/app/(app)/students/[studentId]/GoalDetailsForm.tsx` (per-goal title/details edit client component)
+  - `src/app/(app)/students/[studentId]/DeleteGoalButton.tsx` (manager/super-admin goal deletion client component)
   - `src/app/(app)/students/[studentId]/FollowButton.tsx` (student follow/unfollow client component)
   - `src/app/(app)/students/[studentId]/PhotoUploadForm.tsx` (student photo upload client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
@@ -106,6 +108,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_PROJECT_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_EMOTIONAL_STATUS_MUTATION_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_GOALS_MUTATION_V1_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_GOAL_EDIT_DELETE_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
   - `docs/parallel/GPT_FOLLOW_STUDENT_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_PHOTO_UPLOADS_V1_HANDOFF.md`
@@ -283,8 +286,11 @@ Status:
 - Authorized active group mentors can create student goals and update goal status from the Goals section.
 - Managers and super admins can manage goals because the existing schema helper `current_user_can_update_student_goals` explicitly includes `current_user_is_manager_or_super_admin`.
 - Counselors cannot manage goals; the existing schema helper does not include the counselor role, matching the RBAC matrix.
-- Goal mutations update goals in place through the normal request-scoped Supabase client, touch only intentionally exposed columns (`title` and `description` on create, `status` and `updated_by` on update), and write secure audit logs (`student_goal.created` and `student_goal.updated`).
-- Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card. Hard goal deletion (manager/super-admin-only RLS) and goal title/description editing remain deferred.
+- Authorized goal managers can edit goal title and description from the Goals section. The detail edit action updates only `title`, `description`, and `updated_by`, and writes `student_goal.details_updated`.
+- Managers and super admins can hard-delete goals because the existing `student_goals` delete RLS policy explicitly restricts delete to `current_user_is_manager_or_super_admin()`. Deletions are confirmed in the UI and audit `student_goal.deleted` with before-data.
+- Goal mutations update goals in place through the normal request-scoped Supabase client, touch only intentionally exposed columns (`title` and `description` on create/edit, `status` and `updated_by` on status update), and write secure audit logs (`student_goal.created`, `student_goal.updated`, `student_goal.details_updated`, and `student_goal.deleted`).
+- Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card.
+- Primary/central goal management remains deferred because `student_goals.is_primary` exists but the schema does not enforce one primary goal per student. No application-only primary toggle was added in this follow-up.
 - No goals migration was added; Student Goals Mutation v1 uses the existing `student_goals` table, `goal_status` enum, and the existing insert/update RLS policies/helper.
 - Active staff can follow and unfollow students on their student cards. The follow state is scoped to the current user's profile and uses the existing `followed_students` schema and RLS policies (no database migration was added). Following/unfollowing performs idempotent inserts/deletes, writes secure audit logs (`student_follow.created` and `student_follow.deleted`), and revalidation refreshes both the student card and the dashboard followed-student count.
 - Authorized group mentors, managers, and super admins can upload or replace a student's profile photo from the student card using the `<PhotoUploadForm>` component. Photos are stored in a private Supabase Storage bucket (`student-photos`) and retrieved dynamically via secure signed URLs. Photo updates write secure audit logs (`student_photo.updated`) and are secure and column-safe: direct table-level update policies on `public.students` are disabled, and updates are restricted strictly to the `photo_url` column via a secure RPC helper (`update_student_photo_path`) validating user permissions and expected storage paths. Advanced image cropping, image moderation, and bulk photo import remain deferred.
@@ -294,7 +300,7 @@ Status:
   - Permanent message deletion.
   - Realtime updates on the message stream.
   - Emotional free-text notes viewing/editing surface.
-  - Goal title/description editing, hard deletion, and primary/central goal management.
+  - Primary/central goal management.
   - Student project title/master assignment editing.
   - Student status push notifications.
 
@@ -514,6 +520,29 @@ Results:
 - The seeded mentor assignment starts on `2026-09-01`, so it is not active on `2026-07-08` and the unmodified mentor probes were denied. Rollback-only probes that temporarily moved that assignment start date earlier confirmed an active group mentor can insert a goal and update a goal's status; the transactions were rolled back and the seed state remained unchanged.
 - Authenticated browser smoke testing of the mutation was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
 
+## Latest student goal edit/delete validation results
+
+Commands run:
+
+```bash
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- No migration was added, so `supabase db reset` and type regeneration were not required for this follow-up.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Rollback-only database RLS probes confirmed: an active group mentor can update goal title/description, unrelated staff cannot update, counselor cannot update, manager can update, and super admin can update.
+- Rollback-only delete probes confirmed: an active group mentor cannot hard-delete goals, while manager and super admin can hard-delete goals through the existing delete RLS policy.
+- Seed state was verified unchanged after probes: 4 goals remained, goal `45000000-0000-4000-8000-000000000001` kept title `Complete Next.js layout`, and mentor assignment `42000000-0000-4000-8000-000000000001` kept `active_from = 2026-09-01`.
+- Authenticated browser smoke testing was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side validation, build checks, and database authorization probes passed.
+
 ## Latest emotional status mutation validation results
 
 Commands run:
@@ -620,7 +649,7 @@ Created/maintained docs for:
 ## Next recommended tasks
 
 1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, and calendar event creation/editing/deletion.
-2. **Goal editing/deletion follow-up**: Add goal title/description editing, hard deletion or archive management for managers/super admins, and primary/central goal handling.
+2. **Primary/central goal follow-up**: Add safe primary/central goal management after enforcing or otherwise guaranteeing one primary goal per student.
 3. **Notification delivery & bottom-nav badges**: Implement push notification delivery and bottom navigation activity badges.
 4. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
 5. **Learning groups weekly editor**: Implement `/admin/learning-groups` per the admin desktop UX design doc.

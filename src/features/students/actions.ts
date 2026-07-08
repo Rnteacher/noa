@@ -730,6 +730,220 @@ export async function updateStudentGoalStatus(
 
 export type UpdateStudentGoalStatusFn = typeof updateStudentGoalStatus;
 
+export type UpdateStudentGoalDetailsResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateStudentGoalDetails(
+  studentId: string,
+  goalId: string,
+  title: string,
+  description: string
+): Promise<UpdateStudentGoalDetailsResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(goalId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) {
+    return { success: false, error: 'students.goals.titleRequired' };
+  }
+
+  if (trimmedTitle.length > GOAL_TITLE_MAX_LENGTH) {
+    return { success: false, error: 'students.goals.titleTooLong' };
+  }
+
+  const trimmedDescription = description.trim();
+  if (trimmedDescription.length > GOAL_DESCRIPTION_MAX_LENGTH) {
+    return { success: false, error: 'students.goals.descriptionTooLong' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id, group_id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const { data: goal, error: goalError } = await supabase
+    .from('student_goals')
+    .select('id, student_id, title, description, status, is_primary, visible_to_student, updated_by, updated_at')
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (goalError || !goal) {
+    return { success: false, error: 'students.goals.notFound' };
+  }
+
+  const { allowed } = await verifyGoalManagementPermission(
+    supabase,
+    user.id,
+    studentId,
+    student.group_id
+  );
+
+  if (!allowed) {
+    return { success: false, error: 'students.goals.manageForbidden' };
+  }
+
+  const normalizedDescription = trimmedDescription || null;
+
+  if (goal.title === trimmedTitle && goal.description === normalizedDescription) {
+    return { success: true, error: null };
+  }
+
+  const { data: updatedGoal, error: updateError } = await supabase
+    .from('student_goals')
+    .update({
+      title: trimmedTitle,
+      description: normalizedDescription,
+      updated_by: user.id,
+    })
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .select('id, student_id, title, description, status, is_primary, visible_to_student, updated_by, updated_at')
+    .single();
+
+  if (updateError || !updatedGoal) {
+    return { success: false, error: 'students.goals.detailsUpdateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_goal.details_updated',
+      entityType: 'student_goal',
+      entityId: goalId,
+      beforeData: goal,
+      afterData: updatedGoal,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student goal details update:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateStudentGoalDetailsFn = typeof updateStudentGoalDetails;
+
+export type DeleteStudentGoalResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function deleteStudentGoal(
+  studentId: string,
+  goalId: string
+): Promise<DeleteStudentGoalResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(goalId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  const { data: isActiveStaff, error: activeStaffError } = await supabase.rpc(
+    'current_user_is_active_staff'
+  );
+
+  if (activeStaffError || !isActiveStaff) {
+    return { success: false, error: 'students.error.noProfile' };
+  }
+
+  const { data: isManagerOrSuperAdmin, error: managerError } = await supabase.rpc(
+    'current_user_is_manager_or_super_admin'
+  );
+
+  if (managerError || !isManagerOrSuperAdmin) {
+    return { success: false, error: 'students.goals.deleteForbidden' };
+  }
+
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  const { data: goal, error: goalError } = await supabase
+    .from('student_goals')
+    .select('id, student_id, school_year_id, title, description, status, is_primary, visible_to_student, created_by, updated_by, created_at, updated_at')
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (goalError || !goal) {
+    return { success: false, error: 'students.goals.notFound' };
+  }
+
+  const { error: deleteError } = await supabase
+    .from('student_goals')
+    .delete()
+    .eq('id', goalId)
+    .eq('student_id', studentId);
+
+  if (deleteError) {
+    return { success: false, error: 'students.goals.deleteFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_goal.deleted',
+      entityType: 'student_goal',
+      entityId: goalId,
+      beforeData: goal,
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student goal deletion:', auditError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type DeleteStudentGoalFn = typeof deleteStudentGoal;
+
 export type FollowStudentResult = {
   success: boolean;
   error: string | null;

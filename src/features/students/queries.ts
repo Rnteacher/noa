@@ -91,6 +91,7 @@ function emptyStudentCard(error: string | null): StudentCardData {
     emotionalStatus: null,
     canUpdateEmotionalStatus: false,
     canManageGoals: false,
+    canDeleteGoals: false,
     canManagePhoto: false,
     goals: [],
     messages: [],
@@ -340,6 +341,8 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       (isManagerOrSuperAdmin || isActiveGroupMentor)
   );
 
+  const canDeleteGoals = isManagerOrSuperAdmin;
+
   const canManagePhoto = Boolean(
     photoRowPermissionResult.data &&
       !photoRowPermissionResult.error &&
@@ -494,6 +497,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
         : null,
     canUpdateEmotionalStatus,
     canManageGoals,
+    canDeleteGoals,
     canManagePhoto,
     goals: ((goalsResult.data ?? []) as GoalRow[]).map((goal) => ({
       id: goal.id,

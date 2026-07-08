@@ -79,6 +79,7 @@ export type StudentCardData = {
   } | null;
   canUpdateEmotionalStatus: boolean;
   canManageGoals: boolean;
+  canDeleteGoals: boolean;
   canManagePhoto: boolean;
   goals: StudentGoal[];
   messages: StudentMessage[];
