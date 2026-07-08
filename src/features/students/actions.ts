@@ -99,3 +99,104 @@ export async function createStudentMessage(
   return { success: true, error: null };
 }
 export type CreateStudentMessageFn = typeof createStudentMessage;
+
+export type DeleteStudentMessageResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function deleteStudentMessage(
+  studentId: string,
+  messageId: string
+): Promise<DeleteStudentMessageResult> {
+  const supabase = await createClient();
+
+  // 1. Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  // 2. Validate input
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(messageId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  // 3. Defensive check: is student visible?
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  // 4. Fetch the message details to verify ownership and state
+  const { data: messageRow, error: messageError } = await supabase
+    .from('student_messages')
+    .select('id, student_id, author_id, body, tags, is_important, created_at, deleted_at')
+    .eq('id', messageId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (messageError || !messageRow) {
+    return { success: false, error: 'students.messages.notFound' };
+  }
+
+  if (messageRow.deleted_at) {
+    return { success: false, error: 'students.messages.alreadyDeleted' };
+  }
+
+  // 5. Verify permissions
+  const isAuthor = messageRow.author_id === user.id;
+  const { data: isSuperAdmin } = await supabase.rpc('current_user_is_super_admin');
+
+  if (!isAuthor && !isSuperAdmin) {
+    return { success: false, error: 'students.messages.deleteForbidden' };
+  }
+
+  // 6. Update (soft delete) message
+  const { error: deleteError } = await supabase
+    .from('student_messages')
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: user.id,
+    })
+    .eq('id', messageId);
+
+  if (deleteError) {
+    return { success: false, error: 'students.messages.deleteFailed' };
+  }
+
+  // 7. Write audit log
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_message.deleted',
+      entityType: 'student_message',
+      entityId: messageId,
+      beforeData: messageRow,
+      afterData: {
+        ...messageRow,
+        deleted_at: new Date().toISOString(),
+        deleted_by: user.id,
+      },
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student message deletion:', auditError);
+  }
+
+  // 8. Revalidate student detail path
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type DeleteStudentMessageFn = typeof deleteStudentMessage;

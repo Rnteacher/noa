@@ -44,6 +44,7 @@ export type StudentGoal = {
 
 export type StudentMessage = {
   id: string;
+  authorId: string | null;
   authorName: string | null;
   body: string;
   tags: Tables<'student_messages'>['tags'];

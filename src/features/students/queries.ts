@@ -40,6 +40,7 @@ type PersonAssignmentRow = {
 
 type MessageRow = {
   id: string;
+  author_id: string | null;
   body: string;
   tags: StudentMessage['tags'];
   is_important: boolean;
@@ -268,8 +269,9 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       .limit(8),
     supabase
       .from('student_messages')
-      .select('id, body, tags, is_important, created_at, profiles:author_id(full_name)')
+      .select('id, author_id, body, tags, is_important, created_at, profiles:author_id(full_name)')
       .eq('student_id', studentId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(6),
     supabase
@@ -337,6 +339,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       const author = relationOne(message.profiles);
       return {
         id: message.id,
+        authorId: message.author_id,
         authorName: author?.full_name ?? null,
         body: message.body,
         tags: message.tags,

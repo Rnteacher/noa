@@ -23,6 +23,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/page.tsx` (student search list page)
   - `src/app/(app)/students/[studentId]/page.tsx` (student detail card page)
   - `src/app/(app)/students/[studentId]/MessageComposer.tsx` (student message composer client component)
+  - `src/app/(app)/students/[studentId]/DeleteMessageButton.tsx` (student message deletion client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
   - `src/app/(app)/announcements/[announcementId]/page.tsx` (announcement detail and acknowledgement page)
   - `src/app/(app)/more/page.tsx` (protected placeholder tab route)
@@ -82,6 +83,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_DEV_SEED_REVIEW_HANDOFF.md`
   - `docs/parallel/GPT_SEED_ACTIVATION_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_MESSAGE_COMPOSER_V1_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_MESSAGE_SOFT_DELETE_V1_HANDOFF.md`
   - `docs/parallel/GPT_STUDENTS_READONLY_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -223,10 +225,12 @@ Status:
 - `/students/[studentId]` shows the identity, follow state, group mentors, contacts, current project, masters, emotional status, goals, and recent messages list.
 - Authenticated active staff members can add new update messages to a student card via the mounted `<MessageComposer>` form.
 - Message inserts use the standard request-scoped Supabase server client and respect database Row-Level Security (RLS) policies.
-- Successfully created messages trigger a secure audit log write (`student_message.created`).
+- Message soft deletion is implemented: users can soft-delete their own messages, and super admins can soft-delete any message. Deletions are performed under the RLS model.
+- Successfully created and deleted messages write secure audit logs (`student_message.created` and `student_message.deleted`).
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
-  - Message editing or deletion (except admin soft deletion which remains deferred).
+  - Message editing.
+  - Permanent message deletion.
   - Realtime updates on the message stream.
   - Student goal or status updates/creation.
   - Follow/unfollow click mutation integrations.
@@ -420,7 +424,7 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, and student card message posting workflows.
-2. **Implement privileged RPC/server actions for column-sensitive mutations**: Add safe mutations for student photo updates, student message soft deletion with audit logging, and project/emotional/goal updates.
-3. **Student goals/status mutation flows**: Implement editing and creation flows for student goals, project status, and emotional status from the student card interface.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, and soft deletion workflows.
+2. **Student goals/status mutation flows**: Implement editing and creation flows for student goals, project status, and emotional status from the student card interface.
+3. **Student photo uploads**: Add mutations and storage triggers to manage student photos.
 4. **Admin-specific layout shell**: Implement a desktop-first sidebar layout for administration routes (e.g., access grants) to separate them from the mobile-first staff layout shell.

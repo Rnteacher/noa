@@ -208,5 +208,11 @@
   "students.messages.emptyBody": "תוכן העדכון אינו יכול להיות ריק.",
   "students.messages.bodyTooLong": "תוכן העדכון ארוך מדי (מקסימום 2000 תווים).",
   "students.messages.createFailed": "שליחת העדכון נכשלה. יש לנסות שנית.",
-  "students.card.invalidStudentId": "מזהה התלמיד אינו תקין."
+  "students.card.invalidStudentId": "מזהה התלמיד אינו תקין.",
+  "students.messages.deleteConfirm": "האם אתם בטוחים שברצונכם למחוק את העדכון?",
+  "students.messages.deleteButton": "מחיקת עדכון",
+  "students.messages.deleteForbidden": "אין לכם הרשאה למחוק עדכון זה.",
+  "students.messages.deleteFailed": "מחיקת העדכון נכשלה. יש לנסות שנית.",
+  "students.card.invalidIdFormat": "פורמט מזהה לא תקין.",
+  "students.messages.alreadyDeleted": "עדכון זה כבר נמחק."
 }

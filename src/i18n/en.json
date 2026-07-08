@@ -208,5 +208,11 @@
   "students.messages.emptyBody": "Message body cannot be empty.",
   "students.messages.bodyTooLong": "Message content exceeds limit of 2000 characters.",
   "students.messages.createFailed": "Failed to post message. Please try again.",
-  "students.card.invalidStudentId": "The student ID format is invalid."
+  "students.card.invalidStudentId": "The student ID format is invalid.",
+  "students.messages.deleteConfirm": "Are you sure you want to delete this message?",
+  "students.messages.deleteButton": "Delete message",
+  "students.messages.deleteForbidden": "You do not have permission to delete this message.",
+  "students.messages.deleteFailed": "Failed to delete message. Please try again.",
+  "students.card.invalidIdFormat": "The ID format is invalid.",
+  "students.messages.alreadyDeleted": "This message has already been deleted."
 }

@@ -17,6 +17,8 @@ import type {
 } from '@/features/students/types';
 import { t } from '@/lib/i18n';
 import { MessageComposer } from './MessageComposer';
+import { DeleteMessageButton } from './DeleteMessageButton';
+import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
   params: Promise<{
@@ -88,8 +90,19 @@ function PeopleList({ people }: { people: StudentPerson[] }) {
   );
 }
 
-function MessageRow({ message }: { message: StudentMessage }) {
+function MessageRow({
+  message,
+  currentUserId,
+  canDeleteAny,
+  studentId,
+}: {
+  message: StudentMessage;
+  currentUserId: string | null;
+  canDeleteAny: boolean;
+  studentId: string;
+}) {
   const tag = message.tags[0];
+  const canDelete = canDeleteAny || (message.authorId === currentUserId && message.authorId !== null);
 
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
@@ -100,11 +113,16 @@ function MessageRow({ message }: { message: StudentMessage }) {
           </p>
           <p className="text-xs text-ink-muted">{formatDateTime(message.createdAt)}</p>
         </div>
-        {tag ? (
-          <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-ink-secondary">
-            {t(`students.messages.tags.${tag}`)}
-          </span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {tag ? (
+            <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-ink-secondary">
+              {t(`students.messages.tags.${tag}`)}
+            </span>
+          ) : null}
+          {canDelete ? (
+            <DeleteMessageButton studentId={studentId} messageId={message.id} />
+          ) : null}
+        </div>
       </div>
       <p className="mt-3 text-sm leading-6 text-ink-secondary">{message.body}</p>
       {message.isImportant ? (
@@ -119,6 +137,12 @@ function MessageRow({ message }: { message: StudentMessage }) {
 export default async function StudentCardPage({ params }: StudentCardPageProps) {
   const { studentId } = await params;
   const data = await getStudentCard(studentId);
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: isSuperAdmin } = await supabase.rpc('current_user_is_super_admin');
+  const currentUserId = user?.id ?? null;
+  const canDeleteAny = !!isSuperAdmin;
 
   if (data.error || !data.student) {
     return (
@@ -298,7 +322,13 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
           {data.messages.length > 0 ? (
             <div className="space-y-3">
               {data.messages.map((message) => (
-                <MessageRow key={message.id} message={message} />
+                <MessageRow
+                  key={message.id}
+                  message={message}
+                  currentUserId={currentUserId}
+                  canDeleteAny={canDeleteAny}
+                  studentId={studentId}
+                />
               ))}
             </div>
           ) : (
