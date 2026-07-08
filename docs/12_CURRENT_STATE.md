@@ -41,6 +41,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
   - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
   - `src/app/(app)/admin/calendar/DeleteCalendarEventButton.tsx` (calendar event deletion client button)
+  - `src/app/(app)/admin/learning-groups/page.tsx` (admin learning groups weekly editor list/filter/create page)
+  - `src/app/(app)/admin/learning-groups/LearningGroupForm.tsx` (reusable create/edit learning group client form)
+  - `src/app/(app)/admin/learning-groups/LearningGroupRow.tsx` (learning group table row with inline edit toggle)
+  - `src/app/(app)/admin/learning-groups/ArchiveLearningGroupButton.tsx` (learning group archive/deactivate client button)
   - `src/app/(app)/more/page.tsx` (more tools route page)
   - `src/app/(app)/notifications/page.tsx` (notifications feed page)
   - `src/app/(app)/notifications/MarkNotificationReadButton.tsx` (mark single notification read client button component)
@@ -82,6 +86,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `calendar/`
     - `src/features/calendar/admin-queries.ts` (Admin calendar server-side queries)
     - `src/features/calendar/admin-actions.ts` (Admin calendar Server Actions)
+  - `learning-groups/`
+    - `src/features/learning-groups/types.ts` (shared admin learning group types and weekday constants)
+    - `src/features/learning-groups/admin-queries.ts` (Admin learning groups server-side queries)
+    - `src/features/learning-groups/admin-actions.ts` (Admin learning groups Server Actions)
   - `notifications/`
     - `src/features/notifications/queries.ts` (Notifications server-side queries)
     - `src/features/notifications/actions.ts` (Notifications Server Actions)
@@ -126,6 +134,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_ADMIN_DESKTOP_SHELL_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_ANNOUNCEMENTS_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_CALENDAR_V1_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_LEARNING_GROUPS_V1_HANDOFF.md`
   - `docs/parallel/GPT_NOTIFICATIONS_BADGES_V1_HANDOFF.md`
 
 ## Database foundation status
@@ -245,7 +254,7 @@ Status:
 - Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
 - `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
 - `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
-- The `AdminShell` Calendar nav item is now enabled and links to `/admin/calendar`, matching the newly implemented admin calendar management route. Remaining placeholders (Learning groups, Students, Groups, Users, Import/Export, Settings) stay muted and non-clickable.
+- The `AdminShell` Calendar and Learning groups nav items are now enabled and link to `/admin/calendar` and `/admin/learning-groups`. Remaining placeholders (Students, Groups, Users, Import/Export, Settings) stay muted and non-clickable.
 - Real dashboard data queries and status aggregations are implemented in Dashboard v1.
 
 ## Dashboard v1 status
@@ -374,6 +383,25 @@ Status:
 - Audit logging: successful mutations write `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted` through the existing privileged server-only audit helper, capturing before/after event metadata and target group ids where relevant.
 - Revalidation: all three actions revalidate both `/admin/calendar` and `/dashboard`, so dashboard "Today"/"This week" sections reflect newly created or edited events without a manual refresh once Next.js re-renders the dashboard route.
 - Deferred: Google Calendar sync (the `google_calendar_event_id` column exists but is unused), recurrence (the `recurrence_rule` column exists but has no interpretation logic), drag-and-drop/resizing, the full Day/Week/Year-Gantt view switcher, push notifications for events (`push_enabled` column exists but is unused), and a school-year picker.
+
+## Admin learning groups weekly editor v1 status
+
+The first admin-facing weekly learning group management workflow is implemented at:
+
+- `/admin/learning-groups`
+
+Status:
+
+- No migration was added. The implementation uses the existing `learning_groups` table, `learning_group_target_groups` junction table, and `weekday` enum exactly as defined in the initial migration.
+- The existing schema fields are supported in v1: `title` (required), `description` (optional), `weekday`, `starts_at`, `ends_at`, `leader_id`, `room`, `active_from`, `active_until`, `is_active`, and target `student_groups`. `school_year_id` is resolved automatically from `school_years.is_current = true` on create.
+- Existing database constraints enforce safe scheduling: `learning_groups_time_order` requires `ends_at > starts_at`, `learning_groups_active_range` requires `active_until >= active_from` when present, and `learning_groups_standard_window` requires all sessions to stay within 11:30-13:30. The server action repeats these checks before writing.
+- Managers and super admins can create, update, archive/deactivate, and hard-delete learning groups under the existing broad `for all` RLS policy using `current_user_is_manager_or_super_admin()`. No other role (including mentors, counselors, and plain staff) can mutate learning groups; this was verified with rollback-only database probes.
+- The UI intentionally exposes archive/deactivate (`is_active = false`) instead of hard delete because the schema has an `is_active` lifecycle column. Hard delete remains possible at the RLS layer for managers/super admins, but it is not exposed in the v1 UI.
+- Target-group selection is supported: selected `student_groups` rows are inserted into `learning_group_target_groups`, and updates fully replace the target-group set (clear then re-insert) inside the same server action.
+- Edit is implemented as an inline per-row form (toggle via `LearningGroupRow`) that reuses `LearningGroupForm` in edit mode. The list supports weekday and active/archived/all filters.
+- Audit logging: successful mutations write `learning_group.created`, `learning_group.updated`, and `learning_group.archived` through the existing privileged server-only audit helper, capturing before/after group metadata and target group ids where relevant.
+- Revalidation: all learning group actions revalidate `/admin/learning-groups`.
+- Deferred: drag-and-drop weekly timetable editing, full timetable/day-grid layout, Google Calendar sync, notifications for learning group changes, capacity/roster management, and a school-year picker.
 
 ## UX design foundation status
 
@@ -522,6 +550,30 @@ Results:
 - A rollback-only probe also confirmed a manager-created `all_school`-visibility event for "today" is readable by an unrelated staff member using the exact date-range predicate the dashboard query uses, verifying the dashboard regression path end-to-end at the database level.
 - Seed event/group-link row counts were verified unchanged after all probes (2 events, 1 group link).
 - Authenticated browser smoke testing of the mutation flows was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side validation, build checks, and database authorization probes passed.
+
+## Latest admin learning groups validation results
+
+Commands run:
+
+```bash
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- No migration was added, so `supabase db reset` and Supabase type generation were not required for this task.
+- `npm run check:no-hebrew-in-code` passed.
+- `npm run lint` passed.
+- `npm run build` passed, with `/admin/learning-groups` registered as a dynamic route alongside the existing admin routes.
+- `git diff --check` passed with line-ending normalization warnings only.
+- Rollback-only database RLS probes confirmed: manager insert succeeded, manager title/description update succeeded, manager target-link replacement succeeded, manager archive via `is_active = false` succeeded, super admin update succeeded, and manager hard delete is allowed by the existing broad manager/super-admin RLS policy.
+- Rollback-only database RLS probes also confirmed: mentor update changed 0 rows, mentor hard delete changed 0 rows, mentor insert was denied by RLS (`42501`), counselor update changed 0 rows, plain staff archive changed 0 rows, and plain staff insert was denied by RLS (`42501`).
+- Rollback-only constraint probes confirmed authorized manager inserts outside the 11:30-13:30 window and with `ends_at <= starts_at` are rejected by database check constraints (`23514`).
+- Seed learning group state stayed unchanged after probes: 1 learning group, 1 target link, title `Software Development Lab`, and `is_active = true`.
+- Authenticated browser smoke testing of the mutation flows was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
 
 ## Latest student goals mutation validation results
 
@@ -677,8 +729,8 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, and calendar event creation/editing/deletion.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management/learning groups management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, calendar event creation/editing/deletion, and learning group creation/editing/archiving.
 2. **Primary/central goal follow-up**: Add safe primary/central goal management after enforcing or otherwise guaranteeing one primary goal per student.
 3. **Web Push delivery & push subscription management**: Implement browser Web Push notifications, service worker registration, VAPID key pairs, and client push subscription endpoints. In-app notification delivery and BottomNav badges are fully completed.
 4. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
-5. **Learning groups weekly editor**: Implement `/admin/learning-groups` per the admin desktop UX design doc.
+5. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.

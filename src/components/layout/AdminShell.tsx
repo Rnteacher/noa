@@ -42,10 +42,10 @@ export function AdminShell({ children }: AdminShellProps) {
       enabled: true
     },
     { 
-      href: '#', 
+      href: '/admin/learning-groups',
       labelKey: 'admin.nav.learningGroups', 
       icon: BookOpen, 
-      enabled: false 
+      enabled: true
     },
     {
       href: '/admin/announcements',

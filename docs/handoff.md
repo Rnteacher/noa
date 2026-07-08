@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal, follow/unfollow, student-photo, admin layout shell, admin announcement management, and admin calendar management workflows running against the local Supabase schema, storage bucket, and seed.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal, follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, and admin learning groups weekly editor workflows running against the local Supabase schema, storage bucket, and seed.
 
 ## Current Implemented Foundation
 
@@ -10,7 +10,7 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **OAuth/access grants foundation exists**: Google OAuth routing, protected app access, active profile checks, bootstrap super admin support, and super-admin access grant management are implemented.
 - **UI base components exist**: Design tokens, `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`, and protected app shell layouts are in place.
 - **Staff mobile shell exists**: `/dashboard`, `/today`, `/students`, `/announcements`, and `/more` render protected app pages using the persistent mobile `BottomNav` layout.
-- **Admin desktop shell v1 exists**: `/admin/*` routes are detected by a path-aware protected layout wrapper (`src/app/(app)/layout.tsx`) and render the desktop-first `AdminShell` component (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff app, and a collapsible menu drawer for mobile viewports. The Calendar nav item is now enabled and links to `/admin/calendar`.
+- **Admin desktop shell v1 exists**: `/admin/*` routes are detected by a path-aware protected layout wrapper (`src/app/(app)/layout.tsx`) and render the desktop-first `AdminShell` component (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff app, and a collapsible menu drawer for mobile viewports. The Calendar and Learning groups nav items are now enabled and link to `/admin/calendar` and `/admin/learning-groups`.
 - **Dashboard v1 exists**: `/dashboard` reads live RLS-scoped announcements, acknowledgements, events, followed-student counts, and the super-admin access-grants shortcut.
 - **Student search/card exists**: `/students` lists active students and `/students/[studentId]` renders identity, contacts, current project, masters, emotional status, goals, and recent messages.
 - **Student message composer exists**: Active staff can add student-card update messages; inserts use request-scoped Supabase clients and audit `student_message.created`.
@@ -23,6 +23,7 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **Staff-facing announcements read and acknowledgement exist**: `/announcements` and `/announcements/[announcementId]` show visible announcements and support read acknowledgement through RLS-safe server actions.
 - **Admin announcement management v1 exists**: `/admin/announcements` allows managers and super admins (or leadership role holders, for creation) to view an active announcements list/table, read acknowledgement progress counters, compose and publish new announcements (pinned state, target roles, target student groups, requires acknowledgement), and delete announcements they manage. Creation/deletion are RLS-safe and write secure audit logs (`announcement.created`, `announcement.deleted`).
 - **Admin calendar management v1 exists**: `/admin/calendar` lets managers and super admins list events (with today/week/month/upcoming filters), create events, edit events inline, and delete events, using the existing `calendar_events`/`calendar_event_groups` schema and RLS (no migration added). Group targeting is supported when visibility is `groups`. Mutations audit `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted`, and revalidate both `/admin/calendar` and `/dashboard` so dashboard calendar sections reflect changes. Google Calendar sync, recurrence, drag-and-drop, and the full Day/Week/Year-Gantt view switcher remain deferred.
+- **Admin learning groups weekly editor v1 exists**: `/admin/learning-groups` lets managers and super admins list weekly learning groups (weekday and active/archived filters), create groups, edit groups inline, and archive/deactivate groups via `is_active = false`, using the existing `learning_groups`/`learning_group_target_groups` schema and RLS (no migration added). Target student groups and optional leaders are supported. Mutations audit `learning_group.created`, `learning_group.updated`, and `learning_group.archived`, and revalidate `/admin/learning-groups`. Hard delete is allowed by the existing manager/super-admin RLS policy but is intentionally not exposed in the v1 UI because the table has an `is_active` lifecycle column. Drag-and-drop/full timetable editing, Google Calendar sync, notifications, capacity/roster management, and school-year selection remain deferred.
 - **Notification delivery & bottom-nav badges v1 exists (Hardened)**: Student card updates automatically dispatch in-app notifications to active followers of the student (excluding the change actor). The database function `create_student_change_notification` is security-hardened against direct client calls, fake actor ID spoofing, unauthorized notification creation, and event spamming, enforcing active staff status, active student validation, strict event type allowlists, and per-event caller authorization checks. Generates privacy-preserving text formatting internally (hides emotional note/color, raw message body, and goal descriptions). `/notifications` lists user's notifications. Unread notifications display distinct styling and can be marked as read individually or in bulk. Mobile `BottomNav` overlays unread notification badges on the `More` tab item. Web Push delivery remains deferred.
 
 ## Student card status details
@@ -35,10 +36,17 @@ See `docs/12_CURRENT_STATE.md` ("Student card status") for the full breakdown of
 - A real Postgres RLS + `RETURNING` interaction was discovered and worked around at the application layer: `calendar_events`' SELECT policy re-queries the table by id inside a security-definer function, which cannot see a row the same `INSERT`/`UPDATE` statement just wrote. The server actions avoid chaining `.select()` after insert/update on this table (generating the id client-side for create) instead of bypassing RLS.
 - Deferred: Google Calendar sync, recurrence, drag-and-drop, the Day/Week/Year-Gantt view switcher, and event push notifications.
 
+## Admin learning groups weekly editor notes
+
+- No migration was added. The implementation uses the existing `learning_groups` table, `learning_group_target_groups` junction table, `weekday` enum, `is_active` lifecycle column, and database time-window constraints.
+- Managers and super admins can manage learning groups through the existing `current_user_is_manager_or_super_admin()` RLS policy. Rollback-only probes confirmed mentors, counselors, and plain staff cannot mutate learning groups.
+- The UI archives/deactivates groups instead of hard deleting them. Existing RLS permits manager/super-admin hard delete, but hard delete is intentionally reserved for future operational tooling rather than exposed in v1.
+- Deferred: drag-and-drop/full timetable editing, Google Calendar sync, notifications, capacity/roster management, and school-year selection.
+
 ## Next task options
 
-- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, goal management, follow/unfollow, student photo uploads, the admin shell/announcements management, calendar management, and notifications.
+- Authenticated browser smoke test for dashboard, students, announcements, messages, project status updates, emotional status updates, goal management, follow/unfollow, student photo uploads, the admin shell/announcements management, calendar management, learning groups management, and notifications.
 - Primary/central goal follow-up after uniqueness is enforced or otherwise guaranteed.
 - Web Push delivery and push subscription management.
 - Calendar management follow-up: view switcher (Day/Week/Month/Year-Gantt), drag-and-drop, recurrence, Google Calendar outbound sync indicators.
-- Learning groups weekly editor (`/admin/learning-groups`).
+- Learning groups follow-up: drag-and-drop/full timetable editing, Google Calendar sync indicators, notifications, capacity/roster management, and school-year selection.
