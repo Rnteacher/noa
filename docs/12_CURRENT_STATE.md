@@ -47,7 +47,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
   - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
   - `src/app/(app)/admin/calendar/DeleteCalendarEventButton.tsx` (calendar event deletion client button)
-  - `src/app/(app)/admin/learning-groups/page.tsx` (admin learning groups weekly editor list/filter/create page)
+  - `src/app/(app)/admin/learning-groups/page.tsx` (admin learning groups views router page)
+  - `src/app/(app)/admin/learning-groups/LearningGroupsWorkspace.tsx` (admin learning groups workspace client wrapper)
+  - `src/app/(app)/admin/learning-groups/LearningGroupsViewSwitcher.tsx` (admin learning groups layout switcher component)
+  - `src/app/(app)/admin/learning-groups/LearningGroupsTimetable.tsx` (admin learning groups timetable layout panel)
   - `src/app/(app)/admin/learning-groups/LearningGroupForm.tsx` (reusable create/edit learning group client form)
   - `src/app/(app)/admin/learning-groups/LearningGroupRow.tsx` (learning group table row with inline edit toggle)
   - `src/app/(app)/admin/learning-groups/ArchiveLearningGroupButton.tsx` (learning group archive/deactivate client button)
@@ -161,6 +164,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_WEB_PUSH_V1_HANDOFF.md`
   - `docs/parallel/GPT_WEB_PUSH_BROWSER_VERIFICATION_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_CALENDAR_VIEWS_V2_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_LEARNING_GROUPS_TIMETABLE_V2_HANDOFF.md`
 
 ## Database foundation status
 
@@ -428,24 +432,27 @@ Status:
 - **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). Verified live: all 8 required URL/param combinations (`view=list|day|week|month`, invalid `view=bad`, invalid `date=bad`, and a `date` value in a different month) render with no console errors and fall back safely on invalid input; Prev/Today/Next all update the URL correctly; clicking a Month-view day cell navigates to Day view for that date; create/edit/delete of a same-day timed event correctly reflected across List, Day, Week, and Month views and on the dashboard's Today/This Week cards, with no RLS/`RETURNING` regression in server logs. Edge cases verified live: an existing seeded multi-day event (spanning 3 days) renders correctly on every relevant day in both Week and Month grids with no grid overflow; a newly created all-day event renders in the separate all-day section of Day view; a newly created group-targeted event shows the target group name; an event spanning a month boundary (Jul 30 - Aug 1) correctly appears on the relevant cells in both the July and August month grids; the sync indicator was confirmed to show "Synced" only when `google_calendar_event_id` is set and "Not synced" otherwise, in Day/Week/Month views (the List view's `CalendarEventRow` intentionally has no sync indicator — it is the preserved legacy v1 row component and was not extended in v2). All test events created for this pass were deleted afterward and verified back to the original 2 seeded events.
 - **Bug found and fixed: RTL date-range label displayed in reversed visual order.** `CalendarDateNavigator.tsx`'s week/day/month label span had no explicit `dir`, so under the page's `dir="rtl"` context the browser's Unicode bidi algorithm rendered a two-part numeric range like `"5.7 - 11.7.2026"` visually as `"1.7.2026 - 5.7"` (correct DOM text, reversed visual order) for any range containing a hyphen-joined start/end pair — confirmed by comparing the raw DOM text content against the rendered screenshot. Fixed by adding `dir="ltr"` to that span, since the date/time tokens themselves are always LTR-formatted regardless of UI locale. Verified fixed live: the same week now renders in the correct visual order.
 
-## Admin learning groups weekly editor v1 status
+## Admin learning groups timetable views v2 status
 
-The first admin-facing weekly learning group management workflow is implemented at:
+The learning groups workspace is upgraded to v2 at:
 
 - `/admin/learning-groups`
 
 Status:
 
 - No migration was added. The implementation uses the existing `learning_groups` table, `learning_group_target_groups` junction table, and `weekday` enum exactly as defined in the initial migration.
-- The existing schema fields are supported in v1: `title` (required), `description` (optional), `weekday`, `starts_at`, `ends_at`, `leader_id`, `room`, `active_from`, `active_until`, `is_active`, and target `student_groups`. `school_year_id` is resolved automatically from `school_years.is_current = true` on create.
-- Existing database constraints enforce safe scheduling: `learning_groups_time_order` requires `ends_at > starts_at`, `learning_groups_active_range` requires `active_until >= active_from` when present, and `learning_groups_standard_window` requires all sessions to stay within 11:30-13:30. The server action repeats these checks before writing.
-- Managers and super admins can create, update, archive/deactivate, and hard-delete learning groups under the existing broad `for all` RLS policy using `current_user_is_manager_or_super_admin()`. No other role (including mentors, counselors, and plain staff) can mutate learning groups; this was verified with rollback-only database probes.
-- The UI intentionally exposes archive/deactivate (`is_active = false`) instead of hard delete because the schema has an `is_active` lifecycle column. Hard delete remains possible at the RLS layer for managers/super admins, but it is not exposed in the v1 UI.
-- Target-group selection is supported: selected `student_groups` rows are inserted into `learning_group_target_groups`, and updates fully replace the target-group set (clear then re-insert) inside the same server action.
-- Edit is implemented as an inline per-row form (toggle via `LearningGroupRow`) that reuses `LearningGroupForm` in edit mode. The list supports weekday and active/archived/all filters.
+- Managers and super admins can create, update, archive/deactivate, and hard-delete learning groups under the RLS policies.
+- **Multiple Views**: Upgraded the interface to support **Timetable** (default) and **List** views.
+  - **List view** displays active learning groups in table rows, preserving the legacy v1 inline edit forms and archive buttons.
+  - **Timetable view** displays weekly columns (Sunday to Saturday) containing learning group cards sorted chronologically. Each card shows the title, time window, room, leader, target group names, and status badge.
+- **URL Query Parameters**: driven by `view=timetable|list`, `weekday=all|sunday|...`, and `state=active|inactive|all`. Toggling view or filters updates both layouts dynamically.
+- **Sidebar Integration**: The right sidebar dynamically switches between creating new learning groups and editing selected learning groups from either the List table rows or the Timetable cards. Clicking "Cancel" reverts the form back to create mode.
 - Audit logging: successful mutations write `learning_group.created`, `learning_group.updated`, and `learning_group.archived` through the existing privileged server-only audit helper, capturing before/after group metadata and target group ids where relevant.
-- Revalidation: all learning group actions revalidate `/admin/learning-groups`.
-- Deferred: drag-and-drop weekly timetable editing, full timetable/day-grid layout, Google Calendar sync, notifications for learning group changes, capacity/roster management, and a school-year picker.
+- Revalidation: all three actions revalidate both `/admin/learning-groups` and `/dashboard` routes.
+- Deferred: drag-and-drop timetable editing, outbound Google Calendar sync, group capacity/roster management, and school-year picker.
+- **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). All 8 required URL/param combinations (`view=timetable|list`, invalid `view=bad`, `weekday=all&state=active`, `weekday=monday`, `state=inactive`, and `view=list&weekday=all&state=all`) rendered with no console errors; invalid `view` fell back safely to `timetable`. The Timetable/List switcher, and the `weekday`/`state` filters, were confirmed to apply identically to both views. Full create/edit/archive mutation flow was verified live: a temporary group appeared correctly in both Timetable (under the correct weekday/time) and List views, editing from a Timetable card correctly pre-populated the sidebar and propagated changes to both views, archiving correctly flipped `is_active` and was reflected correctly by all three state filters, and `learning_group.created`/`.updated`/`.archived` all appeared correctly in the audit log. Edge cases verified live: a group starting exactly at 11:30 and ending exactly at 13:30 (the boundary of the allowed window) saved successfully; a group with a time outside the 11:30-13:30 window was correctly rejected server-side with a clean error message (`errorTimeWindow`) even after removing the client-side HTML `min`/`max` constraints, confirming defense-in-depth; an end-before-start submission was likewise cleanly rejected (`errorEndBeforeStart`); groups with no leader and no room rendered correctly with their respective fallback text; and three groups on the same weekday with different times sorted chronologically correctly in both views. All temporary test groups were deleted afterward and the table was verified back to its original single seeded row.
+- **Documentation correction (not a code bug)**: the prior handoff doc for this feature claimed the Timetable view "collapses Friday/Saturday if empty." Live testing confirmed the actual implementation (`LearningGroupsTimetable.tsx`) always renders all 7 weekday columns unconditionally, showing a `-` placeholder for empty days; there is no collapsing logic in the code. This is not a functional defect (nothing crashes or shows incorrect data) and was left as-is per this task's explicit no-new-features scope; the prior doc's inaccurate claim is corrected here instead of adding new collapsing behavior.
+- Mobile/stacked layout (`grid-cols-1` below the `md` breakpoint) was confirmed by code inspection to use the same responsive Tailwind pattern already visually verified working in the Admin Calendar Views v2 browser test; live viewport resizing was not reliably reproducible in this automated browser session, so it was not independently re-verified pixel-for-pixel in this pass.
 
 ## Admin audit log viewer v1 status
 
@@ -905,7 +912,8 @@ A full authenticated-browser verification pass was completed against a real Goog
 ## Next recommended tasks
 
 1. **Calendar management follow-up**: Build drag-and-drop slots editing, recurrence rules interpretation, and outbound Google Calendar Sync API integration. Calendar Views v2 (List/Day/Week/Month view switcher, date navigator, and sync indicators) is fully implemented and browser-verified.
-2. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
+2. **Learning groups follow-up**: Add drag-and-drop weekly timetable editing, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready. Timetable Views v2 is fully implemented and browser-verified.
 3. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.
 4. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
 5. **Two-account real push test**: A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in this pass) remains open if a second real Google account becomes available.
+6. **Learning groups mobile viewport re-check**: Live browser viewport resizing was not reliably reproducible in the automated session used for the Timetable Views v2 browser test; a manual mobile-device check of the stacked layout remains a nice-to-have (code inspection confirms it uses the same responsive pattern already visually verified for Calendar Views v2).
