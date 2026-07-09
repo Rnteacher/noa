@@ -1,7 +1,7 @@
 'use client';
 
 import { Bell, BellOff } from 'lucide-react';
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useState, useSyncExternalStore, useTransition } from 'react';
 import { Alert } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import {
@@ -33,16 +33,24 @@ function isPushSupported() {
   );
 }
 
+function subscribeNoop() {
+  return () => {};
+}
+
+function getIsAvailableServerSnapshot() {
+  return false;
+}
+
 export default function PushSubscriptionControls() {
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const [status, setStatus] = useState<PushControlStatus>('unsupported');
   const [hasSubscription, setHasSubscription] = useState(false);
   const [messageKey, setMessageKey] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  const isAvailable = useMemo(
+  const isAvailable = useSyncExternalStore(
+    subscribeNoop,
     () => Boolean(vapidPublicKey && isPushSupported()),
-    [vapidPublicKey]
+    getIsAvailableServerSnapshot
   );
 
   useEffect(() => {

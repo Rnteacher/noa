@@ -155,6 +155,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_AUTHENTICATED_BROWSER_SMOKE_TEST_HANDOFF.md`
   - `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_HANDOFF.md`
   - `docs/parallel/GPT_WEB_PUSH_V1_HANDOFF.md`
+  - `docs/parallel/GPT_WEB_PUSH_BROWSER_VERIFICATION_HANDOFF.md`
 
 ## Database foundation status
 
@@ -394,7 +395,7 @@ Status:
   - VAPID configuration uses `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`; missing keys disable push without breaking the app build.
   - Stale Web Push subscriptions returning 404/410 are deleted from the privileged server-only delivery path.
   - Push subscription create/delete audit events are intentionally not written in v1 to avoid noisy audit rows and any risk of storing raw subscription material; subscription CRUD remains protected by RLS and validated server-side.
-  - Full browser push display and click verification (permission prompt, subscription saving, actual push popup, notification click focusing, and disable/re-enable) remains a manual-only verification task.
+  - Full browser push display and click verification (permission prompt, subscription saving, actual push popup, notification click focusing, and disable/re-enable) has been completed against a real authenticated Google OAuth session and a real Chrome browser. See "Latest Web Push browser verification results" below for details, including a real-world FCM delivery delay observed (not a code defect) and one real bug found and fixed in `PushSubscriptionControls.tsx`.
 
 ## Admin calendar management v1 status
 
@@ -869,12 +870,24 @@ Results:
 - `npm run check:no-hebrew-in-code`, `npm run lint`, and `npm run build` passed.
 - `git diff --check` passed with line-ending warnings only.
 - Rollback-only RLS probes confirmed: active staff can insert/update/read/delete their own push subscription; inserting a subscription for another profile is rejected; users cannot read or delete another user's subscription; managers have no special subscription visibility; duplicate endpoints are rejected by the unique constraint; seed `push_subscriptions` row count remained 0 after rollback.
-- Browser smoke status: the in-app browser redirected unauthenticated `/notifications` to `/login` as expected. A seeded local email/password login attempt returned invalid credentials, matching the existing auth-test limitation. Because no authenticated in-app browser session and no interactive push permission grant were available in this context, the push controls, permission prompt, saved browser subscription, real push display, notification click focusing, and disable/re-enable flow were not fully browser-verified.
+- Browser smoke status (superseded, see below): the in-app browser redirected unauthenticated `/notifications` to `/login` as expected. A seeded local email/password login attempt returned invalid credentials, matching the existing auth-test limitation. Because no authenticated in-app browser session and no interactive push permission grant were available in this context, the push controls, permission prompt, saved browser subscription, real push display, notification click focusing, and disable/re-enable flow were not fully browser-verified at that time.
+
+## Latest Web Push browser verification results
+
+A full authenticated-browser verification pass was completed against a real Google OAuth session (super_admin role) and a real Chrome browser, with local VAPID keys configured in `.env.local`.
+
+- **Browser support detection**: `serviceWorker`, `PushManager`, and `Notification` all detected correctly; `Notification.permission` was `default` before any click (no unsolicited prompt).
+- **Permission flow**: clicking "enable notifications" triggered the native Chrome permission popup only after a real user click; the user granted it manually (native browser-chrome popups cannot be clicked by automation tooling). `Notification.permission` became `granted`.
+- **Subscription**: `/sw.js` registered (`activated` state), a real `PushSubscription` was created via `pushManager.subscribe()`, and a `push_subscriptions` row was saved with the correct `profile_id`, a real FCM `endpoint`, `p256dh_key`, and `auth_key`, verified directly in the database.
+- **Real push delivery**: since only one live Google account was available, a different real seeded actor (`mentor.one@example.test`, not the recipient) was used to exercise `sendStudentChangePush` directly (same production function, real VAPID keys, real `web-push` package) against the saved subscription. FCM accepted the payload (HTTP 201) and the browser displayed a real, visible push notification after a real-world network delay of roughly 10-15 seconds (an FCM delivery-latency characteristic of this environment, not a code defect). Clicking the notification correctly focused/navigated the app to `/students/[studentId]`, confirmed live by the user.
+- **Disable/re-enable**: disabling removed both the browser `PushSubscription` and the `push_subscriptions` row; re-enabling created a fresh row. Both verified directly against the database.
+- **Privacy and failure checks**: confirmed the payload contains only generic title/body text (no raw message body, emotional status, or goal details); confirmed actor-exclusion and muted-follower exclusion by directly exercising the same recipient-resolution filter `sendStudentChangePush` uses; confirmed a stale (410 Gone) subscription is deleted by the same delete-on-404/410 branch the production code uses. All test follow/subscription rows created for this verification were cleaned up afterward.
+- **Bug found and fixed**: `PushSubscriptionControls.tsx` computed `isAvailable` (browser feature + VAPID-key detection) via a synchronous `useMemo` that called `isPushSupported()` during render. Since `isPushSupported()` reads `window`/`navigator`, it returned `false` during SSR but `true` on the client's very first render pass, producing a real, reproducible React hydration mismatch on the enable button's `disabled` attribute (confirmed via console errors on every page load before the fix). Fixed by switching to `useSyncExternalStore` with an explicit `false` server snapshot, which is the standard pattern for values that legitimately differ between server and client. Verified fixed: no hydration warning on repeated fresh navigations after the fix, `npm run lint` passes (an initial fix using `useEffect` + `setState` was rejected by the `react-hooks/set-state-in-effect` lint rule and replaced with the `useSyncExternalStore` approach).
 
 ## Next recommended tasks
 
-1. **Web Push browser verification**: With a real authenticated browser session and configured VAPID keys, verify permission prompt, subscription save, push display, click focusing, disable, and re-enable flows.
-2. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
-3. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
-4. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.
-5. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
+1. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
+2. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
+3. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.
+4. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
+5. **Two-account real push test**: A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in this pass) remains open if a second real Google account becomes available.

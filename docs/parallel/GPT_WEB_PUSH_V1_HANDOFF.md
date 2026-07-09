@@ -74,12 +74,10 @@
 
 ## Browser verification
 
-- In-app browser request to `/notifications` redirected to `/login`, confirming protected-route behavior.
-- Seeded local email/password login returned invalid credentials, matching the existing auth-test limitation.
-- Full browser push verification was not completed because this context did not have an authenticated in-app browser session with configured VAPID keys and an interactive permission grant.
+Superseded by a later dedicated verification pass — see `docs/parallel/GPT_WEB_PUSH_BROWSER_VERIFICATION_HANDOFF.md` for full results. Summary: a real authenticated Chrome session with configured local VAPID keys confirmed the permission prompt, a saved `push_subscriptions` row with a real FCM endpoint, real push delivery through FCM (with a real-world ~10-15s network delay), notification click focusing `/students/[studentId]`, and disable/re-enable. That pass also found and fixed a real React hydration-mismatch bug in `PushSubscriptionControls.tsx` (`isAvailable` was computed via a render-time `useMemo` reading `window`/`navigator`, differing between SSR and first client render; fixed with `useSyncExternalStore`).
 
 ## Known limitations
 
-- Real browser push display, notification click focusing, disable, and re-enable still need live browser verification.
+- A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in the verification pass) remains open.
 - Delivery currently mirrors the follower recipient filters in a server helper after the in-app notification RPC succeeds because the existing RPC returns `void`.
 - Web Push v1 does not implement notification preference categories or quiet hours.
