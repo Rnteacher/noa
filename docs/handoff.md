@@ -36,7 +36,7 @@ Both fixes were verified live in the browser afterward, plus `npm run check:no-h
 
 ## Next task options
 
-- Manual verification: real student photo file upload, wrong-domain Google account rejection, and a genuine two-account cross-user notification click-test.
+- Manual verification leftovers: real student photo file upload, wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
 - Fix or re-verify the emotional-status "latest badge" local-environment date quirk if it becomes a real problem (e.g., once real time passes September 2026, or by seeding with relative dates in the future).
 - Web Push delivery and push subscription management.
 - Calendar management follow-up: view switcher (Day/Week/Month/Year-Gantt), drag-and-drop, recurrence, Google Calendar outbound sync indicators.
