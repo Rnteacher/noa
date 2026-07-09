@@ -34,12 +34,27 @@ This task hardens the database schema by enforcing the path format invariant for
 
 ## 3. Database Validation Probes
 
-Probes were executed via Supabase SQL Client on the local database instance:
+Probes were executed via a PL/pgSQL transaction block against the local Postgres instance:
 - **Null values**: Confirmed updating `photo_url` to `NULL` succeeds.
-- **Valid path format**: Confirmed updating `photo_url` to `students/55000000-0000-0000-0000-000000000001/profile.webp` on student `55000000-0000-0000-0000-000000000001` succeeds.
+- **Valid path format**: Confirmed raw update of `photo_url` to `students/55000000-0000-0000-0000-000000000001/profile.webp` succeeds under manager/super_admin credentials.
 - **Invalid filename format**: Confirmed updating `photo_url` to `students/55000000-0000-0000-0000-000000000001/other.webp` fails with a check constraint violation.
 - **Mismatching student ID**: Confirmed updating `photo_url` to `students/55000000-0000-0000-0000-000000000002/profile.webp` on student `55000000-0000-0000-0000-000000000001` fails with a check constraint violation.
 - **RPC wrapper check**: The `update_student_photo_path` RPC continues to succeed with valid paths and is protected by the same CHECK constraint on invalid inputs.
+
+### RLS / Role-based Probes
+- **Generic Staff**: Authenticated as `staff.one` (generic staff member, profile `a1000000-0000-4000-8000-000000000008`):
+  - Direct raw `UPDATE` fails to modify the row (0 rows affected by the RLS policy).
+  - Executing `update_student_photo_path` RPC fails with `Forbidden` (`42501` insufficient privilege) as expected.
+- **Manager**: Authenticated as `Manager One` (profile `a1000000-0000-4000-8000-000000000002`):
+  - Direct raw `UPDATE` to the valid path succeeds.
+  - Direct raw `UPDATE` to invalid format is blocked by the CHECK constraint.
+- **Super Admin**: Authenticated as `super_admin` (profile `a1000000-0000-4000-8000-000000000001`):
+  - RPC calls with valid WebP paths succeed.
+  - RPC calls with invalid WebP paths fail due to the CHECK constraint.
+
+### Environment & CLI Limitations
+- **CLI Prepared Statement Restriction**: The Supabase CLI `db query` command does not allow executing multiple commands separated by semicolons in a single call. To solve this, all test cases and assertion branches were wrapped inside a single PL/pgSQL `do $body$ ... end $body$;` block.
+- **Local Date Seed Limitation**: Local seeds place group mentor assignments in the future school year starting September 2026. Because the database clock reads July 2026, standard group mentors do not have "active" status according to the `gm.active_from <= current_date` check in `current_user_is_student_mentor`. We successfully bypassed this environment quirk during test execution by running the RPC checks using the `super_admin` role (which ignores active dates and gets immediate access).
 
 ---
 
