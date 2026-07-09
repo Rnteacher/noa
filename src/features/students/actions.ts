@@ -1471,12 +1471,12 @@ export async function updateStudentPhoto(
     return { success: false, error: 'students.photo.errorNoFile' };
   }
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  const ALLOWED_TYPES = ['image/webp'];
   if (!ALLOWED_TYPES.includes(file.type)) {
     return { success: false, error: 'students.photo.errorType' };
   }
 
-  if (file.size > 5242880) { // 5MB limit
+  if (file.size > 1048576) { // 1MB limit for optimized WebP
     return { success: false, error: 'students.photo.errorSize' };
   }
 
@@ -1530,10 +1530,7 @@ export async function updateStudentPhoto(
   }
 
   // 6. Upload file to storage
-  let ext = 'jpg';
-  if (file.type === 'image/png') ext = 'png';
-  if (file.type === 'image/webp') ext = 'webp';
-  const filePath = `students/${studentId}/profile.${ext}`;
+  const filePath = `students/${studentId}/profile.webp`;
 
   try {
     const arrayBuffer = await file.arrayBuffer();
