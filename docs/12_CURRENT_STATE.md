@@ -973,3 +973,22 @@ A dedicated pass closed out the five remaining manual-only verification items us
 5. **Learning groups mobile viewport re-check**: none remaining. A real manual mobile-viewport check (~375-390px) was completed in the Manual Verification Leftovers Closeout pass covering Timetable view, List view, and an open reschedule modal — no visual issues found.
 6. **Admin audit log viewer**: no further work needed. Actor filters, date-range filters, pagination, and CSV export are all fully implemented and now browser-verified (including RLS/security probes); the live 403 test against the export API from a real non-manager account is also now closed (see the Manual Verification Leftovers Closeout pass).
 7. **Student photo URL hardening**: no further work needed. The database check constraint successfully blocks all direct-update bypasses and secures the `photo_url` path format invariant.
+
+## Latest Pilot / Production Readiness Audit v1 results
+
+`docs/13_PILOT_PRODUCTION_READINESS.md` now captures the first concrete pilot/production readiness checklist. The conclusion is that the app is ready for production-environment preparation, but not ready for real student data until hosted Supabase, production hosting, production OAuth, private storage, backups, and hosted RLS smoke tests are verified with fake or bootstrap-only data.
+
+Scope boundaries preserved:
+
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No real student data was added.
+- No production secrets were changed.
+- Google Calendar sync remains deferred.
+- No new product feature was implemented.
+
+The audit also updated `.env.example` with placeholder-only names for active runtime variables, Supabase Google OAuth provider configuration, Web Push VAPID keys, and deferred Google Calendar credentials.
+
+Updated recommended next task:
+
+1. **Production Environment Setup Runbook v1**: Convert `docs/13_PILOT_PRODUCTION_READINESS.md` into an exact, fake-data-only runbook for hosted Supabase setup, hosting environment configuration, OAuth redirect verification, production RLS smoke probes, backup/restore review, and rollback steps. Do not deploy or import real data unless explicitly approved.

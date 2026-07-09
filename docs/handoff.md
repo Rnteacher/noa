@@ -40,6 +40,8 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
+- Production Environment Setup Runbook v1: convert `docs/13_PILOT_PRODUCTION_READINESS.md` into exact fake-data-only setup and verification steps for hosted Supabase, hosting env vars, OAuth redirects, production RLS smoke probes, backup/restore review, and rollback. Do not deploy or import real data unless explicitly approved.
+
 - Manual verification leftovers: none. Wrong-domain Google account rejection and cross-user real-time notification/badge testing were both fully closed with live two-account browser evidence in the Manual Verification Leftovers Closeout pass — see `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_CLOSEOUT_HANDOFF.md`.
 - Genuine two-account Web Push browser test: none remaining. A second real account (`studio@chamama.org`) and a second real Chrome profile were used to confirm real end-to-end push delivery and click-focus in the Manual Verification Leftovers Closeout pass.
 - Fix or re-verify the emotional-status "latest badge" local-environment date quirk if it becomes a real problem (e.g., once real time passes September 2026, or by seeding with relative dates in the future).
