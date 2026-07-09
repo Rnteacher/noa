@@ -18,12 +18,14 @@ import type {
 import { t } from '@/lib/i18n';
 import { MessageComposer } from './MessageComposer';
 import { DeleteMessageButton } from './DeleteMessageButton';
+import { MessageEditForm } from './MessageEditForm';
 import { ProjectStatusForm } from './ProjectStatusForm';
 import { EmotionalStatusForm } from './EmotionalStatusForm';
 import { GoalForm } from './GoalForm';
 import { GoalStatusForm } from './GoalStatusForm';
 import { GoalDetailsForm } from './GoalDetailsForm';
 import { DeleteGoalButton } from './DeleteGoalButton';
+import { SetPrimaryGoalButton } from './SetPrimaryGoalButton';
 import { FollowButton } from './FollowButton';
 import { PhotoUploadForm } from './PhotoUploadForm';
 import { createClient } from '@/lib/supabase/server';
@@ -102,15 +104,19 @@ function MessageRow({
   message,
   currentUserId,
   canDeleteAny,
+  canEditAny,
   studentId,
 }: {
   message: StudentMessage;
   currentUserId: string | null;
   canDeleteAny: boolean;
+  canEditAny: boolean;
   studentId: string;
 }) {
-  const tag = message.tags[0];
-  const canDelete = canDeleteAny || (message.authorId === currentUserId && message.authorId !== null);
+  const tag = message.tags[0] ?? null;
+  const isOwnMessage = message.authorId === currentUserId && message.authorId !== null;
+  const canDelete = canDeleteAny || isOwnMessage;
+  const canEdit = canEditAny || isOwnMessage;
 
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
@@ -137,6 +143,15 @@ function MessageRow({
         <p className="mt-2 text-xs font-semibold text-status-critical">
           {t('students.messages.important')}
         </p>
+      ) : null}
+      {canEdit ? (
+        <MessageEditForm
+          studentId={studentId}
+          messageId={message.id}
+          currentBody={message.body}
+          currentTag={tag}
+          currentIsImportant={message.isImportant}
+        />
       ) : null}
     </div>
   );
@@ -360,6 +375,9 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
                           goalId={goal.id}
                           currentStatus={goal.status}
                         />
+                        {!goal.isPrimary ? (
+                          <SetPrimaryGoalButton studentId={studentId} goalId={goal.id} />
+                        ) : null}
                         {data.canDeleteGoals ? (
                           <DeleteGoalButton
                             studentId={studentId}
@@ -400,6 +418,7 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
                   message={message}
                   currentUserId={currentUserId}
                   canDeleteAny={canDeleteAny}
+                  canEditAny={canDeleteAny}
                   studentId={studentId}
                 />
               ))}

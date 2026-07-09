@@ -1457,6 +1457,10 @@ export type Database = {
         Returns: boolean
       }
       current_user_is_super_admin: { Args: never; Returns: boolean }
+      set_primary_student_goal: {
+        Args: { target_goal_id: string; target_student_id: string }
+        Returns: undefined
+      }
       update_student_photo_path: {
         Args: { new_photo_path: string; target_student_id: string }
         Returns: undefined

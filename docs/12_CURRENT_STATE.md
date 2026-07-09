@@ -30,6 +30,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/students/[studentId]/GoalStatusForm.tsx` (per-goal status update client component)
   - `src/app/(app)/students/[studentId]/GoalDetailsForm.tsx` (per-goal title/details edit client component)
   - `src/app/(app)/students/[studentId]/DeleteGoalButton.tsx` (manager/super-admin goal deletion client component)
+  - `src/app/(app)/students/[studentId]/SetPrimaryGoalButton.tsx` (set-as-primary goal client component)
+  - `src/app/(app)/students/[studentId]/MessageEditForm.tsx` (inline student message edit client component)
   - `src/app/(app)/students/[studentId]/FollowButton.tsx` (student follow/unfollow client component)
   - `src/app/(app)/students/[studentId]/PhotoUploadForm.tsx` (student photo upload client component)
   - `src/app/(app)/announcements/page.tsx` (announcements list page)
@@ -45,6 +47,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/learning-groups/LearningGroupForm.tsx` (reusable create/edit learning group client form)
   - `src/app/(app)/admin/learning-groups/LearningGroupRow.tsx` (learning group table row with inline edit toggle)
   - `src/app/(app)/admin/learning-groups/ArchiveLearningGroupButton.tsx` (learning group archive/deactivate client button)
+  - `src/app/(app)/admin/audit/page.tsx` (read-only admin audit log viewer page)
   - `src/app/(app)/more/page.tsx` (more tools route page)
   - `src/app/(app)/notifications/page.tsx` (notifications feed page)
   - `src/app/(app)/notifications/MarkNotificationReadButton.tsx` (mark single notification read client button component)
@@ -93,7 +96,9 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `notifications/`
     - `src/features/notifications/queries.ts` (Notifications server-side queries)
     - `src/features/notifications/actions.ts` (Notifications Server Actions)
-  - `admin/`, `auth/`
+  - `admin/`
+    - `src/features/admin/audit-queries.ts` (Admin audit log read-only server-side queries)
+  - `auth/`
 - `supabase/` (initialized configuration and migration folder)
   - `supabase/migrations/20260707111701_initial_schema_and_rls.sql`
   - `supabase/migrations/20260707115303_staff_access_grants.sql`
@@ -101,6 +106,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `supabase/migrations/20260708190500_harden_student_photo_updates.sql`
   - `supabase/migrations/20260708234000_notifications_system.sql`
   - `supabase/migrations/20260708235000_harden_notifications_rpc.sql`
+  - `supabase/migrations/20260709000000_student_goal_primary.sql`
+  - `supabase/migrations/20260709010000_student_message_editing.sql`
   - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
@@ -136,6 +143,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_ADMIN_CALENDAR_V1_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_LEARNING_GROUPS_V1_HANDOFF.md`
   - `docs/parallel/GPT_NOTIFICATIONS_BADGES_V1_HANDOFF.md`
+  - `docs/parallel/GPT_OVERNIGHT_STUDENT_ADMIN_POLISH_HANDOFF.md`
 
 ## Database foundation status
 
@@ -254,7 +262,7 @@ Status:
 - Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
 - `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
 - `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
-- The `AdminShell` Calendar and Learning groups nav items are now enabled and link to `/admin/calendar` and `/admin/learning-groups`. Remaining placeholders (Students, Groups, Users, Import/Export, Settings) stay muted and non-clickable.
+- The `AdminShell` Calendar, Learning groups, and Audit log nav items are now enabled and link to `/admin/calendar`, `/admin/learning-groups`, and `/admin/audit`. Remaining placeholders (Students, Groups, Users, Import/Export, Settings) stay muted and non-clickable.
 - Real dashboard data queries and status aggregations are implemented in Dashboard v1.
 
 ## Dashboard v1 status
@@ -282,7 +290,7 @@ Status:
 
 ## Student card status
 
-Student search page and detailed student cards with message posting, project status updates, emotional status updates, and goal management are implemented.
+Student search page and detailed student cards with message posting/editing, project status updates, emotional status updates, and goal management (including primary/central goal selection) are implemented.
 
 Status:
 - `/students` displays active student list with full name, group, and current project details, supporting ILIKE name search filtering.
@@ -291,6 +299,8 @@ Status:
 - Message inserts use the standard request-scoped Supabase server client and respect database Row-Level Security (RLS) policies.
 - Message soft deletion is implemented: users can soft-delete their own messages, and super admins can soft-delete any message. Deletions are performed under the RLS model.
 - Successfully created and deleted messages write secure audit logs (`student_message.created` and `student_message.deleted`).
+- **Student message editing v1 is implemented.** The existing UPDATE RLS policy on `student_messages` only permitted soft-deletion (its `WITH CHECK` required `deleted_at IS NOT NULL`), so a new, additive, minimal migration (`supabase/migrations/20260709010000_student_message_editing.sql`) adds a second permissive UPDATE policy ("Authors and super admins can edit student messages") scoped to editing an active message in place (`deleted_at` stays null), leaving the original soft-delete policy untouched. Postgres combines multiple permissive policies for the same command with OR on both `USING` and `WITH CHECK`, so this purely adds the editing case. Message authors can edit their own active message; super admins can edit any active message; nobody can edit an already soft-deleted message. The `updateStudentMessage` action updates only `body`, `tags`, and `is_important` (author/student/deleted_at are untouched and cannot be spoofed), validates body length and tag enum, and audits `student_message.updated`. There is no `edited_at`/`edited_by` column; the table's existing `updated_at` trigger timestamp is relied on instead, and the audit log's `actorId` distinguishes an editor from the original author when a super admin edits someone else's message. Notifications are intentionally deferred for edits: the hardened `create_student_change_notification` RPC's event-type allowlist has no entry for message edits, and reusing `student_message.created` would misrepresent the event and re-notify followers as if it were brand new. The `<MessageEditForm>` client component renders an always-visible inline edit form (matching the existing goal-details-edit convention) below each message the current user is authorized to edit.
+- **Known issue found during this task, not fixed (out of scope):** while investigating message-editing RLS, a pre-existing Postgres RLS/PostgREST interaction was discovered that appears to make the *already-shipped* self-soft-delete path broken for a normal (non-super-admin) author soft-deleting their own message: PostgreSQL requires the resulting (post-image) row of a plain `UPDATE` (even without `RETURNING`) to remain visible under at least one applicable `SELECT` policy, and after soft-deletion (`deleted_at` becomes non-null) a normal author has no `SELECT` policy that makes that row visible any longer (`Active staff can read active student messages` requires `deleted_at IS NULL`; only super admins have an unconditional read policy). This was confirmed via multiple isolated rollback-only SQL probes (a plain author self-soft-delete update fails with an RLS violation; the identical super-admin-actor soft-delete succeeds). This is unrelated to and not caused by the new message-editing policy added in this task (confirmed by reproducing the failure with the new policy dropped). Fixing it is out of this task's scope; recommended follow-up is either a dedicated `SELECT` policy letting authors read their own messages regardless of `deleted_at`, or moving message soft-delete to a security-definer RPC.
 - Authorized project masters assigned to the current project can update the project traffic-light status from the Current project section.
 - Managers can update project traffic-light status because the existing schema helper `current_user_can_update_student_project` explicitly includes `current_user_is_manager_or_super_admin`.
 - Super admins can update any project traffic-light status through the same existing schema/RLS authorization path.
@@ -310,17 +320,15 @@ Status:
 - Managers and super admins can hard-delete goals because the existing `student_goals` delete RLS policy explicitly restricts delete to `current_user_is_manager_or_super_admin()`. Deletions are confirmed in the UI and audit `student_goal.deleted` with before-data.
 - Goal mutations update goals in place through the normal request-scoped Supabase client, touch only intentionally exposed columns (`title` and `description` on create/edit, `status` and `updated_by` on status update), and write secure audit logs (`student_goal.created`, `student_goal.updated`, `student_goal.details_updated`, and `student_goal.deleted`).
 - Goal archiving works through the existing `goal_status` enum value `archived`; archived goals are filtered out of the student card.
-- Primary/central goal management remains deferred because `student_goals.is_primary` exists but the schema does not enforce one primary goal per student. No application-only primary toggle was added in this follow-up.
 - No goals migration was added; Student Goals Mutation v1 uses the existing `student_goals` table, `goal_status` enum, and the existing insert/update RLS policies/helper.
+- **Primary/central goal management v1 is implemented.** A new minimal migration (`supabase/migrations/20260709000000_student_goal_primary.sql`) adds a partial unique index (`student_goals_one_primary_active_idx` on `(student_id, school_year_id)` where `is_primary = true and status <> 'archived'`) enforcing at most one primary, non-archived goal per student per school year, plus a security-definer RPC `public.set_primary_student_goal(target_student_id, target_goal_id)` that atomically clears any other non-archived primary goal for that scope and promotes the selected goal, updating only `is_primary` and `updated_by`. The RPC independently verifies an active session, active staff, an active target student, that the goal belongs to the student, that the goal is not archived, and `current_user_can_update_student_goals` before mutating. The `<SetPrimaryGoalButton>` client component shows a "Set as primary" action on each non-primary goal for authorized goal managers (active group mentors, managers, super admins); the action audits `student_goal.primary_updated` and reuses the existing allowed `student_goal.updated` notification event type (a dedicated event type does not exist in the hardened notification RPC's allowlist).
 - Active staff can follow and unfollow students on their student cards. The follow state is scoped to the current user's profile and uses the existing `followed_students` schema and RLS policies (no database migration was added). Following/unfollowing performs idempotent inserts/deletes, writes secure audit logs (`student_follow.created` and `student_follow.deleted`), and revalidation refreshes both the student card and the dashboard followed-student count.
 - Authorized group mentors, managers, and super admins can upload or replace a student's profile photo from the student card using the `<PhotoUploadForm>` component. Photos are stored in a private Supabase Storage bucket (`student-photos`) and retrieved dynamically via secure signed URLs. Photo updates write secure audit logs (`student_photo.updated`) and are secure and column-safe: direct table-level update policies on `public.students` are disabled, and updates are restricted strictly to the `photo_url` column via a secure RPC helper (`update_student_photo_path`) validating user permissions and expected storage paths. Advanced image cropping, image moderation, and bulk photo import remain deferred.
 - Anonymous requests to `/students` or `/students/[studentId]` redirect to `/login`.
 - Deferred features:
-  - Message editing.
   - Permanent message deletion.
   - Realtime updates on the message stream.
   - Emotional free-text notes viewing/editing surface.
-  - Primary/central goal management.
   - Student project title/master assignment editing.
   - Student status push notifications.
 
@@ -402,6 +410,22 @@ Status:
 - Audit logging: successful mutations write `learning_group.created`, `learning_group.updated`, and `learning_group.archived` through the existing privileged server-only audit helper, capturing before/after group metadata and target group ids where relevant.
 - Revalidation: all learning group actions revalidate `/admin/learning-groups`.
 - Deferred: drag-and-drop weekly timetable editing, full timetable/day-grid layout, Google Calendar sync, notifications for learning group changes, capacity/roster management, and a school-year picker.
+
+## Admin audit log viewer v1 status
+
+A read-only admin audit log viewer is implemented at:
+
+- `/admin/audit`
+
+Status:
+
+- No migration was added. The implementation uses the existing `audit_logs` table exactly as defined in the initial migration (`id`, `actor_id`, `action`, `entity_type`, `entity_id`, `before_data` jsonb, `after_data` jsonb, `created_at`) and its existing RLS policy.
+- Only managers and super admins can view the audit log, because the only RLS policy on `audit_logs` is `"Managers and super admins can read audit logs"` (`current_user_is_manager_or_super_admin()`). There is no INSERT, UPDATE, or DELETE policy for the `authenticated` role at all; writes only ever happen through the existing privileged server-only `writeAuditLog` helper (service-role client), matching the Decision Log's original intent ("Audit log write policy"). This was confirmed with rollback-only database probes: a manager/super-admin session reads inserted test rows, a normal staff or mentor session reads 0 rows for the same data (RLS-filtered, not merely absent), and both an authenticated-role `INSERT` and `DELETE` against `audit_logs` are rejected/no-op.
+- The page is fully read-only: no create, update, delete, or export action exists anywhere in this surface, and no service-role client is used (the page reads via the normal request-scoped Supabase client, relying entirely on RLS).
+- Supports two simple filters via GET query params: action and entity type, both populated from the distinct values seen in the most recent audit rows. Results are limited to the 100 most recent matching entries, ordered newest first.
+- Before/after JSON metadata is shown behind collapsed `<details>` disclosure elements per row (not rendered inline by default), with a truncation guard so a very large JSON payload does not render unbounded.
+- The `AdminShell` Audit log nav item is enabled and links to `/admin/audit`.
+- Deferred: actor filter, date-range filter, pagination beyond the 100-row cap, and any export/download of audit data.
 
 ## UX design foundation status
 
@@ -575,6 +599,32 @@ Results:
 - Seed learning group state stayed unchanged after probes: 1 learning group, 1 target link, title `Software Development Lab`, and `is_active = true`.
 - Authenticated browser smoke testing of the mutation flows was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app. Server-side build checks and database authorization probes passed.
 
+## Latest overnight student/admin polish validation results
+
+This overnight task implemented three features in sequence (primary/central goal management, student message editing, and an admin audit log viewer), each validated independently before moving to the next.
+
+Commands run (once per phase where applicable):
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- Phase 0 (repository safety check): `git status --short` was clean before starting; all prior task work was already committed on `master`. No pre-existing dirty files.
+- Phase 1 (primary goals): `supabase db reset` applied the new `20260709000000_student_goal_primary.sql` migration cleanly; type generation picked up the new `set_primary_student_goal` RPC. Rollback-only probes confirmed: no duplicate primary goals existed in the seed before adding the constraint; unrelated staff and counselor sessions are denied by the RPC; manager and super admin sessions succeed; an active group mentor (with the seeded assignment date temporarily moved earlier) succeeds while the unmodified (inactive-today) assignment is denied; setting a new primary correctly clears the previous primary for the same student/school year; the partial unique index rejects a direct attempt to create two active primaries even as superuser; attempting to set an archived goal as primary is rejected by the RPC; and an archived goal's stale `is_primary = true` does not block promoting a different active goal (confirming the index correctly excludes archived rows from the uniqueness scope). Seed goal rows, statuses, and the mentor assignment date were verified unchanged after all probes.
+- Phase 2 (message editing): `supabase db reset` applied the new `20260709010000_student_message_editing.sql` migration cleanly (additive UPDATE policy only). Rollback-only probes confirmed: an author can edit their own active message; unrelated staff cannot; a super admin can edit any active message; a message that is already soft-deleted cannot be edited; and an author cannot spoof `author_id` while editing. While investigating, a pre-existing (not introduced by this task) Postgres RLS/PostgREST interaction was found and precisely isolated: a normal author's self-soft-delete of their own message fails under real RLS enforcement via the exact code path the shipped `deleteStudentMessage` action uses (a plain `UPDATE` without `RETURNING`), because Postgres requires the post-image row of an `UPDATE` to remain visible under at least one applicable `SELECT` policy, and a non-super-admin author has no `SELECT` policy that keeps a freshly-soft-deleted row visible to them. This was confirmed via several isolated scratch-table experiments plus direct reproduction on `student_messages` with the new edit policy both present and dropped (same failure either way, confirming it predates this task). This finding is documented in `docs/12_CURRENT_STATE.md`'s Student card status section and in the archive handoff as a recommended follow-up; it was not fixed as part of this task since it is out of Phase 2's scope. Seed message rows (2) and their `deleted_at` state were verified unchanged after all probes.
+- Phase 3 (admin audit log viewer): no migration was needed (existing schema/RLS already sufficient). Rollback-only probes confirmed: a manager and a super admin session can read audit rows inserted directly (bypassing RLS, matching how the real service-role writer inserts) while a normal staff or mentor session reads 0 rows for the identical data (RLS-filtered, not merely absent); and both an `INSERT` and a `DELETE` against `audit_logs` from the `authenticated` role are rejected/no-op, confirming the table remains write-only-via-service-role and read-only-via-RLS for managers/super admins. Seed `audit_logs` row count (0) was verified unchanged after probes.
+- `npm run check:no-hebrew-in-code`, `npm run lint`, and `npm run build` all passed after every phase, with `/admin/audit` registered as a new dynamic route alongside all previously existing routes in the final build.
+- `git diff --check` passed after every phase with line-ending normalization warnings only.
+- Anonymous `GET /admin/audit` returned `307` to `/login` against the running production build, alongside re-confirmed `307` redirects for `/dashboard` and `/admin/announcements` (no regression).
+- Authenticated browser smoke testing was not completed because the local login UI is Google-only and the seeded email/password users do not create usable Supabase auth sessions for the protected app, matching every prior task in this project. Server-side validation, build checks, and database authorization probes passed for all three phases.
+
 ## Latest student goals mutation validation results
 
 Commands run:
@@ -729,8 +779,9 @@ Created/maintained docs for:
 
 ## Next recommended tasks
 
-1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management/learning groups management**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting, soft deletion, project status updates, emotional status updates, goal management, follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, calendar event creation/editing/deletion, and learning group creation/editing/archiving.
-2. **Primary/central goal follow-up**: Add safe primary/central goal management after enforcing or otherwise guaranteeing one primary goal per student.
+1. **Authenticated browser smoke test for dashboard/students/announcements/messages/status/goal/follow/photo/admin shell/announcements management/calendar management/learning groups management/audit log viewer**: Configure Google OAuth credentials or establish a local test session, sign in, and verify live RLS-restricted dashboard widgets, student searches, announcement acknowledgements, student card message posting/editing, soft deletion, project status updates, emotional status updates, goal management (including setting a primary goal), follow/unfollow updates, student photo uploads, the admin layout navigation sidebar, announcements creation/deletion/targeting, calendar event creation/editing/deletion, learning group creation/editing/archiving, and the admin audit log viewer's filters.
+2. **Fix self-soft-delete for student messages**: A pre-existing bug was found this session — a normal (non-super-admin) author cannot actually soft-delete their own message via the shipped code path, because Postgres RLS requires the post-image row of a plain `UPDATE` to remain visible under a `SELECT` policy, and the only non-super-admin `SELECT` policy requires `deleted_at IS NULL`. Recommended fix: add a `SELECT` policy letting authors read their own messages regardless of `deleted_at`, or move message soft-delete to a security-definer RPC. See the "Student card status" section for full detail.
 3. **Web Push delivery & push subscription management**: Implement browser Web Push notifications, service worker registration, VAPID key pairs, and client push subscription endpoints. In-app notification delivery and BottomNav badges are fully completed.
 4. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
 5. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
+6. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.

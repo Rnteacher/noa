@@ -3,19 +3,20 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  Lock, 
-  Calendar, 
-  BookOpen, 
-  Megaphone, 
-  Users, 
-  UserCog, 
-  FileSpreadsheet, 
+import {
+  Menu,
+  X,
+  Home,
+  Lock,
+  Calendar,
+  BookOpen,
+  Megaphone,
+  Users,
+  UserCog,
+  FileSpreadsheet,
   Settings,
-  FolderOpen
+  FolderOpen,
+  ScrollText
 } from 'lucide-react';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
@@ -65,11 +66,17 @@ export function AdminShell({ children }: AdminShellProps) {
       icon: FolderOpen, 
       enabled: false 
     },
-    { 
-      href: '#', 
-      labelKey: 'admin.nav.users', 
-      icon: UserCog, 
-      enabled: false 
+    {
+      href: '#',
+      labelKey: 'admin.nav.users',
+      icon: UserCog,
+      enabled: false
+    },
+    {
+      href: '/admin/audit',
+      labelKey: 'admin.nav.audit',
+      icon: ScrollText,
+      enabled: true
     },
     { 
       href: '#', 

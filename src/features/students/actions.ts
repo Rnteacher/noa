@@ -218,6 +218,134 @@ export async function deleteStudentMessage(
 
 export type DeleteStudentMessageFn = typeof deleteStudentMessage;
 
+export type UpdateStudentMessageResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function updateStudentMessage(
+  studentId: string,
+  messageId: string,
+  body: string,
+  tag: typeof ALLOWED_TAGS[number] | null,
+  isImportant: boolean
+): Promise<UpdateStudentMessageResult> {
+  const supabase = await createClient();
+
+  // 1. Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  // 2. Validate input
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(messageId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  const trimmedBody = body.trim();
+  if (!trimmedBody) {
+    return { success: false, error: 'students.messages.emptyBody' };
+  }
+
+  if (trimmedBody.length > 2000) {
+    return { success: false, error: 'students.messages.bodyTooLong' };
+  }
+
+  if (tag && !ALLOWED_TAGS.includes(tag)) {
+    return { success: false, error: 'students.messages.invalidTag' };
+  }
+
+  // 3. Defensive check: is target student visible to the user?
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('id', studentId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (studentError || !student) {
+    return { success: false, error: 'students.card.notFoundDescription' };
+  }
+
+  // 4. Fetch the message to verify ownership and state
+  const { data: messageRow, error: messageError } = await supabase
+    .from('student_messages')
+    .select('id, student_id, author_id, body, tags, is_important, created_at, deleted_at')
+    .eq('id', messageId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (messageError || !messageRow) {
+    return { success: false, error: 'students.messages.notFound' };
+  }
+
+  if (messageRow.deleted_at) {
+    return { success: false, error: 'students.messages.alreadyDeleted' };
+  }
+
+  // 5. Verify permissions: author of the message, or super admin
+  const isAuthor = messageRow.author_id === user.id;
+  const { data: isSuperAdmin } = await supabase.rpc('current_user_is_super_admin');
+
+  if (!isAuthor && !isSuperAdmin) {
+    return { success: false, error: 'students.messages.editForbidden' };
+  }
+
+  const tags = tag ? [tag] : ['general'];
+
+  // 6. Update only body, tags, and is_important. author_id/student_id/deleted_at are untouched.
+  const { error: updateError } = await supabase
+    .from('student_messages')
+    .update({
+      body: trimmedBody,
+      tags,
+      is_important: isImportant,
+    })
+    .eq('id', messageId)
+    .eq('student_id', studentId);
+
+  if (updateError) {
+    return { success: false, error: 'students.messages.editFailed' };
+  }
+
+  // 7. Write audit log
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_message.updated',
+      entityType: 'student_message',
+      entityId: messageId,
+      beforeData: messageRow,
+      afterData: {
+        ...messageRow,
+        body: trimmedBody,
+        tags,
+        is_important: isImportant,
+      },
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for student message update:', auditError);
+  }
+
+  // Notifications are intentionally not triggered here: the hardened
+  // create_student_change_notification RPC's event-type allowlist has no entry for
+  // message edits, and reusing "student_message.created" would misrepresent the event
+  // and re-notify followers as if it were a brand-new message. Deferred until the RPC
+  // supports a dedicated event type.
+
+  // 8. Revalidate student card path
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type UpdateStudentMessageFn = typeof updateStudentMessage;
+
 export type UpdateProjectStatusResult = {
   success: boolean;
   error: string | null;
@@ -784,6 +912,99 @@ export async function updateStudentGoalStatus(
 }
 
 export type UpdateStudentGoalStatusFn = typeof updateStudentGoalStatus;
+
+export type SetPrimaryStudentGoalResult = {
+  success: boolean;
+  error: string | null;
+};
+
+export async function setPrimaryStudentGoal(
+  studentId: string,
+  goalId: string
+): Promise<SetPrimaryStudentGoalResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'students.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(studentId) || !UUID_PATTERN.test(goalId)) {
+    return { success: false, error: 'students.card.invalidIdFormat' };
+  }
+
+  const { data: goal, error: goalError } = await supabase
+    .from('student_goals')
+    .select('id, student_id, school_year_id, title, status, is_primary, updated_by')
+    .eq('id', goalId)
+    .eq('student_id', studentId)
+    .maybeSingle();
+
+  if (goalError || !goal) {
+    return { success: false, error: 'students.goals.notFound' };
+  }
+
+  if (goal.is_primary) {
+    return { success: true, error: null };
+  }
+
+  if (goal.status === 'archived') {
+    return { success: false, error: 'students.goals.setPrimaryArchived' };
+  }
+
+  const { error: rpcError } = await supabase.rpc('set_primary_student_goal', {
+    target_student_id: studentId,
+    target_goal_id: goalId,
+  });
+
+  if (rpcError) {
+    console.error('Failed to set primary student goal:', rpcError);
+
+    if (rpcError.message?.includes('Unauthorized')) {
+      return { success: false, error: 'students.goals.manageForbidden' };
+    }
+
+    if (rpcError.message?.includes('NotFound') || rpcError.message?.includes('Invalid')) {
+      return { success: false, error: 'students.goals.notFound' };
+    }
+
+    return { success: false, error: 'students.goals.setPrimaryFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'student_goal.primary_updated',
+      entityType: 'student_goal',
+      entityId: goalId,
+      beforeData: goal,
+      afterData: { ...goal, is_primary: true, updated_by: user.id },
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for primary goal update:', auditError);
+  }
+
+  // Notify followers using the existing allowed "goal updated" event type.
+  try {
+    await supabase.rpc('create_student_change_notification', {
+      actor_id: user.id,
+      target_student_id: studentId,
+      event_type: 'student_goal.updated',
+    });
+  } catch (notifyError) {
+    console.error('Failed to create notifications for primary goal update:', notifyError);
+  }
+
+  revalidatePath(`/students/${studentId}`);
+
+  return { success: true, error: null };
+}
+
+export type SetPrimaryStudentGoalFn = typeof setPrimaryStudentGoal;
 
 export type UpdateStudentGoalDetailsResult = {
   success: boolean;
