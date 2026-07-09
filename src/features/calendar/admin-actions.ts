@@ -375,3 +375,90 @@ export async function deleteCalendarEvent(eventId: string): Promise<CalendarActi
 
   return { success: true, error: null };
 }
+
+export async function rescheduleCalendarEvent(
+  eventId: string,
+  newStartsAt: string
+): Promise<CalendarActionResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'dashboard.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(eventId)) {
+    return { success: false, error: 'admin.calendar.errorInvalidId' };
+  }
+
+  const { data: isManagerOrSuperAdmin, error: permissionError } = await supabase.rpc(
+    'current_user_is_manager_or_super_admin'
+  );
+
+  if (permissionError || !isManagerOrSuperAdmin) {
+    return { success: false, error: 'admin.calendar.errorForbidden' };
+  }
+
+  const newStartsAtDate = new Date(newStartsAt);
+  if (Number.isNaN(newStartsAtDate.getTime())) {
+    return { success: false, error: 'admin.calendar.errorInvalidDateTime' };
+  }
+
+  const { data: existingEvent, error: fetchError } = await supabase
+    .from('calendar_events')
+    .select('id, title, description, starts_at, ends_at, is_all_day, visibility, location, google_calendar_event_id')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (fetchError || !existingEvent) {
+    return { success: false, error: 'admin.calendar.errorNotFound' };
+  }
+
+  const oldStartsAt = new Date(existingEvent.starts_at);
+  const oldEndsAt = new Date(existingEvent.ends_at);
+  const durationMs = oldEndsAt.getTime() - oldStartsAt.getTime();
+
+  const newEndsAtDate = new Date(newStartsAtDate.getTime() + durationMs);
+
+  const { error: updateError } = await supabase
+    .from('calendar_events')
+    .update({
+      starts_at: newStartsAtDate.toISOString(),
+      ends_at: newEndsAtDate.toISOString(),
+      updated_by: user.id,
+    })
+    .eq('id', eventId);
+
+  if (updateError) {
+    console.error('Failed to reschedule calendar event:', updateError);
+    return { success: false, error: 'admin.calendar.errorUpdateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'calendar_event.rescheduled',
+      entityType: 'calendar_event',
+      entityId: eventId,
+      beforeData: {
+        starts_at: existingEvent.starts_at,
+        ends_at: existingEvent.ends_at,
+      },
+      afterData: {
+        starts_at: newStartsAtDate.toISOString(),
+        ends_at: newEndsAtDate.toISOString(),
+      },
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for calendar event reschedule:', auditError);
+  }
+
+  revalidatePath('/admin/calendar');
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}

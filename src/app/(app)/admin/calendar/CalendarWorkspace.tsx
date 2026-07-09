@@ -6,6 +6,7 @@ import { CalendarDateNavigator } from './CalendarDateNavigator';
 import { CalendarViews } from './CalendarViews';
 import { CalendarEventRow } from './CalendarEventRow';
 import { CalendarEventForm } from './CalendarEventForm';
+import { RescheduleModal } from './RescheduleModal';
 import { t } from '@/lib/i18n';
 import type { AdminCalendarEvent, AdminCalendarGroupOption } from '@/features/calendar/admin-queries';
 
@@ -19,6 +20,7 @@ type CalendarWorkspaceProps = {
 
 export function CalendarWorkspace({ view, dateStr, events, groups, listRange }: CalendarWorkspaceProps) {
   const [editingEvent, setEditingEvent] = useState<AdminCalendarEvent | null>(null);
+  const [reschedulingEvent, setReschedulingEvent] = useState<AdminCalendarEvent | null>(null);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] items-start">
@@ -87,6 +89,7 @@ export function CalendarWorkspace({ view, dateStr, events, groups, listRange }: 
             dateStr={dateStr}
             events={events}
             onEditEvent={(event) => setEditingEvent(event)}
+            onRescheduleEvent={(event) => setReschedulingEvent(event)}
           />
         )}
       </section>
@@ -135,6 +138,13 @@ export function CalendarWorkspace({ view, dateStr, events, groups, listRange }: 
           )}
         </section>
       </aside>
+
+      {reschedulingEvent && (
+        <RescheduleModal
+          event={reschedulingEvent}
+          onClose={() => setReschedulingEvent(null)}
+        />
+      )}
     </div>
   );
 }

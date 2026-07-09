@@ -7,6 +7,7 @@ import {
   CheckCircle,
   AlertCircle,
   Pencil,
+  CalendarDays,
 } from 'lucide-react';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
@@ -18,6 +19,7 @@ type CalendarViewsProps = {
   dateStr: string;
   events: AdminCalendarEvent[];
   onEditEvent: (event: AdminCalendarEvent) => void;
+  onRescheduleEvent: (event: AdminCalendarEvent) => void;
 };
 
 // Date helper to parse YYYY-MM-DD
@@ -59,7 +61,7 @@ const WEEKDAY_KEYS = [
   'admin.calendar.day_6',
 ];
 
-export function CalendarViews({ view, dateStr, events, onEditEvent }: CalendarViewsProps) {
+export function CalendarViews({ view, dateStr, events, onEditEvent, onRescheduleEvent }: CalendarViewsProps) {
   const router = useRouter();
   const currentDate = parseLocalDate(dateStr);
 
@@ -69,6 +71,7 @@ export function CalendarViews({ view, dateStr, events, onEditEvent }: CalendarVi
         currentDate={currentDate}
         events={events}
         onEditEvent={onEditEvent}
+        onRescheduleEvent={onRescheduleEvent}
       />
     );
   }
@@ -79,6 +82,7 @@ export function CalendarViews({ view, dateStr, events, onEditEvent }: CalendarVi
         currentDate={currentDate}
         events={events}
         onEditEvent={onEditEvent}
+        onRescheduleEvent={onRescheduleEvent}
       />
     );
   }
@@ -88,6 +92,7 @@ export function CalendarViews({ view, dateStr, events, onEditEvent }: CalendarVi
       <CalendarMonthView
         currentDate={currentDate}
         events={events}
+        onRescheduleEvent={onRescheduleEvent}
         onSelectDay={(day) => {
           const params = new URLSearchParams(window.location.search);
           params.set('view', 'day');
@@ -107,9 +112,10 @@ type CalendarDayViewProps = {
   currentDate: Date;
   events: AdminCalendarEvent[];
   onEditEvent: (event: AdminCalendarEvent) => void;
+  onRescheduleEvent: (event: AdminCalendarEvent) => void;
 };
 
-function CalendarDayView({ currentDate, events, onEditEvent }: CalendarDayViewProps) {
+function CalendarDayView({ currentDate, events, onEditEvent, onRescheduleEvent }: CalendarDayViewProps) {
   const dayEvents = events.filter((e) => isEventOnDay(e, currentDate));
   const allDayEvents = dayEvents.filter((e) => e.isAllDay);
   const timedEvents = dayEvents.filter((e) => !e.isAllDay);
@@ -138,6 +144,14 @@ function CalendarDayView({ currentDate, events, onEditEvent }: CalendarDayViewPr
                 </div>
                 <div className="flex items-center gap-1">
                   <SyncIndicator googleCalendarEventId={event.googleCalendarEventId} />
+                  <button
+                    type="button"
+                    onClick={() => onRescheduleEvent(event)}
+                    title={t('admin.calendar.rescheduleButton')}
+                    className="p-1.5 text-zinc-400 hover:text-emerald-600 rounded-lg hover:bg-white dark:hover:bg-zinc-800"
+                  >
+                    <CalendarDays className="h-3.5 w-3.5" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => onEditEvent(event)}
@@ -180,9 +194,9 @@ function CalendarDayView({ currentDate, events, onEditEvent }: CalendarDayViewPr
                       <span>{event.location}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-1 text-[10px] text-zinc-450 dark:text-zinc-500">
+                  <div className="flex items-center gap-1 text-[10px] text-zinc-450 dark:text-zinc-550 font-mono">
                     <Users className="h-3.5 w-3.5" />
-                    <span className="uppercase tracking-wider font-mono">
+                    <span className="uppercase tracking-wider">
                       {t(`admin.calendar.visibility_${event.visibility}`)}
                     </span>
                   </div>
@@ -190,6 +204,14 @@ function CalendarDayView({ currentDate, events, onEditEvent }: CalendarDayViewPr
               </div>
               <div className="flex items-center gap-1">
                 <SyncIndicator googleCalendarEventId={event.googleCalendarEventId} />
+                <button
+                  type="button"
+                  onClick={() => onRescheduleEvent(event)}
+                  title={t('admin.calendar.rescheduleButton')}
+                  className="p-1.5 text-zinc-400 hover:text-emerald-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  <CalendarDays className="h-3.5 w-3.5" />
+                </button>
                 <button
                   type="button"
                   onClick={() => onEditEvent(event)}
@@ -218,9 +240,10 @@ type CalendarWeekViewProps = {
   currentDate: Date;
   events: AdminCalendarEvent[];
   onEditEvent: (event: AdminCalendarEvent) => void;
+  onRescheduleEvent: (event: AdminCalendarEvent) => void;
 };
 
-function CalendarWeekView({ currentDate, events, onEditEvent }: CalendarWeekViewProps) {
+function CalendarWeekView({ currentDate, events, onEditEvent, onRescheduleEvent }: CalendarWeekViewProps) {
   // Compute start of week (Sunday)
   const sunday = new Date(currentDate);
   const dayOffset = sunday.getDay();
@@ -291,6 +314,14 @@ function CalendarWeekView({ currentDate, events, onEditEvent }: CalendarWeekView
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
+                          onClick={() => onRescheduleEvent(event)}
+                          title={t('admin.calendar.rescheduleButton')}
+                          className="p-1 text-zinc-400 hover:text-emerald-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        >
+                          <CalendarDays className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => onEditEvent(event)}
                           className="p-1 text-zinc-400 hover:text-emerald-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
@@ -318,10 +349,11 @@ function CalendarWeekView({ currentDate, events, onEditEvent }: CalendarWeekView
 type CalendarMonthViewProps = {
   currentDate: Date;
   events: AdminCalendarEvent[];
+  onRescheduleEvent: (event: AdminCalendarEvent) => void;
   onSelectDay: (day: Date) => void;
 };
 
-function CalendarMonthView({ currentDate, events, onSelectDay }: CalendarMonthViewProps) {
+function CalendarMonthView({ currentDate, events, onRescheduleEvent, onSelectDay }: CalendarMonthViewProps) {
   // Find start of month
   const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   // Find Sunday of the first week of the month
@@ -396,7 +428,11 @@ function CalendarMonthView({ currentDate, events, onSelectDay }: CalendarMonthVi
                 {dayEvents.slice(0, 3).map((event) => (
                   <div
                     key={event.id}
-                    className="flex items-center justify-between gap-1 rounded bg-zinc-100/70 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 text-[9px] font-medium text-zinc-700 dark:text-zinc-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRescheduleEvent(event);
+                    }}
+                    className="flex items-center justify-between gap-1 rounded bg-zinc-100/70 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 text-[9px] font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer"
                   >
                     <span className="truncate flex-1 font-semibold">{event.title}</span>
                     <div className="flex items-center shrink-0">
