@@ -1,18 +1,25 @@
 import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
-import { getAdminCalendarData, type CalendarRangeFilter } from '@/features/calendar/admin-queries';
-import { CalendarEventForm } from './CalendarEventForm';
-import { CalendarEventRow } from './CalendarEventRow';
+import {
+  getAdminCalendarData,
+  getAdminCalendarEventsForRange,
+  startOfLocalDay,
+  addDays,
+  startOfWeek,
+  startOfMonth,
+  type AdminCalendarEvent,
+  type AdminCalendarGroupOption,
+} from '@/features/calendar/admin-queries';
+import { CalendarWorkspace } from './CalendarWorkspace';
 import { t } from '@/lib/i18n';
-import { cn } from '@/lib/cn';
 
 type AdminCalendarPageProps = {
   searchParams: Promise<{
+    view?: string;
+    date?: string;
     range?: string;
   }>;
 };
-
-const RANGE_OPTIONS: CalendarRangeFilter[] = ['upcoming', 'today', 'week', 'month'];
 
 function ForbiddenState() {
   return (
@@ -39,10 +46,60 @@ function ForbiddenState() {
 }
 
 export default async function AdminCalendarPage({ searchParams }: AdminCalendarPageProps) {
-  const { range: rawRange } = await searchParams;
-  const data = await getAdminCalendarData(rawRange);
+  const params = await searchParams;
+  const rawView = params.view;
+  const view = rawView === 'list' || rawView === 'day' || rawView === 'week' || rawView === 'month' ? rawView : 'week';
 
-  if (!data.isAuthorized) {
+  const rawDate = params.date;
+  let currentDateStr = rawDate ?? '';
+  let currentDate = new Date();
+  if (currentDateStr) {
+    const parts = currentDateStr.split('-').map(Number);
+    if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+      currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    } else {
+      currentDateStr = '';
+    }
+  }
+
+  if (!currentDateStr) {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    currentDateStr = `${currentDate.getFullYear()}-${pad(currentDate.getMonth() + 1)}-${pad(currentDate.getDate())}`;
+  }
+
+  let events: AdminCalendarEvent[] = [];
+  let groups: AdminCalendarGroupOption[] = [];
+  let isAuthorized = false;
+  const listRange = params.range ?? 'upcoming';
+
+  if (view === 'list') {
+    const data = await getAdminCalendarData(listRange, currentDate);
+    events = data.events;
+    groups = data.groups;
+    isAuthorized = data.isAuthorized;
+  } else {
+    let startDate: Date;
+    let endDate: Date;
+
+    if (view === 'day') {
+      startDate = startOfLocalDay(currentDate);
+      endDate = addDays(startDate, 1);
+    } else if (view === 'week') {
+      startDate = startOfWeek(currentDate);
+      endDate = addDays(startDate, 7);
+    } else {
+      const monthStart = startOfMonth(currentDate);
+      startDate = startOfWeek(monthStart);
+      endDate = addDays(startDate, 42);
+    }
+
+    const data = await getAdminCalendarEventsForRange(startDate, endDate);
+    events = data.events;
+    groups = data.groups;
+    isAuthorized = data.isAuthorized;
+  }
+
+  if (!isAuthorized) {
     return <ForbiddenState />;
   }
 
@@ -63,70 +120,13 @@ export default async function AdminCalendarPage({ searchParams }: AdminCalendarP
           </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px] items-start">
-          <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm min-w-0">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
-                {t('admin.calendar.listTitle')}
-              </h2>
-              <nav className="flex gap-1 rounded-lg bg-zinc-100 dark:bg-zinc-850 p-1" aria-label={t('admin.calendar.filterLabel')}>
-                {RANGE_OPTIONS.map((option) => (
-                  <Link
-                    key={option}
-                    href={option === 'upcoming' ? '/admin/calendar' : `/admin/calendar?range=${option}`}
-                    className={cn(
-                      'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
-                      data.range === option
-                        ? 'bg-white dark:bg-zinc-950 text-emerald-700 dark:text-emerald-400 shadow-sm'
-                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
-                    )}
-                  >
-                    {t(`admin.calendar.range_${option}`)}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            {data.events.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-start text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-semibold">
-                      <th className="py-2.5 px-2 text-start">{t('admin.calendar.colTitle')}</th>
-                      <th className="py-2.5 px-2 text-start">{t('admin.calendar.colStartsAt')}</th>
-                      <th className="py-2.5 px-2 text-start">{t('admin.calendar.colEndsAt')}</th>
-                      <th className="py-2.5 px-2 text-center w-16">{t('admin.calendar.colAllDay')}</th>
-                      <th className="py-2.5 px-2 text-start">{t('admin.calendar.colVisibility')}</th>
-                      <th className="py-2.5 px-2 text-center w-20"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                    {data.events.map((event) => (
-                      <CalendarEventRow
-                        key={event.id}
-                        event={event}
-                        groups={data.groups}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-850 py-10 text-center text-zinc-500 dark:text-zinc-450">
-                {t('admin.calendar.emptyList')}
-              </div>
-            )}
-          </section>
-
-          <aside className="sticky top-6">
-            <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-zinc-950 dark:text-zinc-50">
-                {t('admin.calendar.createTitle')}
-              </h2>
-              <CalendarEventForm groups={data.groups} mode="create" />
-            </section>
-          </aside>
-        </div>
+        <CalendarWorkspace
+          view={view}
+          dateStr={currentDateStr}
+          events={events}
+          groups={groups}
+          listRange={listRange}
+        />
       </div>
     </main>
   );

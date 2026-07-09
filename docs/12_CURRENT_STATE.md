@@ -39,7 +39,11 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/announcements/page.tsx` (admin announcements list page)
   - `src/app/(app)/admin/announcements/AnnouncementForm.tsx` (admin announcement creation client form)
   - `src/app/(app)/admin/announcements/DeleteAnnouncementButton.tsx` (admin announcement deletion client button)
-  - `src/app/(app)/admin/calendar/page.tsx` (admin calendar management list/filter/create page)
+  - `src/app/(app)/admin/calendar/page.tsx` (admin calendar views router page)
+  - `src/app/(app)/admin/calendar/CalendarWorkspace.tsx` (admin calendar workspace client wrapper)
+  - `src/app/(app)/admin/calendar/CalendarViewSwitcher.tsx` (admin calendar layout switcher component)
+  - `src/app/(app)/admin/calendar/CalendarDateNavigator.tsx` (admin calendar navigation control component)
+  - `src/app/(app)/admin/calendar/CalendarViews.tsx` (admin calendar day/week/month layout panels)
   - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
   - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
   - `src/app/(app)/admin/calendar/DeleteCalendarEventButton.tsx` (calendar event deletion client button)
@@ -156,6 +160,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_HANDOFF.md`
   - `docs/parallel/GPT_WEB_PUSH_V1_HANDOFF.md`
   - `docs/parallel/GPT_WEB_PUSH_BROWSER_VERIFICATION_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_CALENDAR_VIEWS_V2_HANDOFF.md`
 
 ## Database foundation status
 
@@ -397,25 +402,31 @@ Status:
   - Push subscription create/delete audit events are intentionally not written in v1 to avoid noisy audit rows and any risk of storing raw subscription material; subscription CRUD remains protected by RLS and validated server-side.
   - Full browser push display and click verification (permission prompt, subscription saving, actual push popup, notification click focusing, and disable/re-enable) has been completed against a real authenticated Google OAuth session and a real Chrome browser. See "Latest Web Push browser verification results" below for details, including a real-world FCM delivery delay observed (not a code defect) and one real bug found and fixed in `PushSubscriptionControls.tsx`.
 
-## Admin calendar management v1 status
+## Admin calendar management v2 status
 
-The first admin-facing calendar event management workflow is implemented at:
+The calendar workspace is upgraded to v2 at:
 
 - `/admin/calendar`
 
 Status:
 
 - No migration was added. The implementation uses the existing `calendar_events` table, `calendar_event_groups` junction table, and `event_visibility` enum (`all_school`, `groups`, `staff_only`, `leadership_only`) exactly as defined in the initial migration.
-- Managers and super admins can create, update, and delete calendar events, because the existing RLS insert/update/delete policies on `calendar_events` explicitly check `current_user_is_manager_or_super_admin()`. No other role (including leadership, mentors, masters, and counselors) can mutate calendar events; this was verified with rollback-only database probes.
-- Supported fields in v1: `title` (required), `description` (optional), `starts_at`/`ends_at` (required, validated client- and server-side, and enforced at the database level by the `calendar_events_time_order` check constraint), `is_all_day`, `visibility`, and `location` (optional). The current school year (`school_years.is_current = true`) is resolved automatically on create; there is no school-year picker in v1.
-- Target-group selection is supported when `visibility = 'groups'`: selected `student_groups` rows are inserted into `calendar_event_groups`, and updates fully replace the target-group set (clear then re-insert) inside the same server action.
-- Edit is implemented as an inline per-row form (toggle via `CalendarEventRow`) that reuses `CalendarEventForm` in edit mode. Delete is implemented (hard delete, RLS-restricted to managers/super admins); there is no soft-delete/archive column on `calendar_events`, so deletion is permanent.
-- The admin table supports four date-range filters: upcoming (default), today, this week, and this month, using the same day/week boundary logic already used by the dashboard queries.
-- **RLS/RETURNING finding:** `calendar_events`' SELECT policy (`current_user_can_read_calendar_event`) re-queries the table by id inside a `security definer` function. Postgres evaluates that subquery against the same command's snapshot, so it cannot see a row the same `INSERT`/`UPDATE` statement just wrote. Requesting `.select()` (i.e., `RETURNING`) immediately after an insert/update on this table therefore fails RLS even for fully authorized managers/super admins — confirmed by direct rollback-only SQL probes. The server actions work around this by never chaining `.select()` after insert/update on `calendar_events` (generating the row id client-side with `crypto.randomUUID()` for create, and reading before/after audit data from already-fetched or already-known values instead of `RETURNING`). This is an application-layer workaround, not a schema change or an RLS bypass; all mutations still go through the normal request-scoped Supabase client and the existing RLS policies.
-- Audit logging: successful mutations write `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted` through the existing privileged server-only audit helper, capturing before/after event metadata and target group ids where relevant.
-- Revalidation: all three actions revalidate both `/admin/calendar` and `/dashboard`, so dashboard "Today"/"This week" sections reflect newly created or edited events without a manual refresh once Next.js re-renders the dashboard route.
-- **Bug found and fixed during the authenticated browser smoke test: the page did not render at all.** `page.tsx` passed a plain server-defined `formatDateTime` function as a prop to the `CalendarEventRow` client component. Next.js does not allow passing plain functions from a Server Component to a Client Component (only serializable data or `"use server"`-marked Server Actions), so `/admin/calendar` crashed with a server runtime error for every visitor. Fixed by moving `formatDateTime` to be defined locally inside `CalendarEventRow.tsx` (a pure, stateless formatting helper with no server-only dependency) instead of passed as a prop; verified the full page and all mutations (create/edit/delete, dashboard reflection) working afterward in the live browser.
-- Deferred: Google Calendar sync (the `google_calendar_event_id` column exists but is unused), recurrence (the `recurrence_rule` column exists but has no interpretation logic), drag-and-drop/resizing, the full Day/Week/Year-Gantt view switcher, push notifications for events (`push_enabled` column exists but is unused), and a school-year picker.
+- Managers and super admins can create, update, and delete calendar events, because the RLS insert/update/delete policies on `calendar_events` explicitly check `current_user_is_manager_or_super_admin()`. No other role can mutate calendar events.
+- **Multiple Views**: Upgraded the interface to support **List**, **Day**, **Week**, and **Month** views.
+  - **List view** displays upcoming/today/week/month table rows (retaining the v1 inline edit forms).
+  - **Day view** shows all-day events at the top and timed events sorted chronologically by time slots.
+  - **Week view** shows columns for all 7 days of the week, with event details and inline edit/delete.
+  - **Month view** renders a 35/42-day calendar block where clicking a day navigates to that day's Day view.
+- **URL Query Parameters**: The calendar state is driven dynamically by `view=list|day|week|month` and `date=YYYY-MM-DD` parameters. Navigator controls support Prev, Today, and Next shifting (by 1 day, 7 days, or 1 month based on the active view).
+- **Sidebar Integration**: The right sidebar dynamically switches between creating new events and editing selected events from any of the view grids, canceling back to create mode cleanly.
+- **Sync Indicators**: Displays a read-only sync icon showing **Synced** (green check icon) if `google_calendar_event_id` is present, and **Not Synced** (gray alert icon) if absent.
+- **RLS/RETURNING workaround:** Maintained the Postgres RLS `RETURNING` workaround (generating IDs client-side, never chaining `.select()` after write actions). All mutations go through the request-scoped Supabase client.
+- Audit logging: successful mutations write `calendar_event.created`, `calendar_event.updated`, and `calendar_event.deleted` through the existing privileged server-only audit helper.
+- Revalidation: all three actions revalidate both `/admin/calendar` and `/dashboard` routes.
+- **Hydration Fix**: Weekday labels are retrieved from `he.json` (`t('admin.calendar.day_0')` to `day_6`), removing any Hebrew characters from implementation code files to pass Hebrew character scanning.
+- Deferred: outbound Google Calendar Sync API integration, recurrence rule mutation support, drag-and-drop slots editing, and Year/Gantt view panels.
+- **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). Verified live: all 8 required URL/param combinations (`view=list|day|week|month`, invalid `view=bad`, invalid `date=bad`, and a `date` value in a different month) render with no console errors and fall back safely on invalid input; Prev/Today/Next all update the URL correctly; clicking a Month-view day cell navigates to Day view for that date; create/edit/delete of a same-day timed event correctly reflected across List, Day, Week, and Month views and on the dashboard's Today/This Week cards, with no RLS/`RETURNING` regression in server logs. Edge cases verified live: an existing seeded multi-day event (spanning 3 days) renders correctly on every relevant day in both Week and Month grids with no grid overflow; a newly created all-day event renders in the separate all-day section of Day view; a newly created group-targeted event shows the target group name; an event spanning a month boundary (Jul 30 - Aug 1) correctly appears on the relevant cells in both the July and August month grids; the sync indicator was confirmed to show "Synced" only when `google_calendar_event_id` is set and "Not synced" otherwise, in Day/Week/Month views (the List view's `CalendarEventRow` intentionally has no sync indicator — it is the preserved legacy v1 row component and was not extended in v2). All test events created for this pass were deleted afterward and verified back to the original 2 seeded events.
+- **Bug found and fixed: RTL date-range label displayed in reversed visual order.** `CalendarDateNavigator.tsx`'s week/day/month label span had no explicit `dir`, so under the page's `dir="rtl"` context the browser's Unicode bidi algorithm rendered a two-part numeric range like `"5.7 - 11.7.2026"` visually as `"1.7.2026 - 5.7"` (correct DOM text, reversed visual order) for any range containing a hyphen-joined start/end pair — confirmed by comparing the raw DOM text content against the rendered screenshot. Fixed by adding `dir="ltr"` to that span, since the date/time tokens themselves are always LTR-formatted regardless of UI locale. Verified fixed live: the same week now renders in the correct visual order.
 
 ## Admin learning groups weekly editor v1 status
 
@@ -884,9 +895,16 @@ A full authenticated-browser verification pass was completed against a real Goog
 - **Privacy and failure checks**: confirmed the payload contains only generic title/body text (no raw message body, emotional status, or goal details); confirmed actor-exclusion and muted-follower exclusion by directly exercising the same recipient-resolution filter `sendStudentChangePush` uses; confirmed a stale (410 Gone) subscription is deleted by the same delete-on-404/410 branch the production code uses. All test follow/subscription rows created for this verification were cleaned up afterward.
 - **Bug found and fixed**: `PushSubscriptionControls.tsx` computed `isAvailable` (browser feature + VAPID-key detection) via a synchronous `useMemo` that called `isPushSupported()` during render. Since `isPushSupported()` reads `window`/`navigator`, it returned `false` during SSR but `true` on the client's very first render pass, producing a real, reproducible React hydration mismatch on the enable button's `disabled` attribute (confirmed via console errors on every page load before the fix). Fixed by switching to `useSyncExternalStore` with an explicit `false` server snapshot, which is the standard pattern for values that legitimately differ between server and client. Verified fixed: no hydration warning on repeated fresh navigations after the fix, `npm run lint` passes (an initial fix using `useEffect` + `setState` was rejected by the `react-hooks/set-state-in-effect` lint rule and replaced with the `useSyncExternalStore` approach).
 
+## Latest Admin Calendar Views v2 browser verification results
+
+- Authenticated browser smoke test performed against a real Google OAuth session (super_admin). Full scope and results are described under "Admin calendar management v2 status" above.
+- **Bug found and fixed**: RTL date-range label in `CalendarDateNavigator.tsx` rendered in reversed visual order due to a missing `dir="ltr"` on a numeric range string inside an RTL context. Fixed with a one-line `dir="ltr"` addition; verified fixed live.
+- Validation commands run after the fix: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed (a pre-existing trailing-whitespace line in this file, unrelated to the calendar fix, was also trimmed to keep `git diff --check` clean). No new migrations were needed.
+- All test calendar events created during this pass were deleted afterward; the `calendar_events` table was verified to match its original 2-row seeded state.
+
 ## Next recommended tasks
 
-1. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
+1. **Calendar management follow-up**: Build drag-and-drop slots editing, recurrence rules interpretation, and outbound Google Calendar Sync API integration. Calendar Views v2 (List/Day/Week/Month view switcher, date navigator, and sync indicators) is fully implemented and browser-verified.
 2. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
 3. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.
 4. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
