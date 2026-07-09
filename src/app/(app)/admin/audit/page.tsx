@@ -1,12 +1,19 @@
 import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
 import { getAdminAuditLogs } from '@/features/admin/audit-queries';
+import { AuditLogFilters } from './AuditLogFilters';
+import { AuditLogPagination } from './AuditLogPagination';
 import { t } from '@/lib/i18n';
 
 type AdminAuditPageProps = {
   searchParams: Promise<{
     action?: string;
     entityType?: string;
+    actorId?: string;
+    fromDate?: string;
+    toDate?: string;
+    page?: string;
+    pageSize?: string;
   }>;
 };
 
@@ -58,8 +65,16 @@ function ForbiddenState() {
 }
 
 export default async function AdminAuditPage({ searchParams }: AdminAuditPageProps) {
-  const { action, entityType } = await searchParams;
-  const data = await getAdminAuditLogs({ action, entityType });
+  const params = await searchParams;
+  const data = await getAdminAuditLogs({
+    action: params.action,
+    entityType: params.entityType,
+    actorId: params.actorId,
+    fromDate: params.fromDate,
+    toDate: params.toDate,
+    page: params.page ? Number(params.page) : undefined,
+    pageSize: params.pageSize ? Number(params.pageSize) : undefined,
+  });
 
   if (!data.isAuthorized) {
     return <ForbiddenState />;
@@ -81,61 +96,12 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
         </header>
 
         <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
-          <form className="flex flex-wrap items-end gap-3" action="/admin/audit">
-            <div className="space-y-1">
-              <label htmlFor="audit-action" className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                {t('admin.audit.filterActionLabel')}
-              </label>
-              <select
-                id="audit-action"
-                name="action"
-                defaultValue={data.filters.action ?? ''}
-                className="h-10 min-w-[10rem] rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
-              >
-                <option value="">{t('admin.audit.filterAllActions')}</option>
-                {data.actionOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="audit-entity-type" className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                {t('admin.audit.filterEntityTypeLabel')}
-              </label>
-              <select
-                id="audit-entity-type"
-                name="entityType"
-                defaultValue={data.filters.entityType ?? ''}
-                className="h-10 min-w-[10rem] rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
-              >
-                <option value="">{t('admin.audit.filterAllEntityTypes')}</option>
-                {data.entityTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 text-sm font-bold text-white transition-colors"
-            >
-              {t('admin.audit.filterSubmit')}
-            </button>
-
-            {data.filters.action || data.filters.entityType ? (
-              <Link
-                href="/admin/audit"
-                className="h-10 flex items-center rounded-xl border border-zinc-200 dark:border-zinc-750 px-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-850"
-              >
-                {t('admin.audit.filterClear')}
-              </Link>
-            ) : null}
-          </form>
+          <AuditLogFilters
+            actionOptions={data.actionOptions}
+            entityTypeOptions={data.entityTypeOptions}
+            actorOptions={data.actorOptions}
+            filters={data.filters}
+          />
 
           {data.logs.length > 0 ? (
             <div className="overflow-x-auto">
@@ -159,16 +125,21 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                         <td className="py-3 px-2 whitespace-nowrap text-zinc-600 dark:text-zinc-450">
                           {formatDateTime(log.createdAt)}
                         </td>
-                        <td className="py-3 px-2 text-zinc-600 dark:text-zinc-450">
-                          {log.actorName ?? t('admin.audit.unknownActor')}
+                        <td className="py-3 px-2 text-zinc-650 dark:text-zinc-400">
+                          <div className="font-semibold">{log.actorName ?? t('admin.audit.unknownActor')}</div>
+                          {log.actorEmail ? (
+                            <div className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-550 select-all">
+                              {log.actorEmail}
+                            </div>
+                          ) : null}
                         </td>
                         <td className="py-3 px-2 font-mono text-[11px] font-semibold text-zinc-900 dark:text-zinc-100">
                           {log.action}
                         </td>
-                        <td className="py-3 px-2 text-zinc-600 dark:text-zinc-450">
+                        <td className="py-3 px-2 text-zinc-650 dark:text-zinc-400">
                           <div className="font-mono text-[11px]">{log.entityType}</div>
                           {log.entityId ? (
-                            <div className="mt-0.5 max-w-[140px] truncate font-mono text-[10px] text-zinc-400 dark:text-zinc-550">
+                            <div className="mt-0.5 max-w-[140px] truncate font-mono text-[10px] text-zinc-450 dark:text-zinc-550 select-all">
                               {log.entityId}
                             </div>
                           ) : null}
@@ -178,7 +149,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                             <div className="space-y-1">
                               {beforePreview ? (
                                 <details>
-                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 select-none">
                                     {t('admin.audit.beforeLabel')}
                                   </summary>
                                   <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-zinc-50 dark:bg-zinc-950 p-2 text-[10px] text-zinc-700 dark:text-zinc-300">
@@ -188,7 +159,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                               ) : null}
                               {afterPreview ? (
                                 <details>
-                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 select-none">
                                     {t('admin.audit.afterLabel')}
                                   </summary>
                                   <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-zinc-50 dark:bg-zinc-950 p-2 text-[10px] text-zinc-700 dark:text-zinc-300">
@@ -212,6 +183,14 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
               {t('admin.audit.emptyList')}
             </div>
           )}
+
+          <AuditLogPagination
+            currentPage={data.currentPage}
+            totalPages={data.totalPages}
+            pageSize={data.pageSize}
+            hasPrevious={data.hasPrevious}
+            hasNext={data.hasNext}
+          />
         </section>
       </div>
     </main>

@@ -54,7 +54,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/learning-groups/LearningGroupForm.tsx` (reusable create/edit learning group client form)
   - `src/app/(app)/admin/learning-groups/LearningGroupRow.tsx` (learning group table row with inline edit toggle)
   - `src/app/(app)/admin/learning-groups/ArchiveLearningGroupButton.tsx` (learning group archive/deactivate client button)
-  - `src/app/(app)/admin/audit/page.tsx` (read-only admin audit log viewer page)
+  - `src/app/(app)/admin/audit/page.tsx` (admin audit log viewer router page)
+  - `src/app/(app)/admin/audit/AuditLogFilters.tsx` (admin audit log filters client component)
+  - `src/app/(app)/admin/audit/AuditLogPagination.tsx` (admin audit log pagination client component)
+  - `src/app/api/admin/audit/export/route.ts` (admin audit logs CSV export route handler)
   - `src/app/(app)/more/page.tsx` (more tools route page)
   - `src/app/(app)/notifications/page.tsx` (notifications feed page)
   - `src/app/(app)/notifications/PushSubscriptionControls.tsx` (push subscription enable/disable toggle client component)
@@ -165,6 +168,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_WEB_PUSH_BROWSER_VERIFICATION_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_CALENDAR_VIEWS_V2_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_LEARNING_GROUPS_TIMETABLE_V2_HANDOFF.md`
+  - `docs/parallel/GPT_ADMIN_AUDIT_LOG_VIEWER_V2_HANDOFF.md`
 
 ## Database foundation status
 
@@ -454,21 +458,29 @@ Status:
 - **Documentation correction (not a code bug)**: the prior handoff doc for this feature claimed the Timetable view "collapses Friday/Saturday if empty." Live testing confirmed the actual implementation (`LearningGroupsTimetable.tsx`) always renders all 7 weekday columns unconditionally, showing a `-` placeholder for empty days; there is no collapsing logic in the code. This is not a functional defect (nothing crashes or shows incorrect data) and was left as-is per this task's explicit no-new-features scope; the prior doc's inaccurate claim is corrected here instead of adding new collapsing behavior.
 - Mobile/stacked layout (`grid-cols-1` below the `md` breakpoint) was confirmed by code inspection to use the same responsive Tailwind pattern already visually verified working in the Admin Calendar Views v2 browser test; live viewport resizing was not reliably reproducible in this automated browser session, so it was not independently re-verified pixel-for-pixel in this pass.
 
-## Admin audit log viewer v1 status
+## Admin audit log viewer v2 status
 
-A read-only admin audit log viewer is implemented at:
+An interactive investigation panel with pagination and filters is implemented at:
 
 - `/admin/audit`
 
 Status:
 
 - No migration was added. The implementation uses the existing `audit_logs` table exactly as defined in the initial migration (`id`, `actor_id`, `action`, `entity_type`, `entity_id`, `before_data` jsonb, `after_data` jsonb, `created_at`) and its existing RLS policy.
-- Only managers and super admins can view the audit log, because the only RLS policy on `audit_logs` is `"Managers and super admins can read audit logs"` (`current_user_is_manager_or_super_admin()`). There is no INSERT, UPDATE, or DELETE policy for the `authenticated` role at all; writes only ever happen through the existing privileged server-only `writeAuditLog` helper (service-role client), matching the Decision Log's original intent ("Audit log write policy"). This was confirmed with rollback-only database probes: a manager/super-admin session reads inserted test rows, a normal staff or mentor session reads 0 rows for the same data (RLS-filtered, not merely absent), and both an authenticated-role `INSERT` and `DELETE` against `audit_logs` are rejected/no-op.
-- The page is fully read-only: no create, update, delete, or export action exists anywhere in this surface, and no service-role client is used (the page reads via the normal request-scoped Supabase client, relying entirely on RLS).
-- Supports two simple filters via GET query params: action and entity type, both populated from the distinct values seen in the most recent audit rows. Results are limited to the 100 most recent matching entries, ordered newest first.
-- Before/after JSON metadata is shown behind collapsed `<details>` disclosure elements per row (not rendered inline by default), with a truncation guard so a very large JSON payload does not render unbounded.
+- Only managers and super admins can view the audit log, because the only SELECT RLS policy on `audit_logs` is `"Managers and super admins can read audit logs"` (`current_user_is_manager_or_super_admin()`). Client insertions, updates, and deletions remain blocked.
+- **Investigation Filters**: driven by URL GET parameters:
+  - `action`: distinct actions.
+  - `entityType`: distinct entity types.
+  - `actorId`: dropdown list showing active staff profiles with their full name and email.
+  - `fromDate`: inclusive starting date.
+  - `toDate`: inclusive ending date (safely converted to exclusive next-day boundary in query).
+- **Pagination**: offset range pagination using `.range()` on Supabase queries. Supported sizes: 25, 50, and 100. Previous/Next buttons disable at page boundaries.
+- **Controlled CSV Export**: Route handler `GET /api/admin/audit/export` checks user session and role. Streams CSV content dynamically in-memory (no local disk files) for up to 1000 matching rows. Excludes sensitive JSON columns (`before_data`, `after_data`) for user privacy. Dispatches an `audit_log.exported` audit event.
+- Before/after JSON metadata is shown behind collapsed `<details>` disclosure elements per row.
 - The `AdminShell` Audit log nav item is enabled and links to `/admin/audit`.
-- Deferred: actor filter, date-range filter, pagination beyond the 100-row cap, and any export/download of audit data.
+- Deferred: none (actor filters, date-range filters, pagination, and CSV export are fully implemented).
+- **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). Verified live: rows render with actor name/email, before/after JSON stays collapsed by default and expands correctly, and the default page size is 50. All filters (action, entity type, actor, from-date, to-date, and combined) were tested live and correctly narrowed results via URL query params, resetting to page 1; invalid/malformed params (`actorId=not-a-uuid`, `fromDate=garbage`, `page=abc`, `pageSize=999`) did not crash and fell back to safe defaults. Pagination was tested with a real 28-row dataset (generated via real create/delete actions through the existing calendar feature, not direct inserts) at all three page sizes: page size 25 correctly showed 2 pages with correct Prev/Next boundary disabling and state preserved across navigation; page sizes 50 and 100 correctly showed all rows on a single page. CSV export was verified both unfiltered and filtered: returns the documented columns (Date, Actor Name, Actor Email, Action, Entity Type, Entity ID) with no raw `before_data`/`after_data`, correctly respects the active filter, and dispatches `audit_log.exported` with only `{filters, rowCount}` (never exported row contents) — confirmed directly in the database. The 1000-row export cap was verified by code inspection only (`.limit(1000)`), not by generating 1000+ real rows. RLS/security was verified with rollback-only SQL probes directly against the local Postgres container: a normal active-staff role sees 0 audit rows and cannot INSERT/UPDATE/DELETE (all blocked by RLS), while a manager role correctly sees all rows, matching the live super_admin browser session. An anonymous request to `/api/admin/audit/export` was correctly intercepted by the app's auth middleware before reaching the route handler; a live 403 test from a second, authenticated-but-non-manager real browser session was not performed (no second live account available), but the underlying RPC/RLS guard the route depends on was independently confirmed to correctly deny non-privileged roles.
+- **Bug found and fixed**: the `toDate` filter (in both `getAdminAuditLogs` and the CSV export route) computed its exclusive next-day upper bound via `new Date(`${toDate}T00:00:00`)` — a string with no `Z`/offset, which Node parses as **local server time**, then converted back to UTC via `.toISOString()`. On this server (`Asia/Jerusalem`, UTC+3), this silently shifted the boundary earlier by the timezone offset, so filtering `toDate` to "today" (or any date) incorrectly excluded real rows created earlier that same day — confirmed live: `toDate=2026-07-09` showed 0 of 28 real today rows, while `toDate=2026-07-10` (one day later) correctly showed all 28. `fromDate` was unaffected, since it builds its UTC boundary directly as a string without going through local-time `Date` parsing. Fixed in both files by computing the boundary entirely in UTC via `Date.UTC(year, month - 1, day + 1)`, with no local-timezone-sensitive parsing at any point. Verified fixed live: the same `toDate` values now return the correct row counts.
 
 ## UX design foundation status
 
@@ -913,7 +925,7 @@ A full authenticated-browser verification pass was completed against a real Goog
 
 1. **Calendar management follow-up**: Build drag-and-drop slots editing, recurrence rules interpretation, and outbound Google Calendar Sync API integration. Calendar Views v2 (List/Day/Week/Month view switcher, date navigator, and sync indicators) is fully implemented and browser-verified.
 2. **Learning groups follow-up**: Add drag-and-drop weekly timetable editing, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready. Timetable Views v2 is fully implemented and browser-verified.
-3. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.
-4. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
-5. **Two-account real push test**: A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in this pass) remains open if a second real Google account becomes available.
-6. **Learning groups mobile viewport re-check**: Live browser viewport resizing was not reliably reproducible in the automated session used for the Timetable Views v2 browser test; a manual mobile-device check of the stacked layout remains a nice-to-have (code inspection confirms it uses the same responsive pattern already visually verified for Calendar Views v2).
+3. **Manual verification leftovers**: Run live browser verification for real student photo file upload, OAuth wrong-domain Google account rejection, and cross-user real-time notification badge click-testing. These items are code-reviewed and database-verified, but live browser-level paths remain manual-only.
+4. **Two-account real push test**: A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in this pass) remains open if a second real Google account becomes available.
+5. **Learning groups mobile viewport re-check**: Live browser viewport resizing was not reliably reproducible in the automated session used for the Timetable Views v2 browser test; a manual mobile-device check of the stacked layout remains a nice-to-have (code inspection confirms it uses the same responsive pattern already visually verified for Calendar Views v2).
+6. **Admin audit log viewer**: no further work needed. Actor filters, date-range filters, pagination, and CSV export are all fully implemented and now browser-verified (including RLS/security probes); a live 403 test against the export API from a second, non-manager authenticated account remains open if a second real account becomes available.
