@@ -16,7 +16,7 @@ This document compiles the outcomes of verifying the manual leftovers from the a
 
 ---
 
-## 2. Verified Workflows & Results
+## 2. Reviewed / Database-Verified Workflows & Results
 
 ### Phase 1: Real Student Photo Upload Verification
 
@@ -61,7 +61,7 @@ This document compiles the outcomes of verifying the manual leftovers from the a
 
 - **Bugs Found**: None.
 - **Bugs Fixed**: None required.
-- **Deferred Items**: Web Push notifications, push subscriptions, and service worker/VAPID integrations remain deferred to future phases.
+- **Deferred Items**: Live browser verification remains needed for the real photo upload, wrong-domain OAuth rejection, and cross-user notification click-test. Web Push v1 is now implemented separately, but its real browser permission/push-display path also remains live-browser verification work.
 
 ---
 

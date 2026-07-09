@@ -493,6 +493,22 @@
   "notifications.unread": "Unread",
   "notifications.error.failedToLoad": "Failed to load notifications.",
   "notifications.error.failedToUpdate": "Failed to update notifications. Please try again.",
+  "notifications.push.title": "Browser notifications",
+  "notifications.push.enableNotifications": "Enable notifications",
+  "notifications.push.disableNotifications": "Disable on this device",
+  "notifications.push.enabled": "Notifications enabled",
+  "notifications.push.disabled": "Notifications disabled for this device.",
+  "notifications.push.unsupported": "Browser notifications are unavailable in this browser or VAPID keys are not configured.",
+  "notifications.push.permissionDenied": "Notifications are blocked.",
+  "notifications.push.permissionDeniedDescription": "Enable notifications in your browser settings to use push notifications on this device.",
+  "notifications.push.permissionDefault": "Enable browser notifications to receive updates for students you follow.",
+  "notifications.push.permissionGranted": "Permission is granted for this browser.",
+  "notifications.push.errorEnableFailed": "Failed to enable browser notifications. Please try again.",
+  "notifications.push.errorDisableFailed": "Failed to disable browser notifications. Please try again.",
+  "notifications.push.errorInvalidSubscription": "The browser subscription could not be saved.",
+  "notifications.push.saved": "Browser notifications are ready on this device.",
   "more.notifications": "Notifications",
-  "more.notificationsDescription": "View updates and changes for followed students"
+  "more.notificationsDescription": "View updates and changes for followed students",
+  "more.pushNotifications": "Browser notifications",
+  "more.pushNotificationsDescription": "Manage push notifications on this device"
 }

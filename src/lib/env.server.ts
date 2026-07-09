@@ -8,9 +8,9 @@ const serverEnvSchema = z.object({
   GOOGLE_ALLOWED_DOMAIN: z.string().min(1).default('chamama.org.il'),
   BOOTSTRAP_SUPER_ADMIN_EMAILS: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  WEB_PUSH_PUBLIC_KEY: z.string().optional(),
-  WEB_PUSH_PRIVATE_KEY: z.string().optional(),
-  WEB_PUSH_SUBJECT: z.string().optional(),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().optional(),
 });
 
 const serverEnvData = {
@@ -20,9 +20,9 @@ const serverEnvData = {
   GOOGLE_ALLOWED_DOMAIN: process.env.GOOGLE_ALLOWED_DOMAIN || 'chamama.org.il',
   BOOTSTRAP_SUPER_ADMIN_EMAILS: process.env.BOOTSTRAP_SUPER_ADMIN_EMAILS,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  WEB_PUSH_PUBLIC_KEY: process.env.WEB_PUSH_PUBLIC_KEY,
-  WEB_PUSH_PRIVATE_KEY: process.env.WEB_PUSH_PRIVATE_KEY,
-  WEB_PUSH_SUBJECT: process.env.WEB_PUSH_SUBJECT,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT,
 };
 
 const parsed = serverEnvSchema.safeParse(serverEnvData);

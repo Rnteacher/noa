@@ -5,6 +5,7 @@ import { t } from '@/lib/i18n';
 import { getNotifications } from '@/features/notifications/queries';
 import MarkNotificationReadButton from './MarkNotificationReadButton';
 import MarkAllNotificationsReadButton from './MarkAllNotificationsReadButton';
+import PushSubscriptionControls from './PushSubscriptionControls';
 
 export default async function NotificationsPage() {
   const { notifications, error } = await getNotifications();
@@ -22,6 +23,8 @@ export default async function NotificationsPage() {
       />
 
       <main className="flex-1 space-y-4 p-4">
+        <PushSubscriptionControls />
+
         {error ? (
           <Alert variant="warning" title={t('dashboard.error.title')}>
             {t(error)}

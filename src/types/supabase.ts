@@ -763,11 +763,13 @@ export type Database = {
           created_at: string
           device_label: string | null
           endpoint: string
+          expiration_time: string | null
           id: string
           is_active: boolean
           last_used_at: string | null
           p256dh_key: string
           profile_id: string
+          updated_at: string
           user_agent: string | null
         }
         Insert: {
@@ -775,11 +777,13 @@ export type Database = {
           created_at?: string
           device_label?: string | null
           endpoint: string
+          expiration_time?: string | null
           id?: string
           is_active?: boolean
           last_used_at?: string | null
           p256dh_key: string
           profile_id: string
+          updated_at?: string
           user_agent?: string | null
         }
         Update: {
@@ -787,11 +791,13 @@ export type Database = {
           created_at?: string
           device_label?: string | null
           endpoint?: string
+          expiration_time?: string | null
           id?: string
           is_active?: boolean
           last_used_at?: string | null
           p256dh_key?: string
           profile_id?: string
+          updated_at?: string
           user_agent?: string | null
         }
         Relationships: [

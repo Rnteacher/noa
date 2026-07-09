@@ -50,6 +50,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/audit/page.tsx` (read-only admin audit log viewer page)
   - `src/app/(app)/more/page.tsx` (more tools route page)
   - `src/app/(app)/notifications/page.tsx` (notifications feed page)
+  - `src/app/(app)/notifications/PushSubscriptionControls.tsx` (push subscription enable/disable toggle client component)
   - `src/app/(app)/notifications/MarkNotificationReadButton.tsx` (mark single notification read client button component)
   - `src/app/(app)/notifications/MarkAllNotificationsReadButton.tsx` (mark all notifications read client button component)
   - `src/app/(app)/dev/ui/page.tsx` (protected base UI component showcase route)
@@ -96,6 +97,8 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `notifications/`
     - `src/features/notifications/queries.ts` (Notifications server-side queries)
     - `src/features/notifications/actions.ts` (Notifications Server Actions)
+    - `src/features/notifications/push-actions.ts` (Push subscription save/delete Server Actions)
+    - `src/features/notifications/send-push.ts` (Server-side Web Push notification dispatcher utility using web-push)
   - `admin/`
     - `src/features/admin/audit-queries.ts` (Admin audit log read-only server-side queries)
   - `auth/`
@@ -109,9 +112,12 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `supabase/migrations/20260709000000_student_goal_primary.sql`
   - `supabase/migrations/20260709010000_student_message_editing.sql`
   - `supabase/migrations/20260709020000_student_message_soft_delete_fix.sql`
+  - `supabase/migrations/20260709030000_push_subscriptions_v1.sql`
   - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
+- `public/`
+  - `public/sw.js` (service worker for Web Push notifications)
 - `.env.example` (environment variables template)
   - Includes `BOOTSTRAP_SUPER_ADMIN_EMAILS` for first-run admin bootstrap.
 - `docs/design/` (UX design foundation)
@@ -148,6 +154,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_STUDENT_MESSAGE_SOFT_DELETE_RLS_FIX_HANDOFF.md`
   - `docs/parallel/GPT_AUTHENTICATED_BROWSER_SMOKE_TEST_HANDOFF.md`
   - `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_HANDOFF.md`
+  - `docs/parallel/GPT_WEB_PUSH_V1_HANDOFF.md`
 
 ## Database foundation status
 
@@ -376,7 +383,18 @@ Status:
 - Mobile BottomNav displays a numeric unread badge overlay on the `More` tab item by dynamically fetching counts.
 - `/more` page displays a notification card displaying the live unread count and routing to `/notifications`.
 - Dashboard header Bell icon routes to `/notifications`.
-- Web Push delivery, service workers, and VAPID registration remain deferred.
+- Web Push delivery and push subscription management v1 is implemented:
+  - `push_subscriptions` supports one row per browser endpoint, multiple devices per profile, `expiration_time`, and `updated_at`.
+  - Active authenticated staff can insert/update/delete only their own push subscriptions through normal request-scoped Supabase clients and RLS.
+  - Managers and super admins have no special direct RLS read/delete access to other users' subscriptions.
+  - `/notifications` mounts compact browser notification controls that detect support, show permission state, request permission only after a user click, register `/sw.js`, save the current browser subscription, and disable/unsubscribe the current device.
+  - `/more` includes a compact browser-notifications link back to `/notifications`.
+  - Server-side push sending is best-effort and non-blocking after the in-app notification RPC succeeds. Failures are logged and never fail the original student-card mutation.
+  - Push payloads are generic and privacy-preserving: no raw message body, emotional status value/color/note, or goal title/description is sent to the browser push service.
+  - VAPID configuration uses `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`; missing keys disable push without breaking the app build.
+  - Stale Web Push subscriptions returning 404/410 are deleted from the privileged server-only delivery path.
+  - Push subscription create/delete audit events are intentionally not written in v1 to avoid noisy audit rows and any risk of storing raw subscription material; subscription CRUD remains protected by RLS and validated server-side.
+  - Full browser push display and click verification (permission prompt, subscription saving, actual push popup, notification click focusing, and disable/re-enable) remains a manual-only verification task.
 
 ## Admin calendar management v1 status
 
@@ -831,9 +849,31 @@ git diff --check
 
 All four passed (line-ending warnings only on `git diff --check`). No schema changes were made during this task, so `supabase db reset` and type regeneration were not required.
 
+## Latest Web Push v1 validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and applied `supabase/migrations/20260709030000_push_subscriptions_v1.sql`.
+- Type generation passed and refreshed `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code`, `npm run lint`, and `npm run build` passed.
+- `git diff --check` passed with line-ending warnings only.
+- Rollback-only RLS probes confirmed: active staff can insert/update/read/delete their own push subscription; inserting a subscription for another profile is rejected; users cannot read or delete another user's subscription; managers have no special subscription visibility; duplicate endpoints are rejected by the unique constraint; seed `push_subscriptions` row count remained 0 after rollback.
+- Browser smoke status: the in-app browser redirected unauthenticated `/notifications` to `/login` as expected. A seeded local email/password login attempt returned invalid credentials, matching the existing auth-test limitation. Because no authenticated in-app browser session and no interactive push permission grant were available in this context, the push controls, permission prompt, saved browser subscription, real push display, notification click focusing, and disable/re-enable flow were not fully browser-verified.
+
 ## Next recommended tasks
 
-1. **Web Push delivery & push subscription management**: Implement browser Web Push notifications, service worker registration, VAPID key pairs, and client push subscription endpoints. In-app notification delivery and BottomNav badges are fully completed.
+1. **Web Push browser verification**: With a real authenticated browser session and configured VAPID keys, verify permission prompt, subscription save, push display, click focusing, disable, and re-enable flows.
 2. **Calendar management follow-up**: Build the admin-facing calendar view switcher (Day/Week/Month/Year-Gantt), drag-and-drop slots editing, recurrence support, and Google Calendar outbound sync indicators. Calendar Management v1 (list/filter/create/edit/delete of individual events) is implemented; these richer views remain deferred.
 3. **Learning groups follow-up**: Add drag-and-drop/full weekly timetable editing, richer timetable views, Google Calendar sync indicators, notifications, and school-year selection when those scopes are ready.
 4. **Admin audit log viewer follow-up**: Add actor and date-range filters, pagination beyond the current 100-row cap, and consider an audited export path for managers/super admins if a real export need arises.

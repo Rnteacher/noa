@@ -482,6 +482,22 @@
   "notifications.unread": "לא נקרא",
   "notifications.error.failedToLoad": "טעינת ההתראות נכשלה.",
   "notifications.error.failedToUpdate": "עדכון ההתראות נכשל. יש לנסות שנית.",
+  "notifications.push.title": "התראות דפדפן",
+  "notifications.push.enableNotifications": "הפעלת התראות",
+  "notifications.push.disableNotifications": "כיבוי במכשיר זה",
+  "notifications.push.enabled": "ההתראות פעילות",
+  "notifications.push.disabled": "ההתראות כובו במכשיר זה.",
+  "notifications.push.unsupported": "התראות דפדפן אינן זמינות בדפדפן זה או שמפתחות VAPID לא הוגדרו.",
+  "notifications.push.permissionDenied": "ההתראות חסומות.",
+  "notifications.push.permissionDeniedDescription": "יש להפעיל התראות בהגדרות הדפדפן כדי להשתמש בהתראות במכשיר זה.",
+  "notifications.push.permissionDefault": "הפעלת התראות דפדפן תאפשר לקבל עדכונים על תלמידים במעקב.",
+  "notifications.push.permissionGranted": "ההרשאה ניתנה לדפדפן זה.",
+  "notifications.push.errorEnableFailed": "הפעלת התראות דפדפן נכשלה. יש לנסות שוב.",
+  "notifications.push.errorDisableFailed": "כיבוי התראות דפדפן נכשל. יש לנסות שוב.",
+  "notifications.push.errorInvalidSubscription": "לא ניתן לשמור את מנוי הדפדפן.",
+  "notifications.push.saved": "התראות הדפדפן מוכנות במכשיר זה.",
   "more.notifications": "התראות",
-  "more.notificationsDescription": "צפייה בעדכונים ושינויים בתלמידים במעקב"
+  "more.notificationsDescription": "צפייה בעדכונים ושינויים בתלמידים במעקב",
+  "more.pushNotifications": "התראות דפדפן",
+  "more.pushNotificationsDescription": "ניהול התראות במכשיר זה"
 }

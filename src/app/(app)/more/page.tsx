@@ -1,4 +1,4 @@
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, BellRing, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { AppHeader } from '@/components/ui';
 import { t } from '@/lib/i18n';
@@ -33,6 +33,23 @@ export default async function MorePage() {
               {unreadCount}
             </span>
           ) : null}
+        </Link>
+
+        <Link
+          href="/notifications"
+          className="flex items-center gap-3 rounded-2xl border border-line bg-surface-raised p-4 transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+            <BellRing aria-hidden="true" className="h-5 w-5" />
+          </span>
+          <div className="text-start">
+            <span className="block text-sm font-bold text-ink">
+              {t('more.pushNotifications')}
+            </span>
+            <span className="block text-xs text-ink-secondary">
+              {t('more.pushNotificationsDescription')}
+            </span>
+          </div>
         </Link>
 
         <Link

@@ -3,6 +3,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/lib/audit/log';
 import type { GoalStatus, TrafficLightStatus } from '@/features/students/types';
+import {
+  sendStudentChangePush,
+  type StudentChangePushInput,
+} from '@/features/notifications/send-push';
 import { revalidatePath } from 'next/cache';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -12,6 +16,35 @@ const ALLOWED_EMOTIONAL_STATUSES = ['green', 'yellow', 'red'] as const;
 const ALLOWED_GOAL_STATUSES = ['active', 'completed', 'paused', 'archived'] as const;
 const GOAL_TITLE_MAX_LENGTH = 120;
 const GOAL_DESCRIPTION_MAX_LENGTH = 1000;
+
+async function notifyStudentChange(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  actorId: string,
+  studentId: string,
+  eventType: StudentChangePushInput['eventType'],
+  context: string
+) {
+  const { error } = await supabase.rpc('create_student_change_notification', {
+    actor_id: actorId,
+    target_student_id: studentId,
+    event_type: eventType,
+  });
+
+  if (error) {
+    console.error(`Failed to create notifications for ${context}:`, error);
+    return;
+  }
+
+  try {
+    await sendStudentChangePush({
+      actorId,
+      studentId,
+      eventType,
+    });
+  } catch (pushError) {
+    console.error(`Failed to send push notifications for ${context}:`, pushError);
+  }
+}
 
 export type CreateStudentMessageResult = {
   success: boolean;
@@ -99,16 +132,13 @@ export async function createStudentMessage(
     console.error('Failed to write audit log for student message:', auditError);
   }
 
-  // 6. Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_message.created',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for message:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_message.created',
+    'message'
+  );
 
   // 7. Revalidate student card path
   revalidatePath(`/students/${studentId}`);
@@ -470,16 +500,13 @@ export async function updateProjectStatus(
     console.error('Failed to write audit log for project status update:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'project.status_updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for project update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'project.status_updated',
+    'project update'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -617,16 +644,13 @@ export async function updateEmotionalStatus(
     console.error('Failed to write audit log for emotional status update:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_emotional_status.updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for emotional update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_emotional_status.updated',
+    'emotional update'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -775,16 +799,13 @@ export async function createStudentGoal(
     console.error('Failed to write audit log for student goal creation:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_goal.created',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for goal creation:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_goal.created',
+    'goal creation'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -895,16 +916,13 @@ export async function updateStudentGoalStatus(
     console.error('Failed to write audit log for student goal status update:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_goal.updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for goal status update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_goal.updated',
+    'goal status update'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -988,16 +1006,13 @@ export async function setPrimaryStudentGoal(
     console.error('Failed to write audit log for primary goal update:', auditError);
   }
 
-  // Notify followers using the existing allowed "goal updated" event type.
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_goal.updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for primary goal update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_goal.updated',
+    'primary goal update'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -1122,16 +1137,13 @@ export async function updateStudentGoalDetails(
     console.error('Failed to write audit log for student goal details update:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_goal.updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for goal update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_goal.updated',
+    'goal update'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -1224,16 +1236,13 @@ export async function deleteStudentGoal(
     console.error('Failed to write audit log for student goal deletion:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_goal.deleted',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for goal deletion:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_goal.deleted',
+    'goal deletion'
+  );
 
   revalidatePath(`/students/${studentId}`);
 
@@ -1585,16 +1594,13 @@ export async function updateStudentPhoto(
     console.error('Failed to write audit log for student photo update:', auditError);
   }
 
-  // Notify followers
-  try {
-    await supabase.rpc('create_student_change_notification', {
-      actor_id: user.id,
-      target_student_id: studentId,
-      event_type: 'student_photo.updated',
-    });
-  } catch (notifyError) {
-    console.error('Failed to create notifications for photo update:', notifyError);
-  }
+  await notifyStudentChange(
+    supabase,
+    user.id,
+    studentId,
+    'student_photo.updated',
+    'photo update'
+  );
 
   // 10. Revalidate path
   revalidatePath(`/students/${studentId}`);
