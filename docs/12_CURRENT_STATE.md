@@ -123,6 +123,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `supabase/migrations/20260709010000_student_message_editing.sql`
   - `supabase/migrations/20260709020000_student_message_soft_delete_fix.sql`
   - `supabase/migrations/20260709030000_push_subscriptions_v1.sql`
+  - `supabase/migrations/20260709040000_harden_student_photo_url_path.sql`
   - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
@@ -170,6 +171,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `docs/parallel/GPT_ADMIN_LEARNING_GROUPS_TIMETABLE_V2_HANDOFF.md`
   - `docs/parallel/GPT_ADMIN_AUDIT_LOG_VIEWER_V2_HANDOFF.md`
   - `docs/parallel/GPT_STUDENT_PHOTO_OPTIMIZATION_V2_HANDOFF.md`
+  - `docs/parallel/GPT_STUDENT_PHOTO_URL_HARDENING_HANDOFF.md`
 
 ## Database foundation status
 
@@ -926,6 +928,18 @@ A full authenticated-browser verification pass was completed against a real Goog
 - Validation commands run after the fix: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed (a pre-existing trailing-whitespace line in this file, unrelated to the calendar fix, was also trimmed to keep `git diff --check` clean). No new migrations were needed.
 - All test calendar events created during this pass were deleted afterward; the `calendar_events` table was verified to match its original 2-row seeded state.
 
+## Latest Student Photo URL Hardening verification results
+
+- `supabase db reset` successfully applied the migration `20260709040000_harden_student_photo_url_path.sql` adding the CHECK constraint.
+- Type generation successfully updated `src/types/supabase.ts`.
+- Direct SQL database probes confirmed:
+  - Raw `UPDATE students SET photo_url = NULL` remains valid.
+  - Raw `UPDATE students SET photo_url = 'students/{student_id}/profile.webp'` succeeds.
+  - Raw updates with mismatching student ID in the path (e.g. `students/{wrong_id}/profile.webp` on student `X`) violate the constraint and are rejected.
+  - Raw updates with invalid filenames/extensions (e.g. `students/{id}/other.webp`, `students/{id}/profile.jpg`) violate the constraint and are rejected.
+  - RPC calls via `update_student_photo_path` are fully protected by this check constraint and fail on invalid formats.
+- Validation checks run after type generation: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed cleanly.
+
 ## Next recommended tasks
 
 1. **Calendar management follow-up**: Build drag-and-drop slots editing, recurrence rules interpretation, and outbound Google Calendar Sync API integration. Calendar Views v2 (List/Day/Week/Month view switcher, date navigator, and sync indicators) is fully implemented and browser-verified.
@@ -934,4 +948,4 @@ A full authenticated-browser verification pass was completed against a real Goog
 4. **Two-account real push test**: A genuine two-live-account push delivery test (rather than the single-account-plus-server-script substitution used in this pass) remains open if a second real Google account becomes available.
 5. **Learning groups mobile viewport re-check**: Live browser viewport resizing was not reliably reproducible in the automated session used for the Timetable Views v2 browser test; a manual mobile-device check of the stacked layout remains a nice-to-have (code inspection confirms it uses the same responsive pattern already visually verified for Calendar Views v2).
 6. **Admin audit log viewer**: no further work needed. Actor filters, date-range filters, pagination, and CSV export are all fully implemented and now browser-verified (including RLS/security probes); a live 403 test against the export API from a second, non-manager authenticated account remains open if a second real account becomes available.
-7. **Student photo `photo_url` direct-update hardening**: a rollback-only SQL probe confirmed that a manager/super_admin session can bypass the `update_student_photo_path` RPC's path-format validation via a raw direct `UPDATE students SET photo_url = ...`, since the table's existing RLS `UPDATE` policy grants privileged roles broad row-level access (RLS is row-level, not column-level) and this same access incidentally covers `photo_url`. Not exploitable by unauthorized users, and no current app code path performs this bypass, but it is a real defense-in-depth gap versus the RPC's validation. Consider a `BEFORE UPDATE` trigger or column-scoped policy enforcing the same `students/{id}/` path-format check regardless of caller, if/when a schema change for this is in scope.
+7. **Student photo URL hardening**: no further work needed. The database check constraint successfully blocks all direct-update bypasses and secures the `photo_url` path format invariant.
