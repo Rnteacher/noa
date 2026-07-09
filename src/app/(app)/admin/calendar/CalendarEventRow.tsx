@@ -10,10 +10,16 @@ import { t } from '@/lib/i18n';
 type CalendarEventRowProps = {
   event: AdminCalendarEvent;
   groups: AdminCalendarGroupOption[];
-  formatDateTime: (value: string) => string;
 };
 
-export function CalendarEventRow({ event, groups, formatDateTime }: CalendarEventRowProps) {
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat('he-IL', {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  }).format(new Date(value));
+}
+
+export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   if (isEditing) {

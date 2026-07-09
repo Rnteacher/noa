@@ -1,9 +1,19 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { writeAuditLog } from '@/lib/audit/log';
 import type { AppRole } from '@/lib/auth/access';
+
+/**
+ * announcements' SELECT RLS policy (current_user_can_read_announcement) re-queries
+ * the table by id. Postgres evaluates that subquery using the same command's snapshot,
+ * so it cannot see a row this same INSERT statement just wrote. Requesting `.select()`
+ * (RETURNING) immediately after insert therefore fails RLS even for authorized users
+ * (same root cause as the calendar_events finding). We generate the id client-side and
+ * avoid `.select()` after insert instead of relying on RETURNING.
+ */
 
 export type CreateAnnouncementParams = {
   title: string;
@@ -75,20 +85,19 @@ export async function createAnnouncementAction(
   }
 
   // 5. Insert announcement
-  const { data: newAnn, error: insertError } = await supabase
-    .from('announcements')
-    .insert({
-      title,
-      body,
-      author_id: user.id,
-      target_type: params.targetType,
-      is_pinned: params.isPinned,
-      requires_acknowledgement: params.requiresAcknowledgement,
-    })
-    .select('id')
-    .single();
+  const announcementId = randomUUID();
 
-  if (insertError || !newAnn) {
+  const { error: insertError } = await supabase.from('announcements').insert({
+    id: announcementId,
+    title,
+    body,
+    author_id: user.id,
+    target_type: params.targetType,
+    is_pinned: params.isPinned,
+    requires_acknowledgement: params.requiresAcknowledgement,
+  });
+
+  if (insertError) {
     console.error('Failed to create announcement row:', insertError);
     return { success: false, error: 'admin.announcements.errorCreateFailed' };
   }
@@ -96,7 +105,7 @@ export async function createAnnouncementAction(
   // 6. Insert target role mappings
   if (params.targetType === 'roles' && params.roles) {
     const rolesData = params.roles.map(r => ({
-      announcement_id: newAnn.id,
+      announcement_id: announcementId,
       role: r as AppRole,
     }));
 
@@ -107,7 +116,7 @@ export async function createAnnouncementAction(
     if (rolesError) {
       console.error('Failed to insert announcement target roles:', rolesError);
       // Clean up announcement row to maintain transaction integrity
-      await supabase.from('announcements').delete().eq('id', newAnn.id);
+      await supabase.from('announcements').delete().eq('id', announcementId);
       return { success: false, error: 'admin.announcements.errorCreateFailed' };
     }
   }
@@ -115,7 +124,7 @@ export async function createAnnouncementAction(
   // 7. Insert target group mappings
   if (params.targetType === 'groups' && params.groups) {
     const groupsData = params.groups.map(g => ({
-      announcement_id: newAnn.id,
+      announcement_id: announcementId,
       group_id: g,
     }));
 
@@ -126,7 +135,7 @@ export async function createAnnouncementAction(
     if (groupsError) {
       console.error('Failed to insert announcement target groups:', groupsError);
       // Clean up announcement row to maintain transaction integrity
-      await supabase.from('announcements').delete().eq('id', newAnn.id);
+      await supabase.from('announcements').delete().eq('id', announcementId);
       return { success: false, error: 'admin.announcements.errorCreateFailed' };
     }
   }
@@ -137,7 +146,7 @@ export async function createAnnouncementAction(
       actorId: user.id,
       action: 'announcement.created',
       entityType: 'announcement',
-      entityId: newAnn.id,
+      entityId: announcementId,
       afterData: {
         title,
         target_type: params.targetType,

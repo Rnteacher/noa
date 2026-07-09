@@ -14,13 +14,6 @@ type AdminCalendarPageProps = {
 
 const RANGE_OPTIONS: CalendarRangeFilter[] = ['upcoming', 'today', 'week', 'month'];
 
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('he-IL', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
-
 function ForbiddenState() {
   return (
     <main className="min-h-screen bg-zinc-100 dark:bg-zinc-950 px-4 py-8">
@@ -113,7 +106,6 @@ export default async function AdminCalendarPage({ searchParams }: AdminCalendarP
                         key={event.id}
                         event={event}
                         groups={data.groups}
-                        formatDateTime={formatDateTime}
                       />
                     ))}
                   </tbody>
