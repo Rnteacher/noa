@@ -992,3 +992,24 @@ The audit also updated `.env.example` with placeholder-only names for active run
 Updated recommended next task:
 
 1. **Production Environment Setup Runbook v1**: Convert `docs/13_PILOT_PRODUCTION_READINESS.md` into an exact, fake-data-only runbook for hosted Supabase setup, hosting environment configuration, OAuth redirect verification, production RLS smoke probes, backup/restore review, and rollback steps. Do not deploy or import real data unless explicitly approved.
+
+## Latest Production Environment Setup Runbook v1 results
+
+`docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` now provides the exact fake-data-only operator runbook for setting up and verifying a hosted pilot/production-like environment. It covers hosted Supabase setup, environment variable mapping, production Google OAuth configuration, provider-neutral hosting setup, hosted RLS smoke probes, backup/restore/rollback checks, fake-data pilot verification, and the hard real-data import gate.
+
+Scope boundaries preserved:
+
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No hosting project was created.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was added or imported.
+- Google Calendar sync remains deferred.
+- No new product feature was implemented.
+- RLS and normal app-flow boundaries were not changed.
+
+`.env.example` did not need changes in this task because it already contains placeholder-only entries for the current runtime variables, Supabase Google OAuth provider placeholders, Web Push VAPID keys, and deferred Google Calendar variables.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Plan v1**: After explicit approval, rehearse `docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` against a hosted fake-data-only environment and record actual setup/verification results. Do not import real data.
