@@ -14,7 +14,7 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 - **Dashboard v1 exists**: `/dashboard` reads live RLS-scoped announcements, acknowledgements, events, followed-student counts, and the super-admin access-grants shortcut.
 - **Student search/card exists**: `/students` lists active students and `/students/[studentId]` renders identity, contacts, current project, masters, emotional status, goals, and recent messages.
 - **Student message composer and editing exist**: Active staff can add student-card update messages; message authors can edit their own active message, and super admins can edit any active message, via a new additive RLS policy (details below). Inserts/edits use request-scoped Supabase clients and audit `student_message.created` / `student_message.updated`.
-- **Student message soft delete exists**: Authors can soft-delete their own messages and super admins can soft-delete any message; updates use RLS and audit `student_message.deleted`. **Known issue (found this session, not yet fixed):** a normal author's self-soft-delete currently fails under real RLS enforcement — see "Known issues" below.
+- **Student message soft delete exists (RLS Hardened)**: Authors can soft-delete their own messages and super admins can soft-delete any message; updates use RLS and audit `student_message.deleted`. The known RLS issue where non-super-admin authors were blocked from soft-deleting due to post-update SELECT visibility checks has been fully resolved via an additive select policy allowing authors to read their own messages even after soft deletion.
 - **Project status mutation v1 exists**: Authorized current-project masters, managers allowed by the existing schema helper, and super admins can update the current project traffic-light status from the student card. The action updates only status/updater metadata and audits `project.status_updated`.
 - **Emotional status mutation v1 exists**: Authorized active group mentors, counselors and managers allowed by the existing schema helper, and super admins can update the emotional traffic-light status from the student card. The action appends a new `student_emotional_statuses` history row (status and `created_by` only), never reads or writes the sensitive `note` column, and audits `student_emotional_status.updated`.
 - **Student goals mutation v1 exists (create/status/details/delete/primary)**: Authorized active group mentors, managers allowed by the existing schema helper, and super admins can create goals, edit title/details, update goal status (including archiving), and set a goal as primary/central for its student and school year. Managers and super admins can hard-delete goals. Counselors are excluded, matching the schema helper and RBAC matrix. Actions audit `student_goal.created`, `student_goal.updated`, `student_goal.details_updated`, `student_goal.deleted`, and `student_goal.primary_updated`.
@@ -29,7 +29,7 @@ The local Chamama Staff App now has the core authenticated staff foundation plus
 
 ## Student card status details
 
-See `docs/12_CURRENT_STATE.md` ("Student card status") for the full breakdown of message editing, emotional status, goals (including primary selection), follow, and photo mutation behavior and deferred items.
+See `docs/12_CURRENT_STATE.md` ("Student card status") for the full breakdown of emotional status, goals, follow, and photo mutation behavior and deferred items.
 
 ## Admin calendar and learning groups notes
 
@@ -48,14 +48,13 @@ See `docs/12_CURRENT_STATE.md` ("Student card status") for the full breakdown of
 - The existing UPDATE RLS policy on `student_messages` only permitted soft-deletion (its `WITH CHECK` required `deleted_at IS NOT NULL`). A new, additive, minimal migration (`supabase/migrations/20260709010000_student_message_editing.sql`) adds a second permissive UPDATE policy scoped to editing an active message in place, leaving the original soft-delete policy untouched (Postgres ORs multiple permissive policies).
 - Message authors can edit their own active message; super admins can edit any active message; nobody can edit an already-deleted message. Only `body`, `tags`, and `is_important` are updated; the action audits `student_message.updated`. Notifications are deferred for edits since the hardened notification RPC has no allowlisted event type for them.
 
-## Known issues (found this session, not fixed — out of scope)
+## Student message soft-delete RLS fix notes (new this session)
 
-- **Self-soft-delete for student messages is broken for normal authors.** While investigating message-editing RLS, we found that a non-super-admin author's soft-delete of their own message fails under real RLS enforcement via the exact shipped code path (a plain `UPDATE` without `RETURNING`). Postgres requires the post-image row of an `UPDATE` to remain visible under at least one applicable `SELECT` policy; after soft-deletion, the only non-super-admin `SELECT` policy (`deleted_at IS NULL`) no longer matches. Confirmed via multiple isolated SQL probes; this predates this session's changes (reproduced with the new edit policy both present and removed). Recommended fix: add a `SELECT` policy letting authors read their own messages regardless of `deleted_at`, or move soft-delete to a security-definer RPC.
+- A new minimal migration (`supabase/migrations/20260709020000_student_message_soft_delete_fix.sql`) adds an additive SELECT policy (`Authors can read own student messages`) allowing active staff authors to select their own messages regardless of `deleted_at`. This satisfies Postgres' post-update visibility checks during soft-deletion without exposing deleted messages to unrelated staff.
 
 ## Next task options
 
-- Authenticated browser smoke test for dashboard, students, announcements, messages (including editing), project status updates, emotional status updates, goal management (including primary selection), follow/unfollow, student photo uploads, the admin shell/announcements/calendar/learning-groups management, notifications, and the audit log viewer.
-- Fix the self-soft-delete RLS issue described above.
+- Authenticated browser smoke test for dashboard, students, announcements, messages (including editing/deleting), project status updates, emotional status updates, goal management (including primary selection), follow/unfollow, student photo uploads, the admin shell/announcements/calendar/learning-groups management, notifications, and the audit log viewer.
 - Web Push delivery and push subscription management.
 - Calendar management follow-up: view switcher (Day/Week/Month/Year-Gantt), drag-and-drop, recurrence, Google Calendar outbound sync indicators.
 - Learning groups follow-up: drag-and-drop/full timetable editing, Google Calendar sync indicators, notifications, capacity/roster management, and school-year selection.
