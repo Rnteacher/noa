@@ -351,6 +351,11 @@
   "admin.learningGroups.errorCreateFailed": "Failed to create the learning group. Please try again.",
   "admin.learningGroups.errorUpdateFailed": "Failed to update the learning group. Please try again.",
   "admin.learningGroups.errorArchiveFailed": "Failed to archive the learning group. Please try again.",
+  "admin.learningGroups.rescheduleButton": "Reschedule",
+  "admin.learningGroups.rescheduleTitle": "Reschedule Learning Group",
+  "admin.learningGroups.newStartsAtLabel": "New start time",
+  "admin.learningGroups.timeRangePreview": "Resulting time range: {range}",
+  "admin.learningGroups.rescheduleSuccess": "Learning group was rescheduled successfully.",
 
   "admin.audit.title": "Audit Log",
   "admin.audit.description": "Read-only history of audited actions across the app. Only managers and super admins can view this page.",

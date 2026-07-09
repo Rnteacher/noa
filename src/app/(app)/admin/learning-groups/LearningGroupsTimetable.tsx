@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, MapPin, User, Pencil } from 'lucide-react';
+import { Clock, MapPin, User, Pencil, CalendarDays } from 'lucide-react';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
 import { LEARNING_GROUP_WEEKDAYS, type AdminLearningGroup } from '@/features/learning-groups/types';
@@ -10,6 +10,7 @@ type LearningGroupsTimetableProps = {
   learningGroups: AdminLearningGroup[];
   weekdayFilter: string;
   onEditGroup: (group: AdminLearningGroup) => void;
+  onRescheduleGroup: (group: AdminLearningGroup) => void;
 };
 
 function formatTime(timeStr: string) {
@@ -20,6 +21,7 @@ export function LearningGroupsTimetable({
   learningGroups,
   weekdayFilter,
   onEditGroup,
+  onRescheduleGroup,
 }: LearningGroupsTimetableProps) {
   const activeWeekdays =
     weekdayFilter === 'all'
@@ -116,6 +118,14 @@ export function LearningGroupsTimetable({
                     )}
 
                     <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-850 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => onRescheduleGroup(group)}
+                        title={t('admin.learningGroups.rescheduleButton')}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:text-emerald-600 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                      >
+                        <CalendarDays className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => onEditGroup(group)}

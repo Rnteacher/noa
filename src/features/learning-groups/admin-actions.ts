@@ -514,3 +514,114 @@ export async function archiveLearningGroup(
 
   return { success: true, error: null };
 }
+
+export async function rescheduleLearningGroup(
+  learningGroupId: string,
+  targetWeekday: LearningGroupWeekday,
+  targetStartsAt: string
+): Promise<LearningGroupActionResult> {
+  const auth = await requireLearningGroupsAdmin();
+  if ('error' in auth) {
+    return { success: false, error: auth.error };
+  }
+  const { supabase, user } = auth;
+
+  if (!UUID_PATTERN.test(learningGroupId)) {
+    return { success: false, error: 'admin.learningGroups.errorInvalidId' };
+  }
+
+  if (!LEARNING_GROUP_WEEKDAYS.includes(targetWeekday)) {
+    return { success: false, error: 'admin.learningGroups.errorInvalidWeekday' };
+  }
+
+  const startsAt = normalizeTime(targetStartsAt);
+  if (!startsAt) {
+    return { success: false, error: 'admin.learningGroups.errorInvalidTime' };
+  }
+
+  const { data: existingLearningGroup, error: fetchError } = await supabase
+    .from('learning_groups')
+    .select(
+      'id, title, description, weekday, starts_at, ends_at, leader_id, room, active_from, active_until, is_active, updated_at'
+    )
+    .eq('id', learningGroupId)
+    .maybeSingle();
+
+  if (fetchError || !existingLearningGroup) {
+    return { success: false, error: 'admin.learningGroups.errorNotFound' };
+  }
+
+  function timeStringToMinutes(timeStr: string): number {
+    const parts = timeStr.split(':').map(Number);
+    return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
+  }
+
+  function minutesToTimeString(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(hours)}:${pad(mins)}:00`;
+  }
+
+  const startMinutes = timeStringToMinutes(existingLearningGroup.starts_at);
+  const endMinutes = timeStringToMinutes(existingLearningGroup.ends_at);
+  const durationMinutes = endMinutes - startMinutes;
+
+  const targetStartMinutes = timeStringToMinutes(startsAt);
+  const targetEndMinutes = targetStartMinutes + durationMinutes;
+
+  const endsAt = minutesToTimeString(targetEndMinutes);
+
+  if (endsAt <= startsAt) {
+    return { success: false, error: 'admin.learningGroups.errorEndBeforeStart' };
+  }
+
+  if (startsAt < WINDOW_START || endsAt > WINDOW_END) {
+    return { success: false, error: 'admin.learningGroups.errorTimeWindow' };
+  }
+
+  const { error: updateError } = await supabase
+    .from('learning_groups')
+    .update({
+      weekday: targetWeekday,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      updated_by: user.id,
+    })
+    .eq('id', learningGroupId);
+
+  if (updateError) {
+    console.error('Failed to reschedule learning group:', updateError);
+    return { success: false, error: 'admin.learningGroups.errorUpdateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: 'learning_group.rescheduled',
+      entityType: 'learning_group',
+      entityId: learningGroupId,
+      beforeData: {
+        id: learningGroupId,
+        title: existingLearningGroup.title,
+        weekday: existingLearningGroup.weekday,
+        starts_at: existingLearningGroup.starts_at,
+        ends_at: existingLearningGroup.ends_at,
+      },
+      afterData: {
+        id: learningGroupId,
+        title: existingLearningGroup.title,
+        weekday: targetWeekday,
+        starts_at: startsAt,
+        ends_at: endsAt,
+      },
+    });
+  } catch (auditError) {
+    console.error('Failed to write audit log for learning group reschedule:', auditError);
+  }
+
+  revalidatePath('/admin/learning-groups');
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}

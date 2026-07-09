@@ -17,6 +17,7 @@ import { LearningGroupsViewSwitcher } from './LearningGroupsViewSwitcher';
 import { LearningGroupsTimetable } from './LearningGroupsTimetable';
 import { LearningGroupRow } from './LearningGroupRow';
 import { LearningGroupForm } from './LearningGroupForm';
+import { LearningGroupRescheduleModal } from './LearningGroupRescheduleModal';
 
 type LearningGroupsWorkspaceProps = {
   view: string;
@@ -42,6 +43,7 @@ export function LearningGroupsWorkspace({
   stateFilter,
 }: LearningGroupsWorkspaceProps) {
   const [editingGroup, setEditingGroup] = useState<AdminLearningGroup | null>(null);
+  const [reschedulingGroup, setReschedulingGroup] = useState<AdminLearningGroup | null>(null);
   const searchParams = useSearchParams();
 
   function buildFilterHref(weekday: LearningGroupWeekday | 'all', state: LearningGroupStateFilter) {
@@ -157,6 +159,7 @@ export function LearningGroupsWorkspace({
                 learningGroups={learningGroups}
                 weekdayFilter={weekdayFilter}
                 onEditGroup={(group) => setEditingGroup(group)}
+                onRescheduleGroup={(group) => setReschedulingGroup(group)}
               />
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-zinc-500 dark:border-zinc-850 dark:text-zinc-450">
@@ -221,6 +224,13 @@ export function LearningGroupsWorkspace({
           )}
         </section>
       </aside>
+
+      {reschedulingGroup && (
+        <LearningGroupRescheduleModal
+          group={reschedulingGroup}
+          onClose={() => setReschedulingGroup(null)}
+        />
+      )}
     </div>
   );
 }
