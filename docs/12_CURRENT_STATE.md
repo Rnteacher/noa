@@ -1035,3 +1035,22 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Hosting provider decision memo**: Choose the hosting provider, production-like domain, preview URL policy, rollback mechanism, and operational owner before approving Hosted Pilot Dry-Run Execution v1.
+
+## Latest Vercel + Supabase Hosting Decision Memo v1 results
+
+`docs/16_VERCEL_SUPABASE_HOSTING_DECISION.md` now establishes the default pilot hosting path on Vercel and hosted Supabase Cloud. It evaluates Next.js 16 Edge runtime compatibility, Server Actions, env var scopes, browser service-worker setup (`/sw.js`), and database configuration (RLS, private buckets, backups, and migration strategies).
+
+Scope boundaries preserved:
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No Vercel project was created.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was used or imported.
+- Google Calendar sync remains deferred.
+- No import tooling or product feature was added.
+- RLS, custom middleware (`src/proxy.ts`), and service-role boundaries were not changed.
+- `.env.example` did not need changes.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Execution Prep v1**: Select the production-like dry-run domain, choose the Supabase pricing/backup tier, and assign operational owners before executing the dry run.
