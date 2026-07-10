@@ -40,6 +40,8 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
+- Hosting provider decision memo: choose the hosting provider, production-like domain, preview URL policy, rollback mechanism, and operational owner before approving Hosted Pilot Dry-Run Execution v1.
+
 - Hosted Pilot Dry-Run Plan v1: after explicit approval, rehearse `docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` against a hosted fake-data-only environment and record actual setup/verification results. Do not import real data.
 
 - Production Environment Setup Runbook v1: convert `docs/13_PILOT_PRODUCTION_READINESS.md` into exact fake-data-only setup and verification steps for hosted Supabase, hosting env vars, OAuth redirects, production RLS smoke probes, backup/restore review, and rollback. Do not deploy or import real data unless explicitly approved.

@@ -1013,3 +1013,25 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Hosted Pilot Dry-Run Plan v1**: After explicit approval, rehearse `docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` against a hosted fake-data-only environment and record actual setup/verification results. Do not import real data.
+
+## Latest Hosted Pilot Dry-Run Plan v1 results
+
+`docs/15_HOSTED_PILOT_DRY_RUN_PLAN.md` now provides the fake-data-only rehearsal plan for executing the hosted setup runbook later. It includes placeholder-only inputs, execution checkpoints, evidence collection, fake-data workflow verification, hosted RLS probes, failure/rollback rules, and a go/no-go report template.
+
+No hosted dry run has been executed yet.
+
+Scope boundaries preserved:
+
+- No Supabase Cloud project was created.
+- No hosting project was created.
+- No deployment was performed.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was used or imported.
+- Google Calendar sync remains deferred.
+- No import tooling or product feature was added.
+- RLS and service-role boundaries were not changed.
+- `.env.example` did not need changes.
+
+Updated recommended next task:
+
+1. **Hosting provider decision memo**: Choose the hosting provider, production-like domain, preview URL policy, rollback mechanism, and operational owner before approving Hosted Pilot Dry-Run Execution v1.
