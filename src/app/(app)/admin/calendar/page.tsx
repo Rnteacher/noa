@@ -14,6 +14,7 @@ import {
 } from '@/features/calendar/admin-queries';
 import { CalendarWorkspace } from './CalendarWorkspace';
 import { t } from '@/lib/i18n';
+import { isGoogleCalendarSyncConfigured } from '@/lib/google/calendar-client';
 
 type AdminCalendarPageProps = {
   searchParams: Promise<{
@@ -33,7 +34,7 @@ function ForbiddenState() {
         <h1 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
           {t('admin.accessGrants.forbiddenTitle')}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 text-zinc-650 dark:text-zinc-400">
           {t('admin.calendar.errorForbidden')}
         </p>
         <Link
@@ -48,6 +49,7 @@ function ForbiddenState() {
 }
 
 export default async function AdminCalendarPage({ searchParams }: AdminCalendarPageProps) {
+  const isSyncConfigured = isGoogleCalendarSyncConfigured();
   const params = await searchParams;
   const rawView = params.view;
   const view =
@@ -164,6 +166,7 @@ export default async function AdminCalendarPage({ searchParams }: AdminCalendarP
           listRange={listRange}
           schoolYears={schoolYears}
           selectedSchoolYear={selectedSchoolYear}
+          isSyncConfigured={isSyncConfigured}
         />
       </div>
     </main>

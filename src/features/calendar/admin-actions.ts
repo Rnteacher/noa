@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/lib/audit/log';
 import { revalidatePath } from 'next/cache';
 import { CALENDAR_EVENT_VISIBILITIES, type CalendarEventVisibility } from './admin-queries';
+import { isGoogleCalendarSyncConfigured, getGoogleCalendarClient } from '@/lib/google/calendar-client';
 
 /**
  * calendar_events' SELECT RLS policy (current_user_can_read_calendar_event) re-queries
@@ -340,12 +341,50 @@ export async function deleteCalendarEvent(eventId: string): Promise<CalendarActi
 
   const { data: existingEvent, error: fetchError } = await supabase
     .from('calendar_events')
-    .select('id, title, starts_at, ends_at, visibility')
+    .select('id, title, starts_at, ends_at, visibility, google_calendar_event_id')
     .eq('id', eventId)
     .maybeSingle();
 
   if (fetchError || !existingEvent) {
     return { success: false, error: 'admin.calendar.errorNotFound' };
+  }
+
+  if (isGoogleCalendarSyncConfigured() && existingEvent.google_calendar_event_id) {
+    try {
+      const calendar = getGoogleCalendarClient();
+      await calendar.events.delete({
+        calendarId: process.env.GOOGLE_CALENDAR_ID!,
+        eventId: existingEvent.google_calendar_event_id,
+      });
+
+      try {
+        await writeAuditLog({
+          actorId: user.id,
+          action: 'calendar_google_event.deleted',
+          entityType: 'calendar_event',
+          entityId: eventId,
+          afterData: { eventId, googleEventId: existingEvent.google_calendar_event_id },
+        });
+      } catch (auditError) {
+        console.error('Failed to log Google event deletion audit:', auditError);
+      }
+    } catch (err) {
+      const errorWithStatus = err as { status?: number; message?: string };
+      if (errorWithStatus.status !== 404) {
+        console.warn(`Failed to delete Google Calendar event for local event: ${eventId}`, err);
+        try {
+          await writeAuditLog({
+            actorId: user.id,
+            action: 'calendar_google_event.delete_failed',
+            entityType: 'calendar_event',
+            entityId: eventId,
+            afterData: { eventId, googleEventId: existingEvent.google_calendar_event_id, error: errorWithStatus.message || 'Unknown error' },
+          });
+        } catch (auditError) {
+          console.error('Failed to log Google event delete failure audit:', auditError);
+        }
+      }
+    }
   }
 
   const { error: deleteError } = await supabase

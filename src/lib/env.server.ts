@@ -11,6 +11,10 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_SUBJECT: z.string().optional(),
+  GOOGLE_CALENDAR_SYNC_ENABLED: z.string().optional().default('false'),
+  GOOGLE_CALENDAR_ID: z.string().optional(),
+  GOOGLE_CALENDAR_SERVICE_ACCOUNT_CLIENT_EMAIL: z.string().optional(),
+  GOOGLE_CALENDAR_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().optional(),
 });
 
 const serverEnvData = {
@@ -23,6 +27,10 @@ const serverEnvData = {
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
   VAPID_SUBJECT: process.env.VAPID_SUBJECT,
+  GOOGLE_CALENDAR_SYNC_ENABLED: process.env.GOOGLE_CALENDAR_SYNC_ENABLED || 'false',
+  GOOGLE_CALENDAR_ID: process.env.GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_SERVICE_ACCOUNT_CLIENT_EMAIL: process.env.GOOGLE_CALENDAR_SERVICE_ACCOUNT_CLIENT_EMAIL,
+  GOOGLE_CALENDAR_SERVICE_ACCOUNT_PRIVATE_KEY: process.env.GOOGLE_CALENDAR_SERVICE_ACCOUNT_PRIVATE_KEY,
 };
 
 const parsed = serverEnvSchema.safeParse(serverEnvData);

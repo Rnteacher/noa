@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Eighteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Admin Calendar Operations v1** which built the annual Gantt planner, CSV export API, and client-previewed and server-side-validated best-effort calendar event CSV import. Prior milestones include the Pilot Real-Data Import Ingestion/Rollback local scripts, the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), and nine manual verification passes. All checks passed, and the current next recommended task is Google Calendar Outbound Sync v1.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Eighteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Google Calendar Outbound Sync v1** which built a safe, admin-controlled, outbound-only Google Calendar service account mirror sync from calendar_events. Prior milestones include Admin Calendar Operations v1 (annual Gantt view, event CSV import/export), Pilot Real-Data Import Ingestion/Rollback local scripts, the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), and nine manual verification passes. All checks passed, and the current next recommended task is Google Calendar Sync Browser Verification v1.
 
 ## Current Implemented Foundation
 
@@ -40,9 +40,10 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
-- **Google Calendar Outbound Sync v1 (Immediate Next Task)**: Implement the background sync client, linking database updates on `public.calendar_events` directly to Google Calendar Event resources via Google Calendar API, tracking status via `google_calendar_event_id`. This is the immediate priority to support Noa's school Gantt/planning workflow.
-- **Optional Calendar Hardening (Later)**: Add full calendar drag-and-drop, support for recurrence rules, and robust sync conflict resolution.
-- **Pilot Real-Data Student/Staff Import (Paused)**: The real-data import execution is paused until planning for the next school year's rollout resumes.
+- **Google Calendar Sync Browser Verification v1 (Immediate Next Task)**: Run manual end-to-end testing with configured test credentials to verify outbound insertions, updates, and resilient deletions visually in Google Calendar.
+- **Optional later**: Google Calendar Sync Delete/Conflict Hardening v1.
+- **Optional later**: Recurrence rules and drag-and-drop calendar editing.
+- **Real-data Student/Staff Import (Paused)**: Remains paused until next school year rollout planning.
 
 ## Pilot real-data import implementation v1 handoff
 
@@ -60,8 +61,15 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - **Calendar Event CSV Export**: Exposes a GET route `/api/admin/calendar/export` supporting UTF-8 CSV downloads with RFC-4180 generation/serialization, target group expansion, and audit logging (`calendar_events.exported`).
 - **Calendar Event CSV Import**: Built the client-side preview UI and validation logic on `/admin/import-export`, backed by server-side validation and best-effort batch creation. Handles title, date bounds, visibility, group name resolution, and duplicates.
 - **Sidebar Integration**: The sidebar menu link for Import/Export has been enabled and linked directly to `/admin/import-export`.
-- **Preparation**: Outbound sync to Google Calendar has been documented as the next task.
+
+## Google Calendar Outbound Sync v1 Handoff
+
+- **JWT Service Account Auth**: Utilizes `googleapis` to authenticate with a single target Google Calendar, configured entirely via server-only environment variables.
+- **Outbound Mirror Sync**: Local database acts as the source of truth. Handles mapping with timezone offsets (`Asia/Jerusalem`) and exclusive dates for all-day events. Private properties track local IDs.
+- **Sync Actions**: Exposes sync preview, run sync, and single sync server actions. Gracefully handles remote deletions.
+- **UI Panels**: Renders the sync dashboard card on `/admin/import-export` and compact "Sync Now" trigger in `/admin/calendar` sidebar edit drawer.
+- **Resilient Deletions**: Outbound deletions run during event deletion, but fall back gracefully to allow local delete if Google API fails.
 
 ### Recommended next task
 
-**Google Calendar Outbound Sync v1**: Implement the background sync client, linking database updates on `public.calendar_events` directly to Google Calendar Event resources via Google Calendar API, tracking status via `google_calendar_event_id`.
+**Google Calendar Sync Browser Verification v1**: Run manual end-to-end testing with configured test credentials to verify outbound insertions, updates, and resilient deletions visually in Google Calendar.

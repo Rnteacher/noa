@@ -27,21 +27,14 @@ A search across `src/components/layout/AdminShell.tsx` and related routes identi
 
 ---
 
-## 2. Google Calendar Sync: Next Task
+## 2. Google Calendar Sync: Completed
 
-The sync functionality is deferred to the next phase, **Google Calendar Outbound Sync v1**.
+The sync functionality has been completed in the task **Google Calendar Outbound Sync v1**.
 
-### Recommended Design & Blueprint
-- **API Scopes**: Requires Google OAuth API scopes for calendar editing (`https://www.googleapis.com/auth/calendar.events`).
-- **Calendar ID Storage**: Store the target Google Calendar ID in database settings or environment variables (`GOOGLE_CALENDAR_ID`).
-- **Mapping**: Map local database fields from `public.calendar_events` directly to Google Calendar Event resources:
-  - `title` -> `summary`
-  - `description` -> `description`
-  - `starts_at`/`ends_at` -> `start.dateTime`/`end.dateTime` (or `start.date`/`end.date` if `is_all_day` is true).
-  - `location` -> `location`
-- **Idempotency**: Use the `google_calendar_event_id` column to store Google's event ID on insert. When updating or deleting, reference this ID directly.
-- **Outbound Sync Rules**:
-  - **Insert**: Call Google API `events.insert()`, receive Google ID, and write to `google_calendar_event_id` in the local DB.
-  - **Update**: If `google_calendar_event_id` is present, call Google API `events.update()`.
-  - **Delete**: If `google_calendar_event_id` is present, call Google API `events.delete()`.
-- **Dry-run Mode**: Provide a "Sync Preview" flag where the admin sees which local additions, modifications, and deletions would be pushed to Google Calendar without making actual API mutations.
+### Summary of Design & Implementation
+- **API Scopes**: Uses Google service-account JWT auth with `https://www.googleapis.com/auth/calendar.events` scope.
+- **Calendar ID Storage**: Stored in `GOOGLE_CALENDAR_ID` server-side env variable.
+- **Mapping**: Matches local events fields to Google event summary, description, and location. Correctly handles timed vs all-day events (exclusive `end.date` formatting) and Jerusalem timezone. Private properties store internal IDs.
+- **Idempotency**: Pushes local events and stores Google event ID in `google_calendar_event_id` in the local DB. Handles remote-deletion recovery.
+- **Resilient Deletions**: Deletes remote Google events during local deletion, but fails gracefully (warns and deletes locally) if Google API is unreachable.
+- **Sync Actions & UI**: Exposes preview and run sync in a dedicated panel on `/admin/import-export`, and single-event sync inside the calendar workspace.

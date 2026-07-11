@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { CalendarViewSwitcher } from './CalendarViewSwitcher';
 import { CalendarDateNavigator } from './CalendarDateNavigator';
 import { CalendarViews } from './CalendarViews';
@@ -8,6 +8,8 @@ import { CalendarYearGanttView } from './CalendarYearGanttView';
 import { CalendarEventRow } from './CalendarEventRow';
 import { CalendarEventForm } from './CalendarEventForm';
 import { RescheduleModal } from './RescheduleModal';
+import { CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
+import { syncSingleCalendarEventAction } from '@/features/calendar/google-sync-actions';
 import { t } from '@/lib/i18n';
 import type {
   AdminCalendarEvent,
@@ -23,6 +25,7 @@ type CalendarWorkspaceProps = {
   listRange: string;
   schoolYears: AdminSchoolYearOption[];
   selectedSchoolYear: AdminSchoolYearOption | null;
+  isSyncConfigured: boolean;
 };
 
 export function CalendarWorkspace({
@@ -33,9 +36,29 @@ export function CalendarWorkspace({
   listRange,
   schoolYears,
   selectedSchoolYear,
+  isSyncConfigured,
 }: CalendarWorkspaceProps) {
   const [editingEvent, setEditingEvent] = useState<AdminCalendarEvent | null>(null);
   const [reschedulingEvent, setReschedulingEvent] = useState<AdminCalendarEvent | null>(null);
+
+  const [isSyncing, startSync] = useTransition();
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
+
+  function handleSingleSync(eventId: string) {
+    setSyncError(null);
+    setSyncSuccess(false);
+
+    startSync(async () => {
+      const res = await syncSingleCalendarEventAction(eventId);
+      if (!res.success) {
+        setSyncError(res.error || 'Failed to sync event.');
+      } else {
+        setSyncSuccess(true);
+        setEditingEvent((prev) => (prev ? { ...prev, googleCalendarEventId: 'synced-id' } : null));
+      }
+    });
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] items-start">
@@ -126,12 +149,62 @@ export function CalendarWorkspace({
                 </h2>
                 <button
                   type="button"
-                  onClick={() => setEditingEvent(null)}
+                  onClick={() => {
+                    setEditingEvent(null);
+                    setSyncError(null);
+                    setSyncSuccess(false);
+                  }}
                   className="text-xs text-emerald-600 hover:text-emerald-700 font-bold"
                 >
                   {t('admin.calendar.cancelButton')}
                 </button>
               </div>
+
+              {isSyncConfigured && (
+                <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-zinc-650 dark:text-zinc-400">Google Calendar:</span>
+                    {editingEvent.googleCalendarEventId ? (
+                      <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-450">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Synced
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-500">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        Not Synced
+                      </span>
+                    )}
+                  </div>
+
+                  {!editingEvent.googleCalendarEventId && (
+                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-zinc-150 dark:border-zinc-800 pt-2">
+                      <p className="text-[10px] text-zinc-500">Mirror event to Google Calendar</p>
+                      <button
+                        type="button"
+                        onClick={() => handleSingleSync(editingEvent.id)}
+                        disabled={isSyncing}
+                        className="rounded-lg bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-2 py-1 text-[10px] font-bold text-white dark:text-zinc-950 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        {isSyncing ? (
+                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-2.5 w-2.5" />
+                        )}
+                        Sync Now
+                      </button>
+                    </div>
+                  )}
+
+                  {syncError && (
+                    <p className="mt-1.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">{syncError}</p>
+                  )}
+                  {syncSuccess && (
+                    <p className="mt-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Synced successfully!</p>
+                  )}
+                </div>
+              )}
+
               <CalendarEventForm
                 key={`edit-${editingEvent.id}`}
                 groups={groups}

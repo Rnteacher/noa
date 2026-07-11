@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileSpreadsheet, Download, Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { FileSpreadsheet, Download, Upload, AlertCircle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 import { importCalendarEvents, type ImportedEventItem } from '@/features/calendar/admin-actions';
+import { previewGoogleCalendarSyncAction, runGoogleCalendarSyncAction, type SyncPreviewResult, type SyncRunResult } from '@/features/calendar/google-sync-actions';
 import { t } from '@/lib/i18n';
 
 type StudentGroup = {
@@ -11,8 +12,16 @@ type StudentGroup = {
   name: string;
 };
 
+type SchoolYear = {
+  id: string;
+  name: string;
+  isCurrent: boolean;
+};
+
 type ImportExportPanelProps = {
   groups: StudentGroup[];
+  isSyncConfigured: boolean;
+  schoolYears: SchoolYear[];
 };
 
 type RowPreview = {
@@ -82,13 +91,52 @@ function parseCsv(text: string): string[][] {
   return result;
 }
 
-export function ImportExportPanel({ groups }: ImportExportPanelProps) {
+export function ImportExportPanel({ groups, isSyncConfigured, schoolYears }: ImportExportPanelProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [previewRows, setPreviewRows] = useState<RowPreview[]>([]);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Sync state variables
+  const currentYearId = schoolYears.find((y) => y.isCurrent)?.id || schoolYears[0]?.id || '';
+  const [selectedYearId, setSelectedYearId] = useState<string>(currentYearId);
+  const [isSyncPending, startSyncTransition] = useTransition();
+  const [syncPreview, setSyncPreview] = useState<SyncPreviewResult | null>(null);
+  const [syncResult, setSyncResult] = useState<SyncRunResult | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  function handleSyncPreview() {
+    setSyncError(null);
+    setSyncResult(null);
+    setSyncPreview(null);
+
+    startSyncTransition(async () => {
+      const res = await previewGoogleCalendarSyncAction(selectedYearId);
+      if (!res.success) {
+        setSyncError(res.error || 'Failed to fetch sync preview.');
+      } else {
+        setSyncPreview(res);
+      }
+    });
+  }
+
+  function handleSyncRun() {
+    setSyncError(null);
+    setSyncResult(null);
+    setSyncPreview(null);
+
+    startSyncTransition(async () => {
+      const res = await runGoogleCalendarSyncAction(selectedYearId);
+      if (!res.success) {
+        setSyncError(res.error || 'Sync execution failed.');
+      } else {
+        setSyncResult(res);
+        router.refresh();
+      }
+    });
+  }
 
   const groupNameToIdMap = new Map(groups.map((g) => [g.name.toLowerCase().trim(), g.id]));
   const groupIdsSet = new Set(groups.map((g) => g.id));
@@ -300,44 +348,188 @@ Autumn Break,School closed for holidays,2026-10-14,2026-10-23,true,all_school,Sc
 
   return (
     <div className="grid gap-6 lg:grid-cols-3 items-start">
-      {/* Templates & Export Panel */}
-      <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-          CSV Templates & Export
-        </h2>
-        <p className="text-xs text-zinc-500 leading-normal">
-          Download templates or export current calendar events to update school planning.
-        </p>
+      <div className="space-y-6">
+        {/* Templates & Export Panel */}
+        <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+            CSV Templates & Export
+          </h2>
+          <p className="text-xs text-zinc-500 leading-normal">
+            Download templates or export current calendar events to update school planning.
+          </p>
 
-        <div className="flex flex-col gap-2 pt-2">
-          <a
-            href={templateUri}
-            download="calendar_events_template.csv"
-            className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
-          >
-            <span>Empty CSV Template</span>
-            <Download className="h-4 w-4 text-zinc-500" />
-          </a>
+          <div className="flex flex-col gap-2 pt-2">
+            <a
+              href={templateUri}
+              download="calendar_events_template.csv"
+              className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+            >
+              <span>Empty CSV Template</span>
+              <Download className="h-4 w-4 text-zinc-500" />
+            </a>
 
-          <a
-            href={exampleUri}
-            download="calendar_events_example.csv"
-            className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
-          >
-            <span>Mock Example CSV</span>
-            <Download className="h-4 w-4 text-zinc-500" />
-          </a>
+            <a
+              href={exampleUri}
+              download="calendar_events_example.csv"
+              className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+            >
+              <span>Mock Example CSV</span>
+              <Download className="h-4 w-4 text-zinc-500" />
+            </a>
 
-          <a
-            href="/api/admin/calendar/export"
-            className="flex items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-4 py-2.5 text-xs font-bold text-white dark:text-zinc-950 transition-colors mt-2"
-          >
-            <span>Export Roster to CSV</span>
-            <Download className="h-4 w-4 text-white dark:text-zinc-950" />
-          </a>
-        </div>
-      </section>
+            <a
+              href="/api/admin/calendar/export"
+              className="flex items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-4 py-2.5 text-xs font-bold text-white dark:text-zinc-950 transition-colors mt-2"
+            >
+              <span>Export Roster to CSV</span>
+              <Download className="h-4 w-4 text-white dark:text-zinc-950" />
+            </a>
+          </div>
+        </section>
+
+        {/* Google Calendar Sync Panel */}
+        <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <RefreshCw className="h-5 w-5 text-emerald-600" />
+            Google Calendar Outbound Mirror
+          </h2>
+          <p className="text-xs text-zinc-500 leading-normal">
+            Mirror local staff app events to a single Google Calendar. The app remains the source of truth; updates are outbound only.
+          </p>
+
+          {!isSyncConfigured ? (
+            <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/40 p-3 text-xs text-zinc-550 dark:text-zinc-400 font-medium leading-normal border border-zinc-100 dark:border-zinc-800">
+              Google Calendar Sync is not configured. Enable via server environment variables to begin.
+            </div>
+          ) : (
+            <div className="space-y-3 pt-1">
+              <div>
+                <label htmlFor="sync-year-select" className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                  School Year
+                </label>
+                <select
+                  id="sync-year-select"
+                  value={selectedYearId}
+                  onChange={(e) => {
+                    setSelectedYearId(e.target.value);
+                    setSyncPreview(null);
+                    setSyncResult(null);
+                    setSyncError(null);
+                  }}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-850 px-3 py-2 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-hidden"
+                >
+                  {schoolYears.map((y) => (
+                    <option key={y.id} value={y.id}>
+                      {y.name} {y.isCurrent ? '(Current)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSyncPreview}
+                  disabled={isSyncPending || !selectedYearId}
+                  className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 disabled:opacity-40 transition-colors cursor-pointer"
+                >
+                  Preview Sync
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSyncRun}
+                  disabled={isSyncPending || !selectedYearId}
+                  className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 text-xs font-bold disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isSyncPending && <Loader2 className="h-3 w-3 animate-spin" />}
+                  Run Sync
+                </button>
+              </div>
+
+              {/* Sync Error */}
+              {syncError && (
+                <div className="rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 p-3 text-xs text-rose-800 dark:text-rose-350 font-medium leading-normal flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-450 shrink-0 mt-0.5" />
+                  <span>{syncError}</span>
+                </div>
+              )}
+
+              {/* Preview Results */}
+              {syncPreview && (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 space-y-2 text-xs">
+                  <div className="font-bold text-zinc-850 dark:text-zinc-200">Outbound Changes Preview:</div>
+                  <ul className="space-y-1.5 text-zinc-650 dark:text-zinc-400">
+                    <li className="flex justify-between">
+                      <span>Will Create in Google:</span>
+                      <span className="font-bold text-emerald-650 dark:text-emerald-450">{syncPreview.insertedCount}</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Will Update in Google:</span>
+                      <span className="font-bold text-amber-650 dark:text-amber-455">{syncPreview.updatedCount}</span>
+                    </li>
+                    {syncPreview.skippedCount > 0 && (
+                      <li className="flex justify-between text-rose-600 dark:text-rose-455">
+                        <span>Skipped (invalid):</span>
+                        <span className="font-bold">{syncPreview.skippedCount}</span>
+                      </li>
+                    )}
+                  </ul>
+                  {syncPreview.warnings.length > 0 && (
+                    <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-800 text-[10px] space-y-1 text-amber-700 dark:text-amber-450 font-medium">
+                      <div className="font-bold">Warnings:</div>
+                      {syncPreview.warnings.slice(0, 3).map((w, idx) => (
+                        <div key={idx}>&bull; {w}</div>
+                      ))}
+                      {syncPreview.warnings.length > 3 && (
+                        <div>&bull; And {syncPreview.warnings.length - 3} more...</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Run Results */}
+              {syncResult && (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-emerald-50/20 dark:bg-emerald-950/5 p-3 space-y-2 text-xs">
+                  <div className="font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    Sync Run Completed
+                  </div>
+                  <ul className="space-y-1.5 text-zinc-650 dark:text-zinc-400">
+                    <li className="flex justify-between">
+                      <span>Created:</span>
+                      <span className="font-bold text-emerald-650 dark:text-emerald-450">{syncResult.insertedCount}</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Updated:</span>
+                      <span className="font-bold text-amber-650 dark:text-amber-455">{syncResult.updatedCount}</span>
+                    </li>
+                    {syncResult.failedCount > 0 && (
+                      <li className="flex justify-between text-rose-650 dark:text-rose-455">
+                        <span>Failed:</span>
+                        <span className="font-bold">{syncResult.failedCount}</span>
+                      </li>
+                    )}
+                  </ul>
+
+                  {syncResult.failures.length > 0 && (
+                    <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-800 text-[10px] space-y-1 text-rose-700 dark:text-rose-450 font-medium">
+                      <div className="font-bold">Errors:</div>
+                      {syncResult.failures.slice(0, 2).map((f, idx) => (
+                        <div key={idx}>&bull; {f.title}: {f.reason}</div>
+                      ))}
+                      {syncResult.failures.length > 2 && (
+                        <div>&bull; And {syncResult.failures.length - 2} more...</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* CSV Import Ingestion Panel */}
       <section className="lg:col-span-2 space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">

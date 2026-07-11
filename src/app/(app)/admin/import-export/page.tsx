@@ -55,6 +55,20 @@ export default async function AdminImportExportPage() {
     .eq('is_active', true)
     .order('name');
 
+  const { data: years } = await supabase
+    .from('school_years')
+    .select('id, name, is_current')
+    .order('name', { ascending: false });
+
+  const schoolYears = (years ?? []).map((y) => ({
+    id: y.id,
+    name: y.name,
+    isCurrent: y.is_current,
+  }));
+
+  const { isGoogleCalendarSyncConfigured } = await import('@/lib/google/calendar-client');
+  const isSyncConfigured = isGoogleCalendarSyncConfigured();
+
   return (
     <main className="p-4 md:p-6 lg:p-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
@@ -66,11 +80,15 @@ export default async function AdminImportExportPage() {
             {t('admin.nav.importExport')}
           </h1>
           <p className="mt-2 text-sm leading-6 text-zinc-650 dark:text-zinc-400">
-            Export current events, or import new events in bulk using template CSVs.
+            Export current events, import new events in bulk, or sync to Google Calendar.
           </p>
         </header>
 
-        <ImportExportPanel groups={groups ?? []} />
+        <ImportExportPanel
+          groups={groups ?? []}
+          isSyncConfigured={isSyncConfigured}
+          schoolYears={schoolYears}
+        />
       </div>
     </main>
   );
