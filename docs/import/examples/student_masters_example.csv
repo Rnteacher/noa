@@ -1,0 +1,2 @@
+external_student_id,master_email,is_primary,active_from,active_until
+STUD-EXAMPLE-001,master.test@chamama.org,true,2025-09-01,2026-06-30

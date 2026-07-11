@@ -1338,6 +1338,13 @@ Updated recommended next task:
 - Designed a transaction-based CLI script execution pipeline.
 - Established Go/No-Go verification checklist gates.
 
+## Latest Pilot Real-Data Import Templates v1 results
+
+Templates and mock data reference structures were created under `docs/import/`:
+- **Templates (Headers Only)**: 10 blank CSV templates under `docs/import/templates/` mapping manifest, staff access grants, staff roles, student groups, students, mentors, projects, masters, goals, and emotional baseline.
+- **Mock Data Examples**: 10 matching CSV examples under `docs/import/examples/` utilizing internally consistent mock references and fake details.
+- **Dual-language README**: Created a detailed roster guide (`docs/import/README.md`) in Hebrew and English explainingallowed enums, dates, validation checklists, and secure delivery instructions.
+
 Scope boundaries preserved:
 - No real student data was used or imported.
 - No secrets or credentials were committed.
@@ -1347,4 +1354,4 @@ Scope boundaries preserved:
 
 Updated recommended next task:
 
-1. **Pilot Real-Data Import Templates v1**: Create empty CSV template files with English headers and localized (Hebrew/English) markdown README instructions to hand over to the pilot school team for roster preparation.
+1. **Pilot Real-Data Import Validator v1**: Build a TypeScript validation tool (`scripts/import/validate-real-data.ts`) to verify header alignments, enum correctness, duplicate constraint rules, and foreign key references in populated CSV folders before any dry-run execution.

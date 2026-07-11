@@ -1,0 +1,3 @@
+external_student_id,first_name,last_name,group_name,primary_phone,secondary_phone,emergency_contact_name,emergency_contact_phone,is_active
+STUD-EXAMPLE-001,John,Doe,Group Alpha,+972500000001,,Jane Doe,+972500000002,true
+STUD-EXAMPLE-002,Jane,Smith,Group Beta,+972500000003,+972500000004,Bob Smith,+972500000005,true

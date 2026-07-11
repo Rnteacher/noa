@@ -1,0 +1,2 @@
+external_student_id,goal_title,description,status,is_primary
+STUD-EXAMPLE-001,Train MobileNet Backbone,Dataset sorting and verification,active,true

@@ -1,0 +1,4 @@
+email,full_name,is_active
+mentor.test@chamama.org,Alex Mentor,true
+master.test@chamama.org,Dana Master,true
+counselor.test@chamama.org,Charlie Counselor,true

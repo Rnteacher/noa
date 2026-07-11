@@ -1,0 +1,3 @@
+external_student_id,project_title,description,status,is_current
+STUD-EXAMPLE-001,Smart Recycling Classifier,Image classification model,green,true
+STUD-EXAMPLE-002,Autonomous Irrigation System,Sensor-based watering system,yellow,true
