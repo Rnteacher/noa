@@ -1073,3 +1073,24 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Hosted Pilot Dry-Run Execution v1 — Part B**: Configure Google OAuth and redirects, perform authenticated smoke tests, run hosted RLS/security probes, check signed storage uploads, and complete the go/no-go report.
+
+## Latest Hosted Pilot Dry-Run Execution v1 — Part B results
+
+`docs/18_HOSTED_PILOT_DRY_RUN_EXECUTION_PART_B.md` documents the final verification and testing steps completed on the live hosted pilot environment:
+- Google OAuth is fully configured and verified using the institutional account `ronen@chamama.org`, which was successfully bootstrapped with both `super_admin` and `manager` roles during profile synchronization.
+- Hosted database RLS and security checks passed (anonymous access is blocked, unauthorized users see 0 rows, manager has access). Direct public access to the private `student-photos` storage bucket is successfully denied (status 400).
+- Student photo uploads are fully functional. Browser-side crop/compression produces a 56 KB WebP image stored privately at `students/55000000-0000-0000-0000-000000000001/profile.webp` and renders via signed URLs. `student_photo.updated` audit log row was written.
+- Web Push notifications enabled and verified, registering a subscription row in `public.push_subscriptions`.
+- CSV Audit export verified and logs `audit_log.exported` action with row count details.
+- Go/No-Go report completed and recommends proceeding to plan real-data import.
+
+Scope boundaries preserved:
+- No real student data was used or imported.
+- No secrets or credentials were committed to the repository or recorded in documentation.
+- VAPID keys were successfully rotated and verified.
+- Google Calendar sync remains deferred.
+- No new application features were introduced.
+
+Updated recommended next task:
+
+1. **Pilot Real-Data Import Plan v1**: Create a detailed design, data mapping scheme, import scripts/workflows, and security/privacy safeguards to prepare for the ingestion of real student records, keeping the actual import blocked.
