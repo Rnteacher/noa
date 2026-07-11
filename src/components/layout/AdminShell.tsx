@@ -79,10 +79,10 @@ export function AdminShell({ children }: AdminShellProps) {
       enabled: true
     },
     { 
-      href: '#', 
+      href: '/admin/import-export',
       labelKey: 'admin.nav.importExport', 
       icon: FileSpreadsheet, 
-      enabled: false 
+      enabled: true
     },
     { 
       href: '#', 

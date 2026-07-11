@@ -38,6 +38,8 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
       prevDate.setDate(date.getDate() - 7);
     } else if (view === 'month') {
       prevDate.setMonth(date.getMonth() - 1);
+    } else if (view === 'year') {
+      prevDate.setFullYear(date.getFullYear() - 1);
     } else {
       prevDate.setDate(date.getDate() - 7);
     }
@@ -52,6 +54,8 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
       nextDate.setDate(date.getDate() + 7);
     } else if (view === 'month') {
       nextDate.setMonth(date.getMonth() + 1);
+    } else if (view === 'year') {
+      nextDate.setFullYear(date.getFullYear() + 1);
     } else {
       nextDate.setDate(date.getDate() + 7);
     }
@@ -78,6 +82,10 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
     labelStr = `${fmt.format(sunday)} - ${fmtYear.format(saturday)}`;
   } else if (view === 'month') {
     labelStr = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(date);
+  } else if (view === 'year') {
+    const yr = date.getFullYear();
+    const isSeptOrLater = date.getMonth() >= 8;
+    labelStr = isSeptOrLater ? `${yr} - ${yr + 1}` : `${yr - 1} - ${yr}`;
   } else {
     labelStr = new Intl.DateTimeFormat('he-IL', { dateStyle: 'medium' }).format(date);
   }

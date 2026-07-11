@@ -462,3 +462,141 @@ export async function rescheduleCalendarEvent(
 
   return { success: true, error: null };
 }
+
+export type ImportedEventItem = {
+  title: string;
+  description: string | null;
+  startsAt: string;
+  endsAt: string;
+  isAllDay: boolean;
+  visibility: CalendarEventVisibility;
+  location: string | null;
+  groupIds: string[];
+};
+
+export async function importCalendarEvents(
+  events: ImportedEventItem[]
+): Promise<CalendarActionResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'dashboard.error.noSession' };
+  }
+
+  const { data: isManagerOrSuperAdmin, error: permissionError } = await supabase.rpc(
+    'current_user_is_manager_or_super_admin'
+  );
+
+  if (permissionError || !isManagerOrSuperAdmin) {
+    return { success: false, error: 'admin.calendar.errorForbidden' };
+  }
+
+  const { data: schoolYear, error: schoolYearError } = await supabase
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .maybeSingle();
+
+  if (schoolYearError || !schoolYear) {
+    return { success: false, error: 'admin.calendar.errorNoCurrentSchoolYear' };
+  }
+
+  // Server-side validation: pre-validate all rows before writing any data
+  const validatedEvents: ValidatedCalendarEventInput[] = [];
+  const seenEvents = new Set<string>();
+
+  for (const item of events) {
+    const input: CalendarEventInput = {
+      title: item.title,
+      description: item.description ?? '',
+      startsAt: item.startsAt,
+      endsAt: item.endsAt,
+      isAllDay: item.isAllDay,
+      visibility: item.visibility,
+      location: item.location ?? '',
+      groupIds: item.groupIds,
+    };
+
+    const validated = validateCalendarEventInput(input);
+    if ('error' in validated) {
+      return { success: false, error: validated.error };
+    }
+
+    const dupKey = `${validated.data.title}|${validated.data.startsAt}|${validated.data.endsAt}`;
+    if (seenEvents.has(dupKey)) {
+      return { success: false, error: 'admin.calendar.errorDuplicateRow' };
+    }
+    seenEvents.add(dupKey);
+
+    validatedEvents.push(validated.data);
+  }
+
+  // Best-effort batch insertion
+  for (const data of validatedEvents) {
+    const eventId = randomUUID();
+
+    const { error: insertError } = await supabase.from('calendar_events').insert({
+      id: eventId,
+      school_year_id: schoolYear.id,
+      title: data.title,
+      description: data.description,
+      starts_at: data.startsAt,
+      ends_at: data.endsAt,
+      is_all_day: data.isAllDay,
+      visibility: data.visibility,
+      location: data.location,
+      created_by: user.id,
+      updated_by: user.id,
+    });
+
+    if (insertError) {
+      console.error(`Import insertion failed for event: ${data.title}`, insertError);
+      return { success: false, error: 'admin.calendar.errorCreateFailed' };
+    }
+
+    if (data.groupIds.length > 0) {
+      const { error: groupsError } = await supabase.from('calendar_event_groups').insert(
+        data.groupIds.map((groupId) => ({
+          event_id: eventId,
+          group_id: groupId,
+        }))
+      );
+
+      if (groupsError) {
+        console.error(`Import target group association failed for event: ${data.title}`, groupsError);
+        await supabase.from('calendar_events').delete().eq('id', eventId);
+        return { success: false, error: 'admin.calendar.errorCreateFailed' };
+      }
+    }
+
+    try {
+      await writeAuditLog({
+        actorId: user.id,
+        action: 'calendar_event.created',
+        entityType: 'calendar_event',
+        entityId: eventId,
+        afterData: {
+          id: eventId,
+          title: data.title,
+          starts_at: data.startsAt,
+          ends_at: data.endsAt,
+          visibility: data.visibility,
+          group_ids: data.groupIds,
+          is_imported: true,
+        },
+      });
+    } catch (auditError) {
+      console.error('Failed to log imported event creation audit:', auditError);
+    }
+  }
+
+  revalidatePath('/admin/calendar');
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}

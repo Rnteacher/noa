@@ -1,0 +1,5 @@
+title,description,starts_at,ends_at,is_all_day,visibility,location,target_group_names,target_group_ids
+Staff Preparations Seminar,Annual curriculum prep week,2026-09-01T08:00:00Z,2026-09-01T16:00:00Z,false,staff_only,Conference Room,,
+Opening Ceremony,Opening ceremony for all students and parents,2026-09-07T08:00:00Z,2026-09-07T12:00:00Z,false,all_school,Main Hall,,
+Robotics Club Kickoff,Initial registration and safety orientation,2026-09-10T14:00:00Z,2026-09-10T16:00:00Z,false,groups,Lab 1,Robotics Team,
+Autumn Break,School closed for holidays,2026-10-14,2026-10-23,true,all_school,School-wide,,

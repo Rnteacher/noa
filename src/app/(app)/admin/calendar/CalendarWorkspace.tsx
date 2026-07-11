@@ -4,11 +4,16 @@ import { useState } from 'react';
 import { CalendarViewSwitcher } from './CalendarViewSwitcher';
 import { CalendarDateNavigator } from './CalendarDateNavigator';
 import { CalendarViews } from './CalendarViews';
+import { CalendarYearGanttView } from './CalendarYearGanttView';
 import { CalendarEventRow } from './CalendarEventRow';
 import { CalendarEventForm } from './CalendarEventForm';
 import { RescheduleModal } from './RescheduleModal';
 import { t } from '@/lib/i18n';
-import type { AdminCalendarEvent, AdminCalendarGroupOption } from '@/features/calendar/admin-queries';
+import type {
+  AdminCalendarEvent,
+  AdminCalendarGroupOption,
+  AdminSchoolYearOption,
+} from '@/features/calendar/admin-queries';
 
 type CalendarWorkspaceProps = {
   view: string;
@@ -16,9 +21,19 @@ type CalendarWorkspaceProps = {
   events: AdminCalendarEvent[];
   groups: AdminCalendarGroupOption[];
   listRange: string;
+  schoolYears: AdminSchoolYearOption[];
+  selectedSchoolYear: AdminSchoolYearOption | null;
 };
 
-export function CalendarWorkspace({ view, dateStr, events, groups, listRange }: CalendarWorkspaceProps) {
+export function CalendarWorkspace({
+  view,
+  dateStr,
+  events,
+  groups,
+  listRange,
+  schoolYears,
+  selectedSchoolYear,
+}: CalendarWorkspaceProps) {
   const [editingEvent, setEditingEvent] = useState<AdminCalendarEvent | null>(null);
   const [reschedulingEvent, setReschedulingEvent] = useState<AdminCalendarEvent | null>(null);
 
@@ -83,6 +98,13 @@ export function CalendarWorkspace({ view, dateStr, events, groups, listRange }: 
               </div>
             )}
           </div>
+        ) : view === 'year' ? (
+          <CalendarYearGanttView
+            events={events}
+            schoolYears={schoolYears}
+            selectedSchoolYear={selectedSchoolYear}
+            onEditEvent={(event) => setEditingEvent(event)}
+          />
         ) : (
           <CalendarViews
             view={view}

@@ -8,7 +8,7 @@ type CalendarViewSwitcherProps = {
   currentView: string;
 };
 
-const VIEWS = ['list', 'day', 'week', 'month'] as const;
+const VIEWS = ['list', 'day', 'week', 'month', 'year'] as const;
 
 export function CalendarViewSwitcher({ currentView }: CalendarViewSwitcherProps) {
   const router = useRouter();

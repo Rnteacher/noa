@@ -296,3 +296,32 @@ export async function getAdminCalendarEventsForRange(
     error: null,
   };
 }
+
+export type AdminSchoolYearOption = {
+  id: string;
+  name: string;
+  startsOn: string;
+  endsOn: string;
+  isCurrent: boolean;
+};
+
+export async function getAdminSchoolYears(): Promise<AdminSchoolYearOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('school_years')
+    .select('id, name, starts_on, ends_on, is_current')
+    .order('starts_on', { ascending: false });
+
+  if (error) {
+    console.error('Failed to load school years:', error);
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    startsOn: row.starts_on,
+    endsOn: row.ends_on,
+    isCurrent: row.is_current,
+  }));
+}

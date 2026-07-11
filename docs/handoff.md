@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Seventeen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Pilot Real-Data Import Implementation v1** which successfully built the local ingestion and rollback scripts (`scripts/import/run-import.ts` and `scripts/import/rollback-import.ts`) to execute dry-runs, local commits, and secure rollbacks. Verified dry-run transaction locks, local apply, local rollback, and negative checks against the local PostgreSQL target. Prior milestones include the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a recommendation has been issued to implement the staff profile readiness preflight check.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Eighteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Admin Calendar Operations v1** which built the annual Gantt planner, CSV export API, and client-previewed and server-side-validated best-effort calendar event CSV import. Prior milestones include the Pilot Real-Data Import Ingestion/Rollback local scripts, the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), and nine manual verification passes. All checks passed, and the current next recommended task is Google Calendar Outbound Sync v1.
 
 ## Current Implemented Foundation
 
@@ -40,18 +40,9 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
-- **Performance Fixes v1 (recommended and blocking):** Re-deploy functions to `icn1` in a controlled rollback-safe experiment, reduce protected-route prefetch and unread-count refetching, remove duplicate student-card auth/role calls, and repeat the hosted baseline.
-- Pilot Real-Data Import Plan v1: blocked until hosted dashboard and student-card latency is acceptable under representative fake volume.
-- Dry-run fake data seed package v1: Package a minimal hosted fake-data seed configuration (without future-dated dev seed rows) to prevent latest emotional-status badge rendering quirks during hosted verification.
-
-- Manual verification leftovers: none. Wrong-domain Google account rejection and cross-user real-time notification/badge testing were both fully closed with live two-account browser evidence in the Manual Verification Leftovers Closeout pass — see `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_CLOSEOUT_HANDOFF.md`.
-- Genuine two-account Web Push browser test: none remaining. A second real account (`studio@chamama.org`) and a second real Chrome profile were used to confirm real end-to-end push delivery and click-focus in the Manual Verification Leftovers Closeout pass.
-- Fix or re-verify the emotional-status "latest badge" local-environment date quirk if it becomes a real problem (e.g., once real time passes September 2026, or by seeding with relative dates in the future).
-- Calendar management follow-up: none for Views v2 or Rescheduling v1 themselves, both of which are fully implemented and browser-verified. Deferred scopes remain: full drag-and-drop visual slots editing, recurrence rules interpretation, outbound Google Calendar Sync API integration, and reschedule notifications.
-- Learning groups follow-up: none for Timetable Views v2 or Rescheduling v1 themselves, both of which are fully implemented and browser-verified. Deferred scopes remain: full visual drag-and-drop weekly timetable editing, Google Calendar sync indicators, notifications, capacity/roster management, and school-year selection.
-- Learning groups mobile viewport re-check: none remaining. Manually confirmed at a real narrow (~375-390px) viewport in the Manual Verification Leftovers Closeout pass — Timetable view, List view, and an open reschedule modal all render and behave correctly.
-- Admin audit log viewer follow-up: none. Actor filters, date-range filters, pagination, and CSV export are fully implemented and browser-verified, and the live 403 test against the export API from a real non-manager account is now closed (see the Manual Verification Leftovers Closeout pass) — confirmed a plain "Forbidden" response and zero `audit_log.exported` rows for the denied request.
-- Student photo upload follow-up: none. Student photo upload, in-browser optimization, and database-level photo_url path hardening are fully implemented and verified. Deferred photo scopes are limited to manual crop UI, bulk import, image moderation, and responsive variants.
+- **Google Calendar Outbound Sync v1 (Immediate Next Task)**: Implement the background sync client, linking database updates on `public.calendar_events` directly to Google Calendar Event resources via Google Calendar API, tracking status via `google_calendar_event_id`. This is the immediate priority to support Noa's school Gantt/planning workflow.
+- **Optional Calendar Hardening (Later)**: Add full calendar drag-and-drop, support for recurrence rules, and robust sync conflict resolution.
+- **Pilot Real-Data Student/Staff Import (Paused)**: The real-data import execution is paused until planning for the next school year's rollout resumes.
 
 ## Pilot real-data import implementation v1 handoff
 
@@ -63,6 +54,14 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - Parallel handoff: `docs/parallel/GPT_PILOT_REAL_DATA_IMPORT_IMPLEMENTATION_V1_HANDOFF.md`.
 - Safety boundary: Verified dry-run, local apply, local rollback, and host targets connection lock. No production execution was triggered, and no secrets or real data were committed.
 
+## Admin Calendar Operations v1 Handoff
+
+- **Annual Gantt View**: `view=year` is fully integrated, displaying school-year timeline bars representing events mapped to relative dates. Swapping school years updates the displayed events list.
+- **Calendar Event CSV Export**: Exposes a GET route `/api/admin/calendar/export` supporting UTF-8 CSV downloads with RFC-4180 generation/serialization, target group expansion, and audit logging (`calendar_events.exported`).
+- **Calendar Event CSV Import**: Built the client-side preview UI and validation logic on `/admin/import-export`, backed by server-side validation and best-effort batch creation. Handles title, date bounds, visibility, group name resolution, and duplicates.
+- **Sidebar Integration**: The sidebar menu link for Import/Export has been enabled and linked directly to `/admin/import-export`.
+- **Preparation**: Outbound sync to Google Calendar has been documented as the next task.
+
 ### Recommended next task
 
-**Pilot Staff Profile Readiness Check v1**: Create a preflight validation tool to check which whitelisted staff emails from the import roster have not registered their active database profiles yet (by completing their Google OAuth first sign-in), and generate a readiness status report prior to dry-run execution.
+**Google Calendar Outbound Sync v1**: Implement the background sync client, linking database updates on `public.calendar_events` directly to Google Calendar Event resources via Google Calendar API, tracking status via `google_calendar_event_id`.

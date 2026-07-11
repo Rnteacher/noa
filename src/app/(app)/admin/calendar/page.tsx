@@ -3,12 +3,14 @@ import { ShieldAlert } from 'lucide-react';
 import {
   getAdminCalendarData,
   getAdminCalendarEventsForRange,
+  getAdminSchoolYears,
   startOfLocalDay,
   addDays,
   startOfWeek,
   startOfMonth,
   type AdminCalendarEvent,
   type AdminCalendarGroupOption,
+  type AdminSchoolYearOption,
 } from '@/features/calendar/admin-queries';
 import { CalendarWorkspace } from './CalendarWorkspace';
 import { t } from '@/lib/i18n';
@@ -48,7 +50,10 @@ function ForbiddenState() {
 export default async function AdminCalendarPage({ searchParams }: AdminCalendarPageProps) {
   const params = await searchParams;
   const rawView = params.view;
-  const view = rawView === 'list' || rawView === 'day' || rawView === 'week' || rawView === 'month' ? rawView : 'week';
+  const view =
+    rawView === 'list' || rawView === 'day' || rawView === 'week' || rawView === 'month' || rawView === 'year'
+      ? rawView
+      : 'week';
 
   const rawDate = params.date;
   let currentDateStr = rawDate ?? '';
@@ -71,12 +76,43 @@ export default async function AdminCalendarPage({ searchParams }: AdminCalendarP
   let groups: AdminCalendarGroupOption[] = [];
   let isAuthorized = false;
   const listRange = params.range ?? 'upcoming';
+  let schoolYears: AdminSchoolYearOption[] = [];
+  let selectedSchoolYear: AdminSchoolYearOption | null = null;
 
   if (view === 'list') {
     const data = await getAdminCalendarData(listRange, currentDate);
     events = data.events;
     groups = data.groups;
     isAuthorized = data.isAuthorized;
+  } else if (view === 'year') {
+    schoolYears = await getAdminSchoolYears();
+    selectedSchoolYear =
+      schoolYears.find((sy) => {
+        const start = new Date(sy.startsOn);
+        const end = new Date(sy.endsOn);
+        // Strip time
+        const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+        return d >= start && d <= end;
+      }) || null;
+    if (!selectedSchoolYear && schoolYears.length > 0) {
+      selectedSchoolYear = schoolYears.find((sy) => sy.isCurrent) || schoolYears[0] || null;
+    }
+
+    if (selectedSchoolYear) {
+      const start = new Date(selectedSchoolYear.startsOn);
+      const end = new Date(selectedSchoolYear.endsOn);
+      const data = await getAdminCalendarEventsForRange(start, end);
+      events = data.events;
+      groups = data.groups;
+      isAuthorized = data.isAuthorized;
+    } else {
+      const start = new Date(currentDate.getFullYear(), 8, 1);
+      const end = new Date(currentDate.getFullYear() + 1, 7, 31);
+      const data = await getAdminCalendarEventsForRange(start, end);
+      events = data.events;
+      groups = data.groups;
+      isAuthorized = data.isAuthorized;
+    }
   } else {
     let startDate: Date;
     let endDate: Date;
@@ -126,6 +162,8 @@ export default async function AdminCalendarPage({ searchParams }: AdminCalendarP
           events={events}
           groups={groups}
           listRange={listRange}
+          schoolYears={schoolYears}
+          selectedSchoolYear={selectedSchoolYear}
         />
       </div>
     </main>
