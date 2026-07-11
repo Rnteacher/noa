@@ -5,7 +5,7 @@ This document explains the architecture, security boundaries, authentication flo
 > [!IMPORTANT]
 > **Implementation Status & Safety Guidelines:**
 > - **Implementation Complete**: The database schema mapping, server actions, and UI components are fully implemented.
-> - **Verification Pending**: Live Google API verification remains pending because no real Google credentials have been configured or committed in this session.
+> - **Live Verification Passed**: Browser verification against a dedicated test Google Calendar and test service-account credentials is complete. Two real bugs were found and fixed during that pass (an all-day/multi-day date-mapping off-by-one, and a missing audit log on remote-deletion recovery); both are reflected below. See [`docs/26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md`](26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md) for the full report.
 > - **Safety Boundary**: No real credentials or `.env.local` keys were committed to the repository.
 
 ---
@@ -57,13 +57,14 @@ Local events are converted to Google Calendar event resources as follows:
 | `source` | `extendedProperties.private.chamama_source` | Set to `'staff_app'` |
 
 ### All-Day Events
-- Stored in the database at UTC midnight (e.g. `2026-09-01T00:00:00Z` to `2026-09-02T00:00:00Z`).
-- Mapped as pure dates:
+- Stored in the database at local (`Asia/Jerusalem`) midnight, which the server records as its UTC-equivalent timestamp (e.g. local midnight on 2026-09-01 is stored as `2026-08-31T21:00:00Z` in summer, when the server runs in `Asia/Jerusalem`).
+- Mapped to pure Google dates by extracting the calendar date in the `Asia/Jerusalem` timezone (not raw UTC), so the mapping is correct regardless of which timezone the Node server process happens to run in:
   ```json
   "start": { "date": "2026-09-01" },
   "end": { "date": "2026-09-02" }
   ```
 - Google's `end.date` boundary is **exclusive**, which aligns perfectly with how dates are stored in the local schema.
+- **Bug found and fixed in browser verification**: the mapping previously extracted the Google date using raw UTC getters, which assumed the stored timestamp was already UTC midnight. On a server running in a timezone ahead of UTC (this app's real deployment target, `Asia/Jerusalem`), that assumption was wrong and every all-day/multi-day event synced one calendar day too early. See [`docs/26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md`](26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md) for details.
 
 ### Timed Events
 - Mapped as full date-times with timezone:
@@ -85,12 +86,13 @@ Local events are converted to Google Calendar event resources as follows:
 ### B. Run Sync
 - Loops through all local events for the school year.
 - **Insert**: Pushes event, receives Google Event ID, and saves it in `calendar_events.google_calendar_event_id` without relying on `RETURNING` (to prevent RLS snapshot query issues).
-- **Update**: Performs update on the existing remote ID. If Google returns `404 Not Found` (meaning the event was manually deleted from Google Calendar), it is automatically re-created and a new ID is linked.
+- **Update**: Performs update on the existing remote ID. If Google returns `404 Not Found` (meaning the event was manually deleted from Google Calendar), it is automatically re-created, a new ID is linked, and a `calendar_google_event.recreated` audit row is written with the new and previous Google event IDs.
+- **Note on Google's deletion tombstones**: Google Calendar retains a `status: cancelled` tombstone for a period after an event is deleted, and calling `events.update()` against a tombstoned event can silently revive it under the same ID rather than returning `404`. A remote deletion made just before a sync run may therefore not trigger the recreate path at all. This is a candidate for a future delete/conflict hardening task.
 
 ### C. Deletion Sync
 - When deleting an event locally:
   - If a `google_calendar_event_id` is present, it attempts to delete it on Google.
-  - **Resilient Deletion Policy**: If Google delete fails (due to connection failure or permissions), the error is logged as a warning, and the local deletion is **still allowed to proceed**. This prevents administrators from getting locked out of editing local calendars due to external network issues. Because of this, a failed remote delete may leave a stale event on the Google Calendar. This behavior is audited under `calendar_google_event.delete_failed` and should be manually verified in the upcoming browser verification task.
+  - **Resilient Deletion Policy**: If Google delete fails (due to connection failure or permissions), the error is logged as a warning, and the local deletion is **still allowed to proceed**. This prevents administrators from getting locked out of editing local calendars due to external network issues. Because of this, a failed remote delete may leave a stale event on the Google Calendar. This behavior is audited under `calendar_google_event.delete_failed` and was confirmed correct by code review during browser verification (live end-to-end local-to-Google deletion was also verified against the real test calendar; see [`docs/26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md`](26_GOOGLE_CALENDAR_SYNC_BROWSER_VERIFICATION.md)).
   - If Google returns `404 Not Found`, the error is ignored and local deletion proceeds.
 
 ---

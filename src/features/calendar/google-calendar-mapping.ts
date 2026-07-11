@@ -10,12 +10,15 @@ type LocalEventInput = {
   location: string | null;
 };
 
+const JERUSALEM_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Jerusalem',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
 export function getLocalDateString(dateTimeStr: string): string {
-  const d = new Date(dateTimeStr);
-  const year = d.getUTCFullYear();
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const date = String(d.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${date}`;
+  return JERUSALEM_DATE_FORMATTER.format(new Date(dateTimeStr));
 }
 
 export function mapLocalToGoogleEvent(event: LocalEventInput): calendar_v3.Schema$Event {

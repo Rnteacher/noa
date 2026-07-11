@@ -321,6 +321,21 @@ export async function runGoogleCalendarSyncAction(
               failedCount++;
             } else {
               insertedCount++;
+              try {
+                await writeAuditLog({
+                  actorId: auth.user!.id,
+                  action: 'calendar_google_event.recreated',
+                  entityType: 'calendar_event',
+                  entityId: event.id,
+                  afterData: {
+                    eventId: event.id,
+                    googleEventId,
+                    previousGoogleEventId: event.google_calendar_event_id,
+                  },
+                });
+              } catch (auditError) {
+                console.error('Failed to log event recreation audit:', auditError);
+              }
             }
           } else {
             throw updateApiError;
@@ -514,6 +529,22 @@ export async function syncSingleCalendarEventAction(
 
           if (dbUpdateError) {
             return { success: false, error: 'Failed to record Google event link locally.' };
+          }
+
+          try {
+            await writeAuditLog({
+              actorId: auth.user!.id,
+              action: 'calendar_google_event.recreated',
+              entityType: 'calendar_event',
+              entityId: event.id,
+              afterData: {
+                eventId: event.id,
+                googleEventId,
+                previousGoogleEventId: event.google_calendar_event_id,
+              },
+            });
+          } catch (auditError) {
+            console.error('Failed to log event recreation audit:', auditError);
           }
         } else {
           throw updateApiError;
