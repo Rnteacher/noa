@@ -28,7 +28,6 @@ import { DeleteGoalButton } from './DeleteGoalButton';
 import { SetPrimaryGoalButton } from './SetPrimaryGoalButton';
 import { FollowButton } from './FollowButton';
 import { PhotoUploadForm } from './PhotoUploadForm';
-import { createClient } from '@/lib/supabase/server';
 
 type StudentCardPageProps = {
   params: Promise<{
@@ -161,11 +160,8 @@ export default async function StudentCardPage({ params }: StudentCardPageProps) 
   const { studentId } = await params;
   const data = await getStudentCard(studentId);
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: isSuperAdmin } = await supabase.rpc('current_user_is_super_admin');
-  const currentUserId = user?.id ?? null;
-  const canDeleteAny = !!isSuperAdmin;
+  const currentUserId = data.currentUserId;
+  const canDeleteAny = data.canDeleteAny;
 
   if (data.error || !data.student) {
     return (

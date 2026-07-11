@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CalendarDays, Ellipsis, Home, Megaphone, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,8 +23,21 @@ const NAV_ITEMS = [
 export function BottomNav() {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const prevPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const prevPath = prevPathnameRef.current;
+    const shouldFetch =
+      prevPath === null ||
+      pathname === '/more' ||
+      pathname === '/notifications' ||
+      prevPath === '/more' ||
+      prevPath === '/notifications';
+
+    prevPathnameRef.current = pathname;
+
+    if (!shouldFetch) return;
+
     let active = true;
     import('@/features/notifications/actions')
       .then((mod) => mod.getUnreadNotificationCountAction())
@@ -52,6 +65,7 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
+              prefetch={false}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'flex min-h-12 min-w-14 flex-col items-center justify-center gap-1 rounded-lg text-[10px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',

@@ -96,6 +96,8 @@ function emptyStudentCard(error: string | null): StudentCardData {
     goals: [],
     messages: [],
     isFollowed: false,
+    currentUserId: null,
+    canDeleteAny: false,
     error,
   };
 }
@@ -296,6 +298,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     photoRowPermissionResult,
     emotionalManagerOrSuperAdminResult,
     counselorRoleResult,
+    superAdminResult,
     mentorAssignmentResult,
   ] = await Promise.all([
     supabase.rpc('current_user_can_update_student_emotional_status', {
@@ -309,6 +312,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     }),
     supabase.rpc('current_user_is_manager_or_super_admin'),
     supabase.rpc('current_user_has_role', { required_role: 'counselor' }),
+    supabase.rpc('current_user_is_super_admin'),
     supabase
       .from('group_mentors')
       .select('id')
@@ -322,6 +326,9 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
 
   const isManagerOrSuperAdmin = Boolean(
     emotionalManagerOrSuperAdminResult.data && !emotionalManagerOrSuperAdminResult.error
+  );
+  const isSuperAdmin = Boolean(
+    superAdminResult.data && !superAdminResult.error
   );
   const isActiveGroupMentor = Boolean(
     mentorAssignmentResult.data && !mentorAssignmentResult.error
@@ -357,7 +364,6 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     const [
       mastersResult,
       rowPermissionResult,
-      managerOrSuperAdminResult,
       projectMasterAssignmentResult,
     ] = await Promise.all([
       supabase
@@ -370,7 +376,6 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       supabase.rpc('current_user_can_update_student_project', {
         target_student_id: studentId,
       }),
-      supabase.rpc('current_user_is_manager_or_super_admin'),
       supabase
         .from('student_masters')
         .select('id')
@@ -385,7 +390,7 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     canUpdateProjectStatus = Boolean(
       rowPermissionResult.data &&
         !rowPermissionResult.error &&
-        ((managerOrSuperAdminResult.data && !managerOrSuperAdminResult.error) ||
+        (isManagerOrSuperAdmin ||
           (projectMasterAssignmentResult.data && !projectMasterAssignmentResult.error))
     );
 
@@ -459,8 +464,8 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
       photoUrl = studentRow.photo_url;
     } else {
       const { data: signedData } = await supabase.storage
-        .from('student-photos')
-        .createSignedUrl(studentRow.photo_url, 3600);
+         .from('student-photos')
+         .createSignedUrl(studentRow.photo_url, 3600);
       photoUrl = signedData?.signedUrl ?? null;
     }
   }
@@ -508,6 +513,8 @@ export async function getStudentCard(studentId: string): Promise<StudentCardData
     })),
     messages,
     isFollowed: Boolean(followedResult.data && !followedResult.error),
+    currentUserId: userId,
+    canDeleteAny: isSuperAdmin,
     error: null,
   };
 }

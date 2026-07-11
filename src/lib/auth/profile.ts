@@ -80,31 +80,24 @@ async function getExistingProfileRoles(profileId: string) {
 async function getGrantRoles(email: string) {
   const admin = createServiceRoleClient();
 
-  const { data: grant, error: grantError } = await admin
+  const { data, error } = await admin
     .from('staff_access_grants')
-    .select('id')
+    .select('id, staff_access_grant_roles(role)')
     .eq('email', email)
     .eq('is_active', true)
     .maybeSingle();
 
-  if (grantError) {
-    throw grantError;
+  if (error) {
+    throw error;
   }
 
-  if (!grant) {
+  if (!data) {
     return [];
   }
 
-  const { data: roles, error: rolesError } = await admin
-    .from('staff_access_grant_roles')
-    .select('role')
-    .eq('grant_id', grant.id);
-
-  if (rolesError) {
-    throw rolesError;
-  }
-
-  return (roles || []).map((row) => row.role);
+  const roleRows = data.staff_access_grant_roles || [];
+  const rows = Array.isArray(roleRows) ? roleRows : [roleRows];
+  return rows.map((row) => (row as { role: AppRole }).role);
 }
 
 async function upsertProfile(user: User, email: string, isActive: boolean) {
@@ -156,24 +149,39 @@ export async function syncProfileAfterOAuth(user: User): Promise<ProfileSyncResu
   const bootstrapEmails = parseBootstrapEmails();
 
   if (bootstrapEmails.has(email)) {
-    await upsertProfile(user, email, true);
-    await ensureRoles(user.id, BOOTSTRAP_ROLES);
+    const hasCorrectRoles =
+      existingAccess.isActive &&
+      BOOTSTRAP_ROLES.every((r) => existingAccess.roles.includes(r)) &&
+      existingAccess.roles.length === BOOTSTRAP_ROLES.length;
+
+    if (!hasCorrectRoles) {
+      await upsertProfile(user, email, true);
+      await ensureRoles(user.id, BOOTSTRAP_ROLES);
+    }
     return { state: 'authorized', roles: BOOTSTRAP_ROLES };
+  }
+
+  if (existingAccess.isActive && existingAccess.roles.length > 0) {
+    return { state: 'authorized', roles: existingAccess.roles };
   }
 
   const grantRoles = await getGrantRoles(email);
 
   if (grantRoles.length > 0) {
-    await upsertProfile(user, email, true);
-    await ensureRoles(user.id, grantRoles);
+    const hasCorrectRoles =
+      existingAccess.isActive &&
+      grantRoles.every((r) => existingAccess.roles.includes(r)) &&
+      existingAccess.roles.length === grantRoles.length;
+
+    if (!hasCorrectRoles) {
+      await upsertProfile(user, email, true);
+      await ensureRoles(user.id, grantRoles);
+    }
     return { state: 'authorized', roles: grantRoles };
   }
 
-  if (existingAccess.isActive && existingAccess.roles.length > 0) {
-    await upsertProfile(user, email, true);
-    return { state: 'authorized', roles: existingAccess.roles };
+  if (!existingAccess.isActive) {
+    await upsertProfile(user, email, false);
   }
-
-  await upsertProfile(user, email, false);
   return { state: 'access_pending', roles: [] };
 }

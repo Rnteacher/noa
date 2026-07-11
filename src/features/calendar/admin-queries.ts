@@ -169,7 +169,17 @@ export async function getAdminCalendarData(
     query = query.gte('ends_at', now.toISOString()).limit(100);
   }
 
-  const { data: eventsData, error: eventsError } = await query;
+  const [eventsResult, groupsResult] = await Promise.all([
+    query,
+    supabase
+      .from('student_groups')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name'),
+  ]);
+
+  const { data: eventsData, error: eventsError } = eventsResult;
+  const { data: groupsData } = groupsResult;
 
   if (eventsError) {
     console.error('Failed to load admin calendar events:', eventsError);
@@ -197,12 +207,6 @@ export async function getAdminCalendarData(
       updatedAt: row.updated_at,
     };
   });
-
-  const { data: groupsData } = await supabase
-    .from('student_groups')
-    .select('id, name')
-    .eq('is_active', true)
-    .order('name');
 
   return {
     events,
@@ -241,12 +245,22 @@ export async function getAdminCalendarEventsForRange(
     return { events: [], groups: [], isAuthorized: false, error: 'admin.calendar.errorForbidden' };
   }
 
-  const { data: eventsData, error: eventsError } = await supabase
-    .from('calendar_events')
-    .select(CALENDAR_EVENT_SELECT)
-    .lt('starts_at', endDate.toISOString())
-    .gt('ends_at', startDate.toISOString())
-    .order('starts_at', { ascending: true });
+  const [eventsResult, groupsResult] = await Promise.all([
+    supabase
+      .from('calendar_events')
+      .select(CALENDAR_EVENT_SELECT)
+      .lt('starts_at', endDate.toISOString())
+      .gt('ends_at', startDate.toISOString())
+      .order('starts_at', { ascending: true }),
+    supabase
+      .from('student_groups')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name'),
+  ]);
+
+  const { data: eventsData, error: eventsError } = eventsResult;
+  const { data: groupsData } = groupsResult;
 
   if (eventsError) {
     console.error('Failed to load admin calendar events for range:', eventsError);
@@ -274,12 +288,6 @@ export async function getAdminCalendarEventsForRange(
       updatedAt: row.updated_at,
     };
   });
-
-  const { data: groupsData } = await supabase
-    .from('student_groups')
-    .select('id, name')
-    .eq('is_active', true)
-    .order('name');
 
   return {
     events,

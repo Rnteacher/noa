@@ -84,5 +84,7 @@ export type StudentCardData = {
   goals: StudentGoal[];
   messages: StudentMessage[];
   isFollowed: boolean;
+  currentUserId: string | null;
+  canDeleteAny: boolean;
   error: string | null;
 };

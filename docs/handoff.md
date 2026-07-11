@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Twelve full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Hosted Pilot Dry-Run Execution v1 — Part B** which successfully verified Google OAuth login, role bootstrapping, RLS database probes, private storage photo uploads (56 KB WebP), Web Push subscriptions, and CSV audit export logging on a live hosted pilot staging environment. Prior milestones include Part A execution, the Vercel + Hosted Supabase Hosting Decision Memo v1, and nine full authenticated-browser/manual verification passes against a real Google OAuth session. All checks passed cleanly, and a Go recommendation has been issued to plan the real-data import.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Thirteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Performance Fixes v1** which successfully aligned Vercel's compute region with Supabase (Seoul - `icn1`), removed BottomNav prefetching, optimized notification count fetches, consolidated student card query waterfalls (reducing redundant role checks and getUser calls), parallelized admin calendar queries, and reduced dashboard database query columns. These fixes yielded a **10x load-time reduction** (dropping from ~4.53-6.66 s to ~450-650 ms on the student card route) on the live hosted staging environment. Prior milestones include Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a Go recommendation has been issued to plan the real-data import.
 
 ## Current Implemented Foundation
 
@@ -53,16 +53,15 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - Admin audit log viewer follow-up: none. Actor filters, date-range filters, pagination, and CSV export are fully implemented and browser-verified, and the live 403 test against the export API from a real non-manager account is now closed (see the Manual Verification Leftovers Closeout pass) — confirmed a plain "Forbidden" response and zero `audit_log.exported` rows for the denied request.
 - Student photo upload follow-up: none. Student photo upload, in-browser optimization, and database-level photo_url path hardening are fully implemented and verified. Deferred photo scopes are limited to manual crop UI, bulk import, image moderation, and responsive variants.
 
-## Hosted performance audit v1 handoff
+## Performance fixes v1 handoff
 
-- Full audit: `docs/19_HOSTED_PERFORMANCE_BASELINE_AND_BOTTLENECK_AUDIT.md`.
-- Parallel handoff: `docs/parallel/GPT_HOSTED_PERFORMANCE_BASELINE_AUDIT_V1_HANDOFF.md`.
-- Main hypothesis: Vercel `iad1` to Supabase `ap-northeast-2` network distance, multiplied by repeated auth/RLS/PostgREST calls and serialized query waves.
-- Strongest route-level issue: fake student card (`4.53-6.66 s` first/full navigation; approximately 24 initial hosted calls with project/photo).
-- SQL is currently healthy: audited hosted SELECT execution `0.08-0.81 ms`.
-- Vercel logs showed default staff-navigation prefetch/background route requests after dashboard/student navigation.
-- No code, migration, RLS policy, index, environment variable, or hosted setting was changed. Documentation only.
+- Full report: `docs/20_PERFORMANCE_FIXES_V1.md`.
+- Parallel handoff: `docs/parallel/GPT_PERFORMANCE_FIXES_V1_HANDOFF.md`.
+- Main achievement: Aligned Vercel compute region to `icn1` (Seoul), placing it next to Supabase (`ap-northeast-2`).
+- Code optimizations: Removed link prefetching, optimized unread count refetching, combined role checks in `getStudentCard`, removed duplicate query calls, and parallelized calendar options.
+- Results: Achieved a **10x load-time reduction** (dropping from ~4.53-6.66 s to ~450-650 ms on student card route).
+- No migrations, secrets, or RLS changes were made.
 
 ### Recommended next task
 
-**Performance Fixes v1 is now blocking the Pilot Real-Data Import Plan.** Start with a reversible Vercel `icn1` function-region experiment, then reduce protected-route prefetch/background unread-count work and the student-card auth/permission waterfall. Re-run the same hosted baseline before resuming import planning.
+**Pilot Real-Data Import Plan v1**: Create a detailed design, data mapping scheme, import scripts/workflows, and security/privacy safeguards to prepare for the ingestion of real student records, keeping the actual import blocked.

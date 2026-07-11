@@ -116,13 +116,13 @@ export async function getDashboardData(now = new Date()): Promise<DashboardData>
       .limit(5),
     supabase
       .from('calendar_events')
-      .select('*')
+      .select('id, title, description, starts_at, ends_at, is_all_day, visibility, location, google_calendar_event_id, updated_at')
       .lt('starts_at', addDays(startOfLocalDay(now), 1).toISOString())
       .gt('ends_at', startOfLocalDay(now).toISOString())
       .order('starts_at', { ascending: true }),
     supabase
       .from('calendar_events')
-      .select('*')
+      .select('id, title, description, starts_at, ends_at, is_all_day, visibility, location, google_calendar_event_id, updated_at')
       .gte('starts_at', now.toISOString())
       .lt('starts_at', addDays(now, 7).toISOString())
       .order('starts_at', { ascending: true })
