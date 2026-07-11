@@ -1343,7 +1343,14 @@ Updated recommended next task:
 Templates and mock data reference structures were created under `docs/import/`:
 - **Templates (Headers Only)**: 10 blank CSV templates under `docs/import/templates/` mapping manifest, staff access grants, staff roles, student groups, students, mentors, projects, masters, goals, and emotional baseline.
 - **Mock Data Examples**: 10 matching CSV examples under `docs/import/examples/` utilizing internally consistent mock references and fake details.
-- **Dual-language README**: Created a detailed roster guide (`docs/import/README.md`) in Hebrew and English explainingallowed enums, dates, validation checklists, and secure delivery instructions.
+- **Dual-language README**: Created a detailed roster guide (`docs/import/README.md`) in Hebrew and English explaining allowed enums, dates, validation checklists, and secure delivery instructions.
+
+## Latest Pilot Real-Data Import Validator v1 results
+
+A TypeScript validation tool was created under `scripts/import/`:
+- **CLI Script**: `scripts/import/validate-real-data.ts` parses, verifies, and validates CSV folders against headers, domains, unique constraints, date ranges, and foreign keys.
+- **Verification Outcomes**: Tested against mock references in `docs/import/examples/` with successful exit code `0`. Tested against empty templates in `docs/import/templates/` where the manifest triggers a controlled `No manifest row present` error while other zero-row files pass successfully. Verified 8 custom invalidation cases (invalid role, unknown student ID, duplicate ID, missing required file, malformed date, invalid boolean, duplicate current project, and duplicate primary goal) in a temporary OS folder, all failing as expected with clean English logs.
+- **Technical documentation**: Created a developer guide (`scripts/import/README.md`) explaining CLI execution and validation criteria.
 
 Scope boundaries preserved:
 - No real student data was used or imported.
@@ -1351,7 +1358,8 @@ Scope boundaries preserved:
 - Supabase RLS remains fully active.
 - Google Calendar sync remains deferred.
 - No new features were implemented.
+- No Hebrew text was added to source code or CLI print statements.
 
 Updated recommended next task:
 
-1. **Pilot Real-Data Import Validator v1**: Build a TypeScript validation tool (`scripts/import/validate-real-data.ts`) to verify header alignments, enum correctness, duplicate constraint rules, and foreign key references in populated CSV folders before any dry-run execution.
+1. **Pilot Real-Data Import Implementation v1**: Build the transaction-protected ingestion and rollback scripts (`scripts/import/run-import.ts` and `scripts/import/rollback-import.ts`) to prepare database execution workflows, keeping production database execution locked.

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:no-hebrew-in-code": "node scripts/check-no-hebrew-in-code.mjs"
+    "check:no-hebrew-in-code": "node scripts/check-no-hebrew-in-code.mjs",
+    "validate:import": "npx tsx scripts/import/validate-real-data.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
