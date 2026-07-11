@@ -1,0 +1,4 @@
+title,description,weekday,starts_at,ends_at,room,leader_email,target_group_names,target_group_ids,active_from,active_until,is_active
+Software Development Lab,Hands-on TypeScript and Next.js full-stack development,monday,11:30,13:30,Lab 2,mentor.one@example.test,Robotics Team,,2026-09-01,,true
+Interactive Art Seminar,Visual arts and design principles workshop,wednesday,11:30,13:00,Room 102,mentor.two@example.test,Art Studio,,2026-09-01,,true
+Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:30,Lab 1,master.one@example.test,Robotics Team,,2026-09-01,2026-12-31,true

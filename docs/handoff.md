@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Nineteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Google Calendar Outbound Sync v1** (built) and **Google Calendar Sync Browser Verification v1** (live-verified against a real dedicated test calendar, with two real bugs found and fixed). Prior milestones include Admin Calendar Operations v1 (annual Gantt view, event CSV import/export), Pilot Real-Data Import Ingestion/Rollback local scripts, the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), and nine manual verification passes. All checks passed, and the current next recommended task is Google Calendar Sync Delete/Conflict Hardening v1.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Twenty full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Admin Import/Export Center v2** (built, browser verification pending). Prior milestones include Google Calendar Outbound Sync v1 and browser verification, Admin Calendar Operations v1 (annual Gantt view, event CSV import/export), Pilot Real-Data Import Ingestion/Rollback local scripts, the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), and nine manual verification passes. The current immediate next recommended task is Admin Import/Export Center Browser Verification v1.
 
 ## Current Implemented Foundation
 
@@ -41,10 +41,12 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
-- **Google Calendar Sync Delete/Conflict Hardening v1 (Immediate Next Task)**: Google Calendar Sync Browser Verification v1 confirmed the core sync flows correct (after two real fixes) and surfaced a concrete gap: Google's tombstone/soft-delete retention means a remote deletion just before a sync run may not 404 at all, and there is no designed behavior yet for that revival case or other remote-conflict scenarios (e.g. an event edited directly in Google between syncs).
-- **Optional later**: Noa Annual Gantt Pilot Prep v1.
-- **Optional later**: Calendar Recurrence Rules v1 and drag-and-drop calendar editing.
-- **Real-data Student/Staff Import (Paused)**: Remains paused until next school year rollout planning.
+- **Admin Import/Export Center Browser Verification v1**: immediate next task. Perform a manual browser smoke verification check of the new tabbed layout and CSV uploads under an authenticated manager/super_admin session.
+- **Admin Students/Groups Management v1**: optional later. Refactor the placeholder views into active student roster management grids.
+- **Staff/Student Import Apply Gate v1**: optional later after explicit rollout approval.
+- **Noa Annual Gantt Pilot Prep v1**: optional later. Prepare the app and workflow for Noa to maintain the annual Gantt/calendar.
+- **Google Calendar Sync Delete/Conflict Hardening v1**: optional later.
+
 
 ## Pilot real-data import implementation v1 handoff
 
@@ -79,6 +81,16 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - **Testing-methodology note (not a bug)**: Google Calendar's tombstone/soft-delete retention meant a real "delete in Google, then immediately re-sync" 404 was not reliably reproducible; the 404-recovery path was instead exercised deterministically by setting a synthetic invalid `google_calendar_event_id` directly via SQL.
 - Non-manager access denial was verified by code review only; no second real Google-authenticated account was available this session.
 
+## Admin Import/Export Center v2 Handoff
+
+- **Tabbed Center**: Refactored `/admin/import-export` into a fully tabbed administration center.
+- **Ingestion Scope**: Re-integrated Calendar Events CSV imports and added new weekly Learning Groups CSV ingestion and export.
+- **Roster In-Memory Validation**: Staff whitelists and student rosters parse and validate CSV payloads in-memory. Browser apply is disabled.
+- **Ingestion Pathway**: Direct database applies for access grants and student rosters are restricted to the local CLI scripts, ensuring rollout gating.
+- **Browser Verification**: Verification is pending browser-smoke tests.
+
 ### Recommended next task
 
-**Google Calendar Sync Delete/Conflict Hardening v1**: design and implement deliberate handling for Google's tombstone-revival behavior (a remote deletion just before a sync run may silently "revive" under `events.update()` instead of 404ing) and other remote-conflict scenarios (e.g. an event edited directly in Google between syncs).
+**Admin Import/Export Center Browser Verification v1**: Run manual browser verification of the new tabbed layouts and CSV file upload validations under a manager/super_admin authenticated session.
+
+**Google Calendar Sync Delete/Conflict Hardening v1 (optional later)**: design and implement remote conflict resolution.

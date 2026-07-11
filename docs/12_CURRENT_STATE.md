@@ -983,7 +983,9 @@ A dedicated pass closed out the five remaining manual-only verification items us
 - Cleanup: the temporary test message was soft-deleted by its author; the recipient's follow relationship and push subscription were left active at the user's request (real, harmless app state, not test pollution).
 - Validation: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed cleanly. No source code was changed in this pass.
 
-## Next recommended tasks
+## Historical next-task list after Google Calendar verification
+
+*Note: This list has been superseded by the Admin Import/Export Center v2 implementation.*
 
 1. **Google Calendar Sync Delete/Conflict Hardening v1**: immediate next task. Design and implement deliberate handling for Google Calendar tombstone/revival behavior and other remote-conflict scenarios.
 2. **Noa Annual Gantt Pilot Prep v1**: optional later. Prepare the app and workflow for Noa to maintain the annual Gantt/calendar.
@@ -1175,7 +1177,9 @@ A dedicated pass closed out the five remaining manual-only verification items us
 - Cleanup: the temporary test message was soft-deleted by its author; the recipient's follow relationship and push subscription were left active at the user's request (real, harmless app state, not test pollution).
 - Validation: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed cleanly. No source code was changed in this pass.
 
-## Next recommended tasks
+## Historical next-task list after Google Calendar outbound sync
+
+*Note: This list has been superseded by the Admin Import/Export Center v2 implementation.*
 
 1. **Google Calendar Sync Delete/Conflict Hardening v1**: immediate next task. Design and implement deliberate handling for Google Calendar tombstone/revival behavior and other remote-conflict scenarios.
 2. **Noa Annual Gantt Pilot Prep v1**: optional later. Prepare the app and workflow for Noa to maintain the annual Gantt/calendar.
@@ -1413,3 +1417,19 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Google Calendar Sync Browser Verification v1**: Run manual end-to-end testing with configured test credentials to verify outbound insertions, updates, and resilient deletions visually in Google Calendar.
+
+## Latest Admin Import/Export Center v2 results
+
+Implemented the comprehensive Admin Import/Export Center v2:
+- **Calendar Event Ingestion**: Maintained current features (RFC-4180 parsing, validation, local apply, and export).
+- **Learning Group Ingestion**: Created CSV template/mock files, implemented CSV export API route, and added in-memory validation and preview of weekly learning groups (enforcing time windows, weekday enums, target groups, and active dates) with direct apply enabled in the browser.
+- **Roster In-Memory Validation**: Implemented pure in-memory validation routines for staff access grants/roles and multi-file student rosters (groups, students, mentors, projects, masters, goals, baselines).
+- **Data & Safety Gates**: Direct database apply is disabled in the browser for staff and student rosters to prevent accidental modifications; the local CLI remains the only apply path. No real student/staff data or secrets were committed.
+
+## Next recommended tasks
+
+1. **Admin Import/Export Center Browser Verification v1**: immediate next task. Perform a manual browser smoke verification check of the new tabbed layout and CSV uploads under an authenticated manager/super_admin session.
+2. **Admin Students/Groups Management v1**: optional later. Refactor the placeholder views into active student roster management grids.
+3. **Staff/Student Import Apply Gate v1**: optional later. Design and wire the DB apply gate in the browser UI, to be enabled only after explicit rollout approval.
+4. **Noa Annual Gantt Pilot Prep v1**: optional later. Prepare the app and workflow for Noa to maintain the annual Gantt/calendar.
+5. **Google Calendar Sync Delete/Conflict Hardening v1**: optional later. Design and implement remote conflict resolution.

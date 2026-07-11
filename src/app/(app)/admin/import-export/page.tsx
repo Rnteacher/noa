@@ -55,6 +55,12 @@ export default async function AdminImportExportPage() {
     .eq('is_active', true)
     .order('name');
 
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, email')
+    .eq('is_active', true)
+    .order('full_name');
+
   const { data: years } = await supabase
     .from('school_years')
     .select('id, name, is_current')
@@ -80,12 +86,13 @@ export default async function AdminImportExportPage() {
             {t('admin.nav.importExport')}
           </h1>
           <p className="mt-2 text-sm leading-6 text-zinc-650 dark:text-zinc-400">
-            Export current events, import new events in bulk, or sync to Google Calendar.
+            Bulk validation, ingestion, and export center for school planning rosters.
           </p>
         </header>
 
         <ImportExportPanel
           groups={groups ?? []}
+          profiles={profiles ?? []}
           isSyncConfigured={isSyncConfigured}
           schoolYears={schoolYears}
         />

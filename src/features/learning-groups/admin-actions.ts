@@ -625,3 +625,140 @@ export async function rescheduleLearningGroup(
 
   return { success: true, error: null };
 }
+
+export type ImportedLearningGroupItem = {
+  title: string;
+  description: string | null;
+  weekday: LearningGroupWeekday;
+  startsAt: string;
+  endsAt: string;
+  room: string | null;
+  leaderId: string | null;
+  groupIds: string[];
+  activeFrom: string;
+  activeUntil: string | null;
+  isActive: boolean;
+};
+
+export async function importLearningGroups(
+  groups: ImportedLearningGroupItem[]
+): Promise<LearningGroupActionResult> {
+  const auth = await requireLearningGroupsAdmin();
+  if ('error' in auth) {
+    return { success: false, error: auth.error };
+  }
+  const { supabase, user } = auth;
+
+  const { data: schoolYear, error: schoolYearError } = await supabase
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .maybeSingle();
+
+  if (schoolYearError || !schoolYear) {
+    return { success: false, error: 'admin.learningGroups.errorNoCurrentSchoolYear' };
+  }
+
+  // Pre-validate all items server-side
+  const validatedGroups: ValidatedLearningGroupInput[] = [];
+  const seenGroups = new Set<string>();
+
+  for (const item of groups) {
+    const input: LearningGroupInput = {
+      title: item.title,
+      description: item.description ?? '',
+      weekday: item.weekday,
+      startsAt: item.startsAt,
+      endsAt: item.endsAt,
+      leaderId: item.leaderId ?? '',
+      room: item.room ?? '',
+      activeFrom: item.activeFrom,
+      activeUntil: item.activeUntil ?? '',
+      isActive: item.isActive,
+      groupIds: item.groupIds,
+    };
+
+    const validated = validateLearningGroupInput(input);
+    if ('error' in validated) {
+      return { success: false, error: validated.error };
+    }
+
+    const dupKey = `${validated.data.title}|${validated.data.weekday}|${validated.data.startsAt}|${validated.data.endsAt}`;
+    if (seenGroups.has(dupKey)) {
+      return { success: false, error: 'admin.learningGroups.errorDuplicateRow' };
+    }
+    seenGroups.add(dupKey);
+
+    const refError = await validateReferences(supabase, validated.data);
+    if (refError) {
+      return { success: false, error: refError };
+    }
+
+    validatedGroups.push(validated.data);
+  }
+
+  // Batch insert
+  for (const data of validatedGroups) {
+    const learningGroupId = randomUUID();
+
+    const { error: insertError } = await supabase.from('learning_groups').insert({
+      id: learningGroupId,
+      school_year_id: schoolYear.id,
+      title: data.title,
+      description: data.description,
+      weekday: data.weekday,
+      starts_at: data.startsAt,
+      ends_at: data.endsAt,
+      leader_id: data.leaderId,
+      room: data.room,
+      active_from: data.activeFrom,
+      active_until: data.activeUntil,
+      is_active: data.isActive,
+      created_by: user.id,
+      updated_by: user.id,
+    });
+
+    if (insertError) {
+      console.error(`Import insertion failed for learning group: ${data.title}`, insertError);
+      return { success: false, error: 'admin.learningGroups.errorCreateFailed' };
+    }
+
+    const targetGroupsError = await replaceTargetGroups(supabase, learningGroupId, data.groupIds);
+    if (targetGroupsError) {
+      console.error(`Import target group association failed for learning group: ${data.title}`, targetGroupsError);
+      await supabase.from('learning_groups').delete().eq('id', learningGroupId);
+      return { success: false, error: 'admin.learningGroups.errorCreateFailed' };
+    }
+
+    try {
+      await writeAuditLog({
+        actorId: user.id,
+        action: 'learning_group.created',
+        entityType: 'learning_group',
+        entityId: learningGroupId,
+        afterData: {
+          id: learningGroupId,
+          title: data.title,
+          weekday: data.weekday,
+          starts_at: data.startsAt,
+          ends_at: data.endsAt,
+          leader_id: data.leaderId,
+          room: data.room,
+          active_from: data.activeFrom,
+          active_until: data.activeUntil,
+          is_active: data.isActive,
+          group_ids: data.groupIds,
+          is_imported: true,
+        },
+      });
+    } catch (auditError) {
+      console.error('Failed to log imported learning group creation audit:', auditError);
+    }
+  }
+
+  revalidatePath('/admin/learning-groups');
+  revalidatePath('/admin/import-export');
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}
