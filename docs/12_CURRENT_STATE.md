@@ -1094,3 +1094,29 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Pilot Real-Data Import Plan v1**: Create a detailed design, data mapping scheme, import scripts/workflows, and security/privacy safeguards to prepare for the ingestion of real student records, keeping the actual import blocked.
+
+## Latest Hosted Performance Baseline and Bottleneck Audit v1 results
+
+`docs/19_HOSTED_PERFORMANCE_BASELINE_AND_BOTTLENECK_AUDIT.md` records the first hosted performance baseline after Part B.
+
+Key findings:
+
+- Hosted performance is not acceptable for real-data planning yet. The fake student card took `4.53-6.66 s` on first/full navigations and produced approximately `10.05 s` reload signals; dashboard first/full navigations took `2.67-3.62 s`.
+- Vercel functions are deployed in `iad1` while Supabase is in `ap-northeast-2`/Seoul (`icn1` on Vercel). This intercontinental function-to-database path is the primary bottleneck hypothesis.
+- Safe hosted `EXPLAIN ANALYZE` reads completed in approximately `0.08-0.81 ms`; database execution is not currently slow.
+- The proxy and pages repeat auth/access checks. The fake student-card document path reaches approximately 24 hosted Auth/PostgREST/Storage calls before client-side background work.
+- The staff bottom navigation refetches unread count on every pathname and default link prefetch generated additional protected route traffic in Vercel logs.
+- Most requested indexes already exist. No index, migration, RLS policy, feature, or source code was changed.
+- Client bundles were approximately `117-153 KB` JS plus `55 KB` CSS per audited route in the local production build; hydration is secondary to region and request count.
+
+Scope boundaries preserved:
+
+- No real student data was used or imported.
+- No secrets were committed or recorded.
+- RLS and security checks were not weakened.
+- No service-role client was used for normal app flows.
+- Only documentation was added or updated.
+
+Updated recommended next task:
+
+1. **Performance Fixes v1**: Run a reversible Vercel `icn1` region experiment, reduce protected-route prefetch/background work, remove duplicate student-card auth/role calls, and re-measure before any real-data import plan or index migration.

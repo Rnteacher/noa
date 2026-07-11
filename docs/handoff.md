@@ -40,7 +40,8 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 
 ## Next task options
 
-- Pilot Real-Data Import Plan v1: Create a detailed design, data mapping scheme, import scripts/workflows, and security/privacy safeguards to prepare for the ingestion of real student records, keeping the actual import blocked.
+- **Performance Fixes v1 (recommended and blocking):** Re-deploy functions to `icn1` in a controlled rollback-safe experiment, reduce protected-route prefetch and unread-count refetching, remove duplicate student-card auth/role calls, and repeat the hosted baseline.
+- Pilot Real-Data Import Plan v1: blocked until hosted dashboard and student-card latency is acceptable under representative fake volume.
 - Dry-run fake data seed package v1: Package a minimal hosted fake-data seed configuration (without future-dated dev seed rows) to prevent latest emotional-status badge rendering quirks during hosted verification.
 
 - Manual verification leftovers: none. Wrong-domain Google account rejection and cross-user real-time notification/badge testing were both fully closed with live two-account browser evidence in the Manual Verification Leftovers Closeout pass — see `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_CLOSEOUT_HANDOFF.md`.
@@ -51,3 +52,17 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - Learning groups mobile viewport re-check: none remaining. Manually confirmed at a real narrow (~375-390px) viewport in the Manual Verification Leftovers Closeout pass — Timetable view, List view, and an open reschedule modal all render and behave correctly.
 - Admin audit log viewer follow-up: none. Actor filters, date-range filters, pagination, and CSV export are fully implemented and browser-verified, and the live 403 test against the export API from a real non-manager account is now closed (see the Manual Verification Leftovers Closeout pass) — confirmed a plain "Forbidden" response and zero `audit_log.exported` rows for the denied request.
 - Student photo upload follow-up: none. Student photo upload, in-browser optimization, and database-level photo_url path hardening are fully implemented and verified. Deferred photo scopes are limited to manual crop UI, bulk import, image moderation, and responsive variants.
+
+## Hosted performance audit v1 handoff
+
+- Full audit: `docs/19_HOSTED_PERFORMANCE_BASELINE_AND_BOTTLENECK_AUDIT.md`.
+- Parallel handoff: `docs/parallel/GPT_HOSTED_PERFORMANCE_BASELINE_AUDIT_V1_HANDOFF.md`.
+- Main hypothesis: Vercel `iad1` to Supabase `ap-northeast-2` network distance, multiplied by repeated auth/RLS/PostgREST calls and serialized query waves.
+- Strongest route-level issue: fake student card (`4.53-6.66 s` first/full navigation; approximately 24 initial hosted calls with project/photo).
+- SQL is currently healthy: audited hosted SELECT execution `0.08-0.81 ms`.
+- Vercel logs showed default staff-navigation prefetch/background route requests after dashboard/student navigation.
+- No code, migration, RLS policy, index, environment variable, or hosted setting was changed. Documentation only.
+
+### Recommended next task
+
+**Performance Fixes v1 is now blocking the Pilot Real-Data Import Plan.** Start with a reversible Vercel `icn1` function-region experiment, then reduce protected-route prefetch/background unread-count work and the student-card auth/permission waterfall. Re-run the same hosted baseline before resuming import planning.
