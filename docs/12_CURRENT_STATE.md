@@ -1054,3 +1054,22 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Hosted Pilot Dry-Run Execution Prep v1**: Select the production-like dry-run domain, choose the Supabase pricing/backup tier, and assign operational owners before executing the dry run.
+
+## Latest Hosted Pilot Dry-Run Execution v1 — Part A results
+
+`docs/17_HOSTED_PILOT_DRY_RUN_EXECUTION_PART_A.md` documents the initial execution steps for wiring the local repository to GitHub, linking/migrating hosted Supabase, setting up environment variables, and deploying to Vercel.
+- GitHub connection succeeded on the `master` branch (a Google OAuth credentials leak blocker in an older commit was successfully purged using `git filter-branch` history rewriting).
+- Linked to hosted project `qxjfzdmszgvymcuyuisu` and applied all 11 database migrations via `supabase db push`. Verified that core enums, tables, functions, views, RLS policies, and the private `student-photos` storage bucket were successfully created.
+- Wired Vercel configuration env vars and completed the first production deploy to `https://noa-rho-dusky.vercel.app`.
+- Unauthenticated smoke tests passed (login renders, anonymous `/dashboard` redirects, and `/sw.js` is served from root). Google OAuth credentials setup remains the only blocker for authenticated testing.
+
+Scope boundaries preserved:
+- No real student data was used or imported.
+- No production secrets or credentials were committed to the repository.
+- Local dev seed was not applied to the hosted database.
+- Google Calendar sync remains deferred.
+- No new application features were introduced.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Execution v1 — Part B**: Configure Google OAuth and redirects, perform authenticated smoke tests, run hosted RLS/security probes, check signed storage uploads, and complete the go/no-go report.
