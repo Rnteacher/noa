@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Thirteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Performance Fixes v1** which successfully aligned Vercel's compute region with Supabase (Seoul - `icn1`), removed BottomNav prefetching, optimized notification count fetches, consolidated student card query waterfalls (reducing redundant role checks and getUser calls), parallelized admin calendar queries, and reduced dashboard database query columns. These fixes yielded a **10x load-time reduction** (dropping from ~4.53-6.66 s to ~450-650 ms on the student card route) on the live hosted staging environment. Prior milestones include Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a Go recommendation has been issued to plan the real-data import.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Fourteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Pilot Real-Data Import Plan v1** which successfully mapped the school pilot's core datasets to the Supabase schema, defined CSV import templates, set operational privacy safeguards and validation rules, designed the validation/import CLI pipeline, and established staged Go/No-Go gates. Prior milestones include Performance Fixes v1 (yielding a **10x load-time reduction**), Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a recommendation has been issued to create the CSV templates as the next step.
 
 ## Current Implemented Foundation
 
@@ -53,15 +53,13 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - Admin audit log viewer follow-up: none. Actor filters, date-range filters, pagination, and CSV export are fully implemented and browser-verified, and the live 403 test against the export API from a real non-manager account is now closed (see the Manual Verification Leftovers Closeout pass) — confirmed a plain "Forbidden" response and zero `audit_log.exported` rows for the denied request.
 - Student photo upload follow-up: none. Student photo upload, in-browser optimization, and database-level photo_url path hardening are fully implemented and verified. Deferred photo scopes are limited to manual crop UI, bulk import, image moderation, and responsive variants.
 
-## Performance fixes v1 handoff
+## Pilot real-data import plan v1 handoff
 
-- Full report: `docs/20_PERFORMANCE_FIXES_V1.md`.
-- Parallel handoff: `docs/parallel/GPT_PERFORMANCE_FIXES_V1_HANDOFF.md`.
-- Main achievement: Aligned Vercel compute region to `icn1` (Seoul), placing it next to Supabase (`ap-northeast-2`).
-- Code optimizations: Removed link prefetching, optimized unread count refetching, combined role checks in `getStudentCard`, removed duplicate query calls, and parallelized calendar options.
-- Results: Achieved a **10x load-time reduction** (dropping from ~4.53-6.66 s to ~450-650 ms on student card route).
-- No migrations, secrets, or RLS changes were made.
+- Full plan: `docs/21_PILOT_REAL_DATA_IMPORT_PLAN.md`.
+- Parallel handoff: `docs/parallel/GPT_PILOT_REAL_DATA_IMPORT_PLAN_V1_HANDOFF.md`.
+- Main achievement: Normalized import scope, mapped schema destinations, designed 10 CSV template layouts with fake names, set identity strategies, established strict privacy controls, designed transaction-based CLI script pipeline stages, and formulated staged Go/No-Go gates.
+- No real data was imported, created, or committed.
 
 ### Recommended next task
 
-**Pilot Real-Data Import Plan v1**: Create a detailed design, data mapping scheme, import scripts/workflows, and security/privacy safeguards to prepare for the ingestion of real student records, keeping the actual import blocked.
+**Pilot Real-Data Import Templates v1**: Create empty CSV template files with English headers and localized (Hebrew/English) markdown README instructions to hand over to the pilot school team for roster preparation.

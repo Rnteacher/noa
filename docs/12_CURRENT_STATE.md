@@ -1084,6 +1084,201 @@ Updated recommended next task:
 - CSV Audit export verified and logs `audit_log.exported` action with row count details.
 - Go/No-Go report completed and recommends proceeding to plan real-data import.
 
+```bash
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+All four passed (line-ending warnings only on `git diff --check`). No schema changes were made during this task, so `supabase db reset` and type regeneration were not required.
+
+## Latest Web Push v1 validation results
+
+Commands run:
+
+```bash
+supabase db reset
+supabase gen types typescript --local | Out-File -Encoding utf8 src/types/supabase.ts
+npm run check:no-hebrew-in-code
+npm run lint
+npm run build
+git diff --check
+```
+
+Results:
+
+- `supabase db reset` passed and applied `supabase/migrations/20260709030000_push_subscriptions_v1.sql`.
+- Type generation passed and refreshed `src/types/supabase.ts`.
+- `npm run check:no-hebrew-in-code`, `npm run lint`, and `npm run build` passed.
+- `git diff --check` passed with line-ending warnings only.
+- Rollback-only RLS probes confirmed: active staff can insert/update/read/delete their own push subscription; inserting a subscription for another profile is rejected; users cannot read or delete another user's subscription; managers have no special subscription visibility; duplicate endpoints are rejected by the unique constraint; seed `push_subscriptions` row count remained 0 after rollback.
+- Browser smoke status (superseded, see below): the in-app browser redirected unauthenticated `/notifications` to `/login` as expected. A seeded local email/password login attempt returned invalid credentials, matching the existing auth-test limitation. Because no authenticated in-app browser session and no interactive push permission grant were available in this context, the push controls, permission prompt, saved browser subscription, real push display, notification click focusing, and disable/re-enable flow were not fully browser-verified at that time.
+
+## Latest Web Push browser verification results
+
+A full authenticated-browser verification pass was completed against a real Google OAuth session (super_admin role) and a real Chrome browser, with local VAPID keys configured in `.env.local`.
+
+- **Browser support detection**: `serviceWorker`, `PushManager`, and `Notification` all detected correctly; `Notification.permission` was `default` before any click (no unsolicited prompt).
+- **Permission flow**: clicking "enable notifications" triggered the native Chrome permission popup only after a real user click; the user granted it manually (native browser-chrome popups cannot be clicked by automation tooling). `Notification.permission` became `granted`.
+- **Subscription**: `/sw.js` registered (`activated` state), a real `PushSubscription` was created via `pushManager.subscribe()`, and a `push_subscriptions` row was saved with the correct `profile_id`, a real FCM `endpoint`, `p256dh_key`, and `auth_key`, verified directly in the database.
+- **Real push delivery**: since only one live Google account was available, a different real seeded actor (`mentor.one@example.test`, not the recipient) was used to exercise `sendStudentChangePush` directly (same production function, real VAPID keys, real `web-push` package) against the saved subscription. FCM accepted the payload (HTTP 201) and the browser displayed a real, visible push notification after a real-world network delay of roughly 10-15 seconds (an FCM delivery-latency characteristic of this environment, not a code defect). Clicking the notification correctly focused/navigated the app to `/students/[studentId]`, confirmed live by the user.
+- **Disable/re-enable**: disabling removed both the browser `PushSubscription` and the `push_subscriptions` row; re-enabling created a fresh row. Both verified directly against the database.
+- **Privacy and failure checks**: confirmed the payload contains only generic title/body text (no raw message body, emotional status, or goal details); confirmed actor-exclusion and muted-follower exclusion by directly exercising the same recipient-resolution filter `sendStudentChangePush` uses; confirmed a stale (410 Gone) subscription is deleted by the same delete-on-404/410 branch the production code uses. All test follow/subscription rows created for this verification were cleaned up afterward.
+- **Bug found and fixed**: `PushSubscriptionControls.tsx` computed `isAvailable` (browser feature + VAPID-key detection) via a synchronous `useMemo` that called `isPushSupported()` during render. Since `isPushSupported()` reads `window`/`navigator`, it returned `false` during SSR but `true` on the client's very first render pass, producing a real, reproducible React hydration mismatch on the enable button's `disabled` attribute (confirmed via console errors on every page load before the fix). Fixed by switching to `useSyncExternalStore` with an explicit `false` server snapshot, which is the standard pattern for values that legitimately differ between server and client. Verified fixed: no hydration warning on repeated fresh navigations after the fix, `npm run lint` passes (an initial fix using `useEffect` + `setState` was rejected by the `react-hooks/set-state-in-effect` lint rule and replaced with the `useSyncExternalStore` approach).
+
+## Latest Admin Calendar Views v2 browser verification results
+
+- Authenticated browser smoke test performed against a real Google OAuth session (super_admin). Full scope and results are described under "Admin calendar management v2 status" above.
+- **Bug found and fixed**: RTL date-range label in `CalendarDateNavigator.tsx` rendered in reversed visual order due to a missing `dir="ltr"` on a numeric range string inside an RTL context. Fixed with a one-line `dir="ltr"` addition; verified fixed live.
+- Validation commands run after the fix: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed (a pre-existing trailing-whitespace line in this file, unrelated to the calendar fix, was also trimmed to keep `git diff --check` clean). No new migrations were needed.
+- All test calendar events created during this pass were deleted afterward; the `calendar_events` table was verified to match its original 2-row seeded state.
+
+## Latest Student Photo URL Hardening verification results
+
+- `supabase db reset` successfully applied the migration `20260709040000_harden_student_photo_url_path.sql` adding the CHECK constraint.
+- Type generation successfully updated `src/types/supabase.ts`.
+- Direct SQL database probes confirmed:
+  - Raw `UPDATE students SET photo_url = NULL` remains valid.
+  - Raw `UPDATE students SET photo_url = 'students/{student_id}/profile.webp'` succeeds.
+  - Raw updates with mismatching student ID in the path (e.g. `students/{wrong_id}/profile.webp` on student `X`) violate the constraint and are rejected.
+  - Raw updates with invalid filenames/extensions (e.g. `students/{id}/other.webp`, `students/{id}/profile.jpg`) violate the constraint and are rejected.
+  - RPC calls via `update_student_photo_path` are fully protected by this check constraint and fail on invalid formats.
+- Validation checks run after type generation: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed cleanly.
+
+## Latest Manual Verification Leftovers Closeout results
+
+A dedicated pass closed out the five remaining manual-only verification items using two real Google accounts and two separate real Chrome browser profiles side-by-side (full detail in `docs/parallel/GPT_MANUAL_VERIFICATION_LEFTOVERS_CLOSEOUT_HANDOFF.md`). All five are now fully closed with live evidence; no application code bugs were found.
+
+- **Wrong-domain Google OAuth rejection**: a real non-`chamama.org` Google account, signed in via a separate Chrome profile with no cached app session, was rejected correctly — redirected to `/access-denied` with the correct message, no `profiles` row created, session cleared (confirmed via a subsequent `/dashboard` request redirecting to `/login`), no console errors.
+- **Cross-user in-app notification/badge test**: two real accounts (`ronen@chamama.org` as actor, `studio@chamama.org` as recipient, the latter an active `staff`-only profile with no manager/super_admin role) were used. A temporary student message from the actor produced a privacy-safe notification and `/more` badge update for the recipient, correct click-navigation to the student card, and a correct unread-count drop after marking read — all confirmed live by the recipient and cross-checked directly against the database. The actor received zero notifications for their own action.
+- **Genuine two-account Web Push test**: the same recipient account enabled push and received a real FCM push notification (real `push_subscriptions` row with a genuine FCM endpoint), confirmed to correctly focus the target student card on click.
+- **Live 403 audit export test**: the same non-manager `staff`-only account, navigating directly to `/api/admin/audit/export`, received a plain "Forbidden" response with no CSV download; direct database read confirmed zero `audit_log.exported` rows exist (none were written for the denied request).
+- **Learning Groups mobile viewport spot-check**: manually confirmed at a real narrow (~375-390px) viewport — Timetable view, List view, and an open reschedule modal all render and behave correctly, with no problematic overflow and all controls (filters, reschedule, edit, archive) reachable.
+- **Environment artifact (not a code bug)**: an HTTP 431 "Request Header Fields Too Large" occurred once in the recipient's browser on the first attempted action, caused by accumulated stale cookies against `localhost:3000` from that browser's own long testing history. Clearing cookies for `localhost:3000` resolved it immediately and permanently for the rest of the pass. Code review of `src/lib/supabase/server.ts` and `src/lib/supabase/client.ts` confirmed both use the standard `@supabase/ssr` cookie adapter with no custom or oversized cookie writes — nothing in the application's own code is responsible for the header bloat.
+- Cleanup: the temporary test message was soft-deleted by its author; the recipient's follow relationship and push subscription were left active at the user's request (real, harmless app state, not test pollution).
+- Validation: `npm run check:no-hebrew-in-code`, `npm run lint`, `npm run build`, `git diff --check` — all passed cleanly. No source code was changed in this pass.
+
+## Next recommended tasks
+
+1. **Calendar management follow-up**: Build drag-and-drop slots editing, recurrence rules interpretation, and outbound Google Calendar Sync API integration. Calendar Views v2 (List/Day/Week/Month view switcher, date navigator, and sync indicators) is fully implemented and browser-verified.
+2. **Learning groups follow-up**: none for Reschedule v1 or Timetable Views v2 themselves — both are fully implemented and browser-verified (button/modal interaction, not drag-and-drop; see "Admin learning groups timetable views v2 and rescheduling v1 status" above). Remaining deferred scopes: full visual drag-and-drop weekly timetable editing, Google Calendar sync indicators, notifications, capacity/roster management, and school-year selection.
+3. **Manual verification leftovers**: none remaining. OAuth wrong-domain Google account rejection and cross-user real-time notification/badge testing were both fully closed with live evidence in the Manual Verification Leftovers Closeout pass. Student photo upload is also no longer a leftover (fully browser/manual-verified with real images — see "Student photo upload optimization v2" above).
+4. **Two-account real push test**: none remaining. A genuine two-live-account push delivery test was completed in the Manual Verification Leftovers Closeout pass — a real second account received a real FCM push notification and clicking it correctly focused the target student card.
+5. **Learning groups mobile viewport re-check**: none remaining. A real manual mobile-viewport check (~375-390px) was completed in the Manual Verification Leftovers Closeout pass covering Timetable view, List view, and an open reschedule modal — no visual issues found.
+6. **Admin audit log viewer**: no further work needed. Actor filters, date-range filters, pagination, and CSV export are all fully implemented and now browser-verified (including RLS/security probes); the live 403 test against the export API from a real non-manager account is also now closed (see the Manual Verification Leftovers Closeout pass).
+7. **Student photo URL hardening**: no further work needed. The database check constraint successfully blocks all direct-update bypasses and secures the `photo_url` path format invariant.
+
+## Latest Pilot / Production Readiness Audit v1 results
+
+`docs/13_PILOT_PRODUCTION_READINESS.md` now captures the first concrete pilot/production readiness checklist. The conclusion is that the app is ready for production-environment preparation, but not ready for real student data until hosted Supabase, production hosting, production OAuth, private storage, backups, and hosted RLS smoke tests are verified with fake or bootstrap-only data.
+
+Scope boundaries preserved:
+
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No real student data was added.
+- No production secrets were changed.
+- Google Calendar sync remains deferred.
+- No new product feature was implemented.
+
+The audit also updated `.env.example` with placeholder-only names for active runtime variables, Supabase Google OAuth provider configuration, Web Push VAPID keys, and deferred Google Calendar credentials.
+
+Updated recommended next task:
+
+1. **Production Environment Setup Runbook v1**: Convert `docs/13_PILOT_PRODUCTION_READINESS.md` into an exact, fake-data-only runbook for hosted Supabase setup, hosting environment configuration, OAuth redirect verification, production RLS smoke probes, backup/restore review, and rollback steps. Do not deploy or import real data unless explicitly approved.
+
+## Latest Production Environment Setup Runbook v1 results
+
+`docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` now provides the exact fake-data-only operator runbook for setting up and verifying a hosted pilot/production-like environment. It covers hosted Supabase setup, environment variable mapping, production Google OAuth configuration, provider-neutral hosting setup, hosted RLS smoke probes, backup/restore/rollback checks, fake-data pilot verification, and the hard real-data import gate.
+
+Scope boundaries preserved:
+
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No hosting project was created.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was added or imported.
+- Google Calendar sync remains deferred.
+- No new product feature was implemented.
+- RLS and normal app-flow boundaries were not changed.
+
+`.env.example` did not need changes in this task because it already contains placeholder-only entries for the current runtime variables, Supabase Google OAuth provider placeholders, Web Push VAPID keys, and deferred Google Calendar variables.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Plan v1**: After explicit approval, rehearse `docs/14_PRODUCTION_ENVIRONMENT_SETUP_RUNBOOK.md` against a hosted fake-data-only environment and record actual setup/verification results. Do not import real data.
+
+## Latest Hosted Pilot Dry-Run Plan v1 results
+
+`docs/15_HOSTED_PILOT_DRY_RUN_PLAN.md` now provides the fake-data-only rehearsal plan for executing the hosted setup runbook later. It includes placeholder-only inputs, execution checkpoints, evidence collection, fake-data workflow verification, hosted RLS probes, failure/rollback rules, and a go/no-go report template.
+
+No hosted dry run has been executed yet.
+
+Scope boundaries preserved:
+
+- No Supabase Cloud project was created.
+- No hosting project was created.
+- No deployment was performed.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was used or imported.
+- Google Calendar sync remains deferred.
+- No import tooling or product feature was added.
+- RLS and service-role boundaries were not changed.
+- `.env.example` did not need changes.
+
+Updated recommended next task:
+
+1. **Hosting provider decision memo**: Choose the hosting provider, production-like domain, preview URL policy, rollback mechanism, and operational owner before approving Hosted Pilot Dry-Run Execution v1.
+
+## Latest Vercel + Supabase Hosting Decision Memo v1 results
+
+`docs/16_VERCEL_SUPABASE_HOSTING_DECISION.md` now establishes the default pilot hosting path on Vercel and hosted Supabase Cloud. It evaluates Next.js 16 Edge runtime compatibility, Server Actions, env var scopes, browser service-worker setup (`/sw.js`), and database configuration (RLS, private buckets, backups, and migration strategies).
+
+Scope boundaries preserved:
+- No deployment was performed.
+- No Supabase Cloud project was created.
+- No Vercel project was created.
+- No real OAuth credentials or production secrets were configured.
+- No real student data was used or imported.
+- Google Calendar sync remains deferred.
+- No import tooling or product feature was added.
+- RLS, custom middleware (`src/proxy.ts`), and service-role boundaries were not changed.
+- `.env.example` did not need changes.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Execution Prep v1**: Select the production-like dry-run domain, choose the Supabase pricing/backup tier, and assign operational owners before executing the dry run.
+
+## Latest Hosted Pilot Dry-Run Execution v1 — Part A results
+
+`docs/17_HOSTED_PILOT_DRY_RUN_EXECUTION_PART_A.md` documents the initial execution steps for wiring the local repository to GitHub, linking/migrating hosted Supabase, setting up environment variables, and deploying to Vercel.
+- GitHub connection succeeded on the `master` branch (a Google OAuth credentials leak blocker in an older commit was successfully purged using `git filter-branch` history rewriting).
+- Linked to hosted project `qxjfzdmszgvymcuyuisu` and applied all 11 database migrations via `supabase db push`. Verified that core enums, tables, functions, views, RLS policies, and the private `student-photos` storage bucket were successfully created.
+- Wired Vercel configuration env vars and completed the first production deploy to `https://noa-rho-dusky.vercel.app`.
+- Unauthenticated smoke tests passed (login renders, anonymous `/dashboard` redirects, and `/sw.js` is served from root). Google OAuth credentials setup remains the only blocker for authenticated testing.
+
+Scope boundaries preserved:
+- No real student data was used or imported.
+- No production secrets or credentials were committed to the repository.
+- Local dev seed was not applied to the hosted database.
+- Google Calendar sync remains deferred.
+- No new application features were introduced.
+
+Updated recommended next task:
+
+1. **Hosted Pilot Dry-Run Execution v1 — Part B**: Configure Google OAuth and redirects, perform authenticated smoke tests, run hosted RLS/security probes, check signed storage uploads, and complete the go/no-go report.
+
+## Latest Hosted Pilot Dry-Run Execution v1 — Part B results
+
+`docs/18_HOSTED_PILOT_DRY_RUN_EXECUTION_PART_B.md` documents the final verification and testing steps completed on the live hosted pilot environment:
+- Google OAuth is fully configured and verified using the institutional account `ronen@chamama.org`, which was successfully bootstrapped with both `super_admin` and `manager` roles during profile synchronization.
+- Hosted database RLS and security checks passed (anonymous access is blocked, unauthorized users see 0 rows, manager has access). Direct public access to the private `student-photos` storage bucket is successfully denied (status 400).
+- Student photo uploads are fully functional. Browser-side crop/compression produces a 56 KB WebP image stored privately at `students/55000000-0000-0000-0000-000000000001/profile.webp` and renders via signed URLs. `student_photo.updated` audit log row was written.
+- Web Push notifications enabled and verified, registering a subscription row in `public.push_subscriptions`.
+- CSV Audit export verified and logs `audit_log.exported` action with row count details.
+- Go/No-Go report completed and recommends proceeding to plan real-data import.
+
 Scope boundaries preserved:
 - No real student data was used or imported.
 - No secrets or credentials were committed to the repository or recorded in documentation.
@@ -1120,3 +1315,36 @@ Scope boundaries preserved:
 Updated recommended next task:
 
 1. **Performance Fixes v1**: Run a reversible Vercel `icn1` region experiment, reduce protected-route prefetch/background work, remove duplicate student-card auth/role calls, and re-measure before any real-data import plan or index migration.
+
+## Latest Performance Fixes v1 results
+
+`docs/20_PERFORMANCE_FIXES_V1.md` documents the performance fixes implemented in Vercel + Supabase staging environment:
+- Aligned Vercel serverless function region to `icn1` (Seoul) right next to the database.
+- Removed link prefetching on BottomNav.
+- Optimized notification count checking, executing it only on mount and to/from `/more` or `/notifications` transitions.
+- Combined role checks and bypassed redundant database writes in OAuth callback sync, reducing roundtrips for returning users from 5 waves to 1.
+- Parallelized calendar query fetches.
+- Replaced wildcard dashboard queries.
+- These fixes yielded a **10x load-time reduction** (dropping from ~4.53-6.66 s to ~450-650 ms on the student card route) on the live hosted staging environment.
+
+## Latest Pilot Real-Data Import Plan v1 results
+
+`docs/21_PILOT_REAL_DATA_IMPORT_PLAN.md` documents the real-data import plan designed for the first school pilot:
+- Defined the core pilot import scope (school years, staff access grants/roles, student groups, group mentors, students, projects, masters, goals, followed mapping).
+- Mapped destination schema constraints, RLS sensitivity, and rollback strategies.
+- Designed 10 CSV template structures using dummy names.
+- Detailed identity and UUID generation strategies.
+- Defined privacy safeguards and technical operators.
+- Designed a transaction-based CLI script execution pipeline.
+- Established Go/No-Go verification checklist gates.
+
+Scope boundaries preserved:
+- No real student data was used or imported.
+- No secrets or credentials were committed.
+- Supabase RLS remains fully active.
+- Google Calendar sync remains deferred.
+- No new features were implemented.
+
+Updated recommended next task:
+
+1. **Pilot Real-Data Import Templates v1**: Create empty CSV template files with English headers and localized (Hebrew/English) markdown README instructions to hand over to the pilot school team for roster preparation.
