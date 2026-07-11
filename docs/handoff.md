@@ -2,7 +2,7 @@
 
 ## Summary
 
-The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Sixteen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Pilot Real-Data Import Validator v1** which successfully built a TypeScript validation tool (`scripts/import/validate-real-data.ts`) to locally verify header alignments, enums, dates, duplicate constraint rules, and foreign key relations. Verified it against mock datasets with exit code `0`. Prior milestones include the Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a recommendation has been issued to implement the import scripts.
+The local Chamama Staff App now has the core authenticated staff foundation plus dashboard, student, announcement, message, project-status, emotional-status, student-goal (including primary/central selection), follow/unfollow, student-photo, admin layout shell, admin announcement management, admin calendar management, admin calendar drag/reschedule v1, admin learning groups weekly editor and reschedule v1, in-app notifications/badges, Web Push v1 subscription/delivery, and a read-only admin audit log viewer workflows running against the local Supabase schema, storage bucket, and seed. Seventeen full verification, readiness audit, setup planning, and hosted execution phases have now been completed, culminating in **Pilot Real-Data Import Implementation v1** which successfully built the local ingestion and rollback scripts (`scripts/import/run-import.ts` and `scripts/import/rollback-import.ts`) to execute dry-runs, local commits, and secure rollbacks. Verified dry-run transaction locks, local apply, local rollback, and negative checks against the local PostgreSQL target. Prior milestones include the Import Validator, Import Templates, Import Plan, Performance Fixes v1 (yielding a **10x load-time reduction**), Part A and Part B executions, the hosting decision, and nine manual verification passes. All checks passed, and a recommendation has been issued to implement the staff profile readiness preflight check.
 
 ## Current Implemented Foundation
 
@@ -53,14 +53,16 @@ All five fixes were verified live in the browser afterward. The latest Web Push 
 - Admin audit log viewer follow-up: none. Actor filters, date-range filters, pagination, and CSV export are fully implemented and browser-verified, and the live 403 test against the export API from a real non-manager account is now closed (see the Manual Verification Leftovers Closeout pass) — confirmed a plain "Forbidden" response and zero `audit_log.exported` rows for the denied request.
 - Student photo upload follow-up: none. Student photo upload, in-browser optimization, and database-level photo_url path hardening are fully implemented and verified. Deferred photo scopes are limited to manual crop UI, bulk import, image moderation, and responsive variants.
 
-## Pilot real-data import validator v1 handoff
+## Pilot real-data import implementation v1 handoff
 
-- CLI Script: `scripts/import/validate-real-data.ts`.
+- CLI Ingestion Orchestrator: `scripts/import/run-import.ts`.
+- CLI Rollback Engine: `scripts/import/rollback-import.ts`.
+- Database Utility & Plan Builder: `scripts/import/import-db.ts` & `scripts/import/import-plan.ts`.
 - Script README: `scripts/import/README.md`.
-- Report log: `docs/22_PILOT_REAL_DATA_IMPORT_VALIDATOR.md`.
-- Parallel handoff: `docs/parallel/GPT_PILOT_REAL_DATA_IMPORT_VALIDATOR_V1_HANDOFF.md`.
-- Safety boundary: No real data was imported, and all CLI outputs/logs/code comments are in English.
+- Report log: `docs/23_PILOT_REAL_DATA_IMPORT_IMPLEMENTATION.md`.
+- Parallel handoff: `docs/parallel/GPT_PILOT_REAL_DATA_IMPORT_IMPLEMENTATION_V1_HANDOFF.md`.
+- Safety boundary: Verified dry-run, local apply, local rollback, and host targets connection lock. No production execution was triggered, and no secrets or real data were committed.
 
 ### Recommended next task
 
-**Pilot Real-Data Import Implementation v1**: Build the transaction-protected ingestion and rollback scripts (`scripts/import/run-import.ts` and `scripts/import/rollback-import.ts`) to prepare database execution workflows, keeping production database execution locked.
+**Pilot Staff Profile Readiness Check v1**: Create a preflight validation tool to check which whitelisted staff emails from the import roster have not registered their active database profiles yet (by completing their Google OAuth first sign-in), and generate a readiness status report prior to dry-run execution.

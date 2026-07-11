@@ -8,13 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "check:no-hebrew-in-code": "node scripts/check-no-hebrew-in-code.mjs",
-    "validate:import": "npx tsx scripts/import/validate-real-data.ts"
+    "validate:import": "npx tsx scripts/import/validate-real-data.ts",
+    "import:plan": "npx tsx scripts/import/run-import.ts --plan-only",
+    "import:dry-run": "npx tsx scripts/import/run-import.ts --dry-run",
+    "import:apply:local": "npx tsx scripts/import/run-import.ts --apply-local",
+    "import:rollback:local": "npx tsx scripts/import/rollback-import.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
+    "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "web-push": "^3.6.7",
@@ -23,6 +28,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",

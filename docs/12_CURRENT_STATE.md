@@ -1352,6 +1352,14 @@ A TypeScript validation tool was created under `scripts/import/`:
 - **Verification Outcomes**: Tested against mock references in `docs/import/examples/` with successful exit code `0`. Tested against empty templates in `docs/import/templates/` where the manifest triggers a controlled `No manifest row present` error while other zero-row files pass successfully. Verified 8 custom invalidation cases (invalid role, unknown student ID, duplicate ID, missing required file, malformed date, invalid boolean, duplicate current project, and duplicate primary goal) in a temporary OS folder, all failing as expected with clean English logs.
 - **Technical documentation**: Created a developer guide (`scripts/import/README.md`) explaining CLI execution and validation criteria.
 
+## Latest Pilot Real-Data Import Implementation v1 results
+
+Direct PostgreSQL ingestion and rollback CLI utilities were created under `scripts/import/`:
+- **CLI Script run-import.ts**: Parses, validates, and ingests CSV rosters inside a PostgreSQL transaction (`BEGIN`). Runs constraints checks (max 1 current project and primary goal per student) inside the transaction. Supports `--plan-only` (write manifest without connecting), `--dry-run` (rollback after verification), and `--apply-local` (commit on local database).
+- **CLI Script rollback-import.ts**: Reads the planned run manifest JSON, checks authorization environment guards, and deletes ingested rows in reverse dependency order using the exact generated UUIDs.
+- **Client import-db.ts & Plan import-plan.ts**: Utility modules checking connection string host targets (enforcing localhost blockades unless explicitly allowed for remote target read-only probes) and compiling the in-memory migration plan.
+- **Verification Outcomes**: Successfully ran dry-run transaction verification, local apply, local rollback, and host targets block checks against the local PostgreSQL engine, returning all states back to the dev seed baseline.
+
 Scope boundaries preserved:
 - No real student data was used or imported.
 - No secrets or credentials were committed.
@@ -1362,4 +1370,4 @@ Scope boundaries preserved:
 
 Updated recommended next task:
 
-1. **Pilot Real-Data Import Implementation v1**: Build the transaction-protected ingestion and rollback scripts (`scripts/import/run-import.ts` and `scripts/import/rollback-import.ts`) to prepare database execution workflows, keeping production database execution locked.
+1. **Pilot Staff Profile Readiness Check v1**: Create a preflight validation tool to check which whitelisted staff emails from the import roster have not registered their active database profiles yet (by completing their Google OAuth first sign-in), and generate a readiness status report prior to dry-run execution.

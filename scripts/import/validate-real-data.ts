@@ -43,7 +43,7 @@ const PROJECT_STATUSES = ['green', 'yellow', 'red'];
 const GOAL_STATUSES = ['active', 'completed', 'paused', 'archived'];
 
 // Helper to parse CSV rows supporting double-quotes escaping
-function parseCsv(content: string): string[][] {
+export function parseCsv(content: string): string[][] {
   const lines: string[][] = [];
   let row: string[] = [];
   let inQuotes = false;
@@ -77,7 +77,7 @@ function parseCsv(content: string): string[][] {
   return lines;
 }
 
-function findFile(dir: string, baseNames: string[]): string | null {
+export function findFile(dir: string, baseNames: string[]): string | null {
   const filesInDir = fs.readdirSync(dir);
   for (const file of filesInDir) {
     const ext = path.extname(file).toLowerCase();
@@ -96,7 +96,7 @@ function findFile(dir: string, baseNames: string[]): string | null {
   return null;
 }
 
-interface ValidationContext {
+export interface ValidationContext {
   errors: string[];
   warnings: string[];
   staffEmails: Set<string>;
@@ -513,18 +513,14 @@ function validateEmotionalBaseline(filePath: string, ctx: ValidationContext) {
   }
 }
 
-function validateDirectory(dirPath: string) {
-  console.log(`Starting CSV import validation in directory: ${dirPath}`);
-
+export function validateDirectoryContent(dirPath: string): { ctx: ValidationContext; resolvedPaths: Record<string, string | null> } {
   if (!fs.existsSync(dirPath)) {
-    console.error(`[ERROR] Target directory '${dirPath}' does not exist.`);
-    process.exit(1);
+    throw new Error(`Target directory '${dirPath}' does not exist.`);
   }
 
   const stat = fs.statSync(dirPath);
   if (!stat.isDirectory()) {
-    console.error(`[ERROR] Target path '${dirPath}' is not a directory.`);
-    process.exit(1);
+    throw new Error(`Target path '${dirPath}' is not a directory.`);
   }
 
   const ctx: ValidationContext = {
@@ -627,27 +623,42 @@ function validateDirectory(dirPath: string) {
     ctx.warnings.push(`Optional emotional baseline file not found. Baseline sync will be skipped.`);
   }
 
-  console.log('\n--- Validation Summary ---');
-  if (ctx.warnings.length > 0) {
-    console.log(`\nWarnings (${ctx.warnings.length}):`);
-    ctx.warnings.forEach((warn) => console.log(`[WARN] ${warn}`));
-  }
+  return { ctx, resolvedPaths };
+}
 
-  if (ctx.errors.length > 0) {
-    console.log(`\nErrors (${ctx.errors.length}):`);
-    ctx.errors.forEach((err) => console.log(`[ERR] ${err}`));
-    console.log('\n[FAIL] Validation failed. Please fix the errors listed above.');
+function runCli() {
+  const targetDir = process.argv[2];
+  if (!targetDir) {
+    console.error('[ERROR] Please specify the target directory path. Usage: npm run validate:import -- <directory-path>');
     process.exit(1);
-  } else {
-    console.log('\n[SUCCESS] All files parsed and matched successfully! Ready for dry-run ingestion.');
-    process.exit(0);
+  }
+
+  try {
+    const { ctx } = validateDirectoryContent(path.resolve(process.cwd(), targetDir));
+
+    console.log('\n--- Validation Summary ---');
+    if (ctx.warnings.length > 0) {
+      console.log(`\nWarnings (${ctx.warnings.length}):`);
+      ctx.warnings.forEach((warn) => console.log(`[WARN] ${warn}`));
+    }
+
+    if (ctx.errors.length > 0) {
+      console.log(`\nErrors (${ctx.errors.length}):`);
+      ctx.errors.forEach((err) => console.log(`[ERR] ${err}`));
+      console.log('\n[FAIL] Validation failed. Please fix the errors listed above.');
+      process.exit(1);
+    } else {
+      console.log('\n[SUCCESS] All files parsed and matched successfully! Ready for dry-run ingestion.');
+      process.exit(0);
+    }
+  } catch (err) {
+    const error = err as Error;
+    console.error(`[ERROR] ${error.message}`);
+    process.exit(1);
   }
 }
 
-const targetDir = process.argv[2];
-if (!targetDir) {
-  console.error('[ERROR] Please specify the target directory path. Usage: npm run validate:import -- <directory-path>');
-  process.exit(1);
+// Only run CLI if executed directly
+if (process.argv[1] && (process.argv[1].endsWith('validate-real-data.ts') || process.argv[1].endsWith('validate-real-data.js'))) {
+  runCli();
 }
-
-validateDirectory(path.resolve(process.cwd(), targetDir));
