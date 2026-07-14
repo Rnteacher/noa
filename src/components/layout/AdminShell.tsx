@@ -107,7 +107,18 @@ export function AdminShell({ children }: AdminShellProps) {
         </button>
       </div>
 
-      {/* Main Nav Items */}
+      {/*
+        Main Nav Items. prefetch={false} on every Link in this sidebar is
+        load-bearing, not an optimization: the desktop sidebar renders ~7
+        links simultaneously, and Next's default viewport prefetching fires
+        a background request for each one through the auth middleware at
+        once. If the access token is due for a refresh right then, those
+        concurrent requests race on the same (single-use) refresh token —
+        one wins, the rest invalidate the session and the user gets kicked
+        back to /login. Same root cause as the messages-feed fix in
+        src/features/messages/queries.ts; here the fix is avoiding the
+        concurrent requests in the first place.
+      */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto" aria-label={t('nav.main')}>
         {navItems.map((item, idx) => {
           const Icon = item.icon;
@@ -118,6 +129,7 @@ export function AdminShell({ children }: AdminShellProps) {
               <Link
                 key={idx}
                 href={item.href}
+                prefetch={false}
                 onClick={() => setIsOpen(false)}
                 className={cn(
                   'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
@@ -153,6 +165,7 @@ export function AdminShell({ children }: AdminShellProps) {
       <div className="p-3 border-t border-line">
         <Link
           href="/calendar"
+          prefetch={false}
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-secondary hover:bg-surface-sunken hover:text-ink transition-colors"
         >
           <Home className="h-4 w-4 shrink-0 text-ink-muted" />
@@ -199,6 +212,7 @@ export function AdminShell({ children }: AdminShellProps) {
           </span>
           <Link
             href="/calendar"
+            prefetch={false}
             className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-sunken"
           >
             <Home className="h-5 w-5" />

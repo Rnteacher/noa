@@ -38,6 +38,7 @@ export default async function SettingsPage() {
         {profile?.isManagerOrSuperAdmin ? (
           <Link
             href="/admin/groups"
+            prefetch={false}
             className="flex items-center gap-3 rounded-[18px] border border-accent/30 bg-accent-soft/50 p-4 text-accent transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-on-accent">
@@ -55,6 +56,7 @@ export default async function SettingsPage() {
         {profile?.isSuperAdmin ? (
           <Link
             href="/admin/access-grants"
+            prefetch={false}
             className="flex items-center gap-3 rounded-[18px] border border-accent/30 bg-accent-soft/50 p-4 text-accent transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-on-accent">
