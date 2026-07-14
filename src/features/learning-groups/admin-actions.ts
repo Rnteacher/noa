@@ -621,7 +621,6 @@ export async function rescheduleLearningGroup(
   }
 
   revalidatePath('/admin/learning-groups');
-  revalidatePath('/dashboard');
 
   return { success: true, error: null };
 }
@@ -758,7 +757,6 @@ export async function importLearningGroups(
 
   revalidatePath('/admin/learning-groups');
   revalidatePath('/admin/import-export');
-  revalidatePath('/dashboard');
 
   return { success: true, error: null };
 }

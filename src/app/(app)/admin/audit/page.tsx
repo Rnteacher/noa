@@ -42,20 +42,20 @@ function formatJsonPreview(value: unknown) {
 
 function ForbiddenState() {
   return (
-    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-950 px-4 py-8">
-      <section className="mx-auto max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-center shadow-xl">
+    <main className="min-h-screen bg-surface-sunken dark:bg-ink px-4 py-8">
+      <section className="mx-auto max-w-md rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 text-center shadow-xl">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-600 text-white">
           <ShieldAlert className="h-6 w-6" />
         </div>
-        <h1 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+        <h1 className="text-xl font-bold text-ink dark:text-surface">
           {t('admin.accessGrants.forbiddenTitle')}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 text-ink-secondary dark:text-ink-muted">
           {t('admin.audit.errorForbidden')}
         </p>
         <Link
-          href="/dashboard"
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          href="/calendar"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-ink px-4 text-sm font-bold text-white transition-colors hover:bg-ink-secondary dark:bg-surface dark:text-ink dark:hover:bg-line"
         >
           {t('admin.accessGrants.backToDashboard')}
         </Link>
@@ -84,18 +84,18 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
     <main className="p-4 md:p-6 lg:p-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         <header>
-          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+          <p className="text-sm font-semibold text-accent-strong dark:text-accent-strong">
             {t('nav.admin')}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-surface">
             {t('admin.audit.title')}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-secondary dark:text-ink-muted">
             {t('admin.audit.description')}
           </p>
         </header>
 
-        <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+        <section className="space-y-4 rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-4 shadow-sm">
           <AuditLogFilters
             actionOptions={data.actionOptions}
             entityTypeOptions={data.entityTypeOptions}
@@ -107,7 +107,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
             <div className="overflow-x-auto">
               <table className="w-full text-start text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-semibold">
+                  <tr className="border-b border-surface-sunken dark:border-ink-secondary text-ink-muted dark:text-ink-muted font-semibold">
                     <th className="py-2.5 px-2 text-start">{t('admin.audit.colDate')}</th>
                     <th className="py-2.5 px-2 text-start">{t('admin.audit.colActor')}</th>
                     <th className="py-2.5 px-2 text-start">{t('admin.audit.colAction')}</th>
@@ -115,31 +115,31 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                     <th className="py-2.5 px-2 text-start">{t('admin.audit.colDetails')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                <tbody className="divide-y divide-surface-sunken dark:divide-ink-secondary/50">
                   {data.logs.map((log) => {
                     const beforePreview = formatJsonPreview(log.beforeData);
                     const afterPreview = formatJsonPreview(log.afterData);
 
                     return (
-                      <tr key={log.id} className="align-top hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30">
-                        <td className="py-3 px-2 whitespace-nowrap text-zinc-600 dark:text-zinc-450">
+                      <tr key={log.id} className="align-top hover:bg-surface/50 dark:hover:bg-ink/30">
+                        <td className="py-3 px-2 whitespace-nowrap text-ink-secondary dark:text-ink-muted">
                           {formatDateTime(log.createdAt)}
                         </td>
-                        <td className="py-3 px-2 text-zinc-650 dark:text-zinc-400">
+                        <td className="py-3 px-2 text-ink-secondary dark:text-ink-muted">
                           <div className="font-semibold">{log.actorName ?? t('admin.audit.unknownActor')}</div>
                           {log.actorEmail ? (
-                            <div className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-550 select-all">
+                            <div className="mt-0.5 text-[10px] text-ink-muted dark:text-ink-muted select-all">
                               {log.actorEmail}
                             </div>
                           ) : null}
                         </td>
-                        <td className="py-3 px-2 font-mono text-[11px] font-semibold text-zinc-900 dark:text-zinc-100">
+                        <td className="py-3 px-2 font-mono text-[11px] font-semibold text-ink dark:text-surface-sunken">
                           {log.action}
                         </td>
-                        <td className="py-3 px-2 text-zinc-650 dark:text-zinc-400">
+                        <td className="py-3 px-2 text-ink-secondary dark:text-ink-muted">
                           <div className="font-mono text-[11px]">{log.entityType}</div>
                           {log.entityId ? (
-                            <div className="mt-0.5 max-w-[140px] truncate font-mono text-[10px] text-zinc-450 dark:text-zinc-550 select-all">
+                            <div className="mt-0.5 max-w-[140px] truncate font-mono text-[10px] text-ink-muted dark:text-ink-muted select-all">
                               {log.entityId}
                             </div>
                           ) : null}
@@ -149,27 +149,27 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
                             <div className="space-y-1">
                               {beforePreview ? (
                                 <details>
-                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 select-none">
+                                  <summary className="cursor-pointer text-[11px] font-semibold text-ink-muted dark:text-ink-muted select-none">
                                     {t('admin.audit.beforeLabel')}
                                   </summary>
-                                  <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-zinc-50 dark:bg-zinc-950 p-2 text-[10px] text-zinc-700 dark:text-zinc-300">
+                                  <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-surface dark:bg-ink p-2 text-[10px] text-ink-secondary dark:text-line">
                                     {beforePreview}
                                   </pre>
                                 </details>
                               ) : null}
                               {afterPreview ? (
                                 <details>
-                                  <summary className="cursor-pointer text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 select-none">
+                                  <summary className="cursor-pointer text-[11px] font-semibold text-ink-muted dark:text-ink-muted select-none">
                                     {t('admin.audit.afterLabel')}
                                   </summary>
-                                  <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-zinc-50 dark:bg-zinc-950 p-2 text-[10px] text-zinc-700 dark:text-zinc-300">
+                                  <pre className="mt-1 max-w-md overflow-x-auto rounded-lg bg-surface dark:bg-ink p-2 text-[10px] text-ink-secondary dark:text-line">
                                     {afterPreview}
                                   </pre>
                                 </details>
                               ) : null}
                             </div>
                           ) : (
-                            <span className="text-zinc-300 dark:text-zinc-700">-</span>
+                            <span className="text-line dark:text-ink-secondary">-</span>
                           )}
                         </td>
                       </tr>
@@ -179,7 +179,7 @@ export default async function AdminAuditPage({ searchParams }: AdminAuditPagePro
               </table>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-850 py-10 text-center text-zinc-500 dark:text-zinc-450">
+            <div className="rounded-xl border border-dashed border-line dark:border-ink py-10 text-center text-ink-muted dark:text-ink-muted">
               {t('admin.audit.emptyList')}
             </div>
           )}

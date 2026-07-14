@@ -23,17 +23,17 @@ export function GroupRow({ group, schoolYearOptions, mentorOptions }: GroupRowPr
 
   if (isEditing) {
     return (
-      <tr className="bg-zinc-50/60 dark:bg-zinc-900/40">
+      <tr className="bg-surface/60 dark:bg-ink/40">
         <td colSpan={6} className="p-3">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 p-4">
+          <div className="rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+              <h3 className="text-sm font-bold text-ink dark:text-surface">
                 {t('admin.groups.editTitle')}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-sunken dark:hover:bg-ink-secondary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -53,17 +53,17 @@ export function GroupRow({ group, schoolYearOptions, mentorOptions }: GroupRowPr
 
   return (
     <>
-      <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30">
-        <td className="py-3 px-2 font-medium text-zinc-900 dark:text-zinc-100">
+      <tr className="hover:bg-surface/50 dark:hover:bg-ink/30">
+        <td className="py-3 px-2 font-medium text-ink dark:text-surface-sunken">
           <div className="truncate">{group.name}</div>
           {group.layer ? (
-            <div className="text-[10px] text-zinc-400 dark:text-zinc-550 mt-0.5">{group.layer}</div>
+            <div className="text-[10px] text-ink-muted dark:text-ink-muted mt-0.5">{group.layer}</div>
           ) : null}
         </td>
-        <td className="py-3 px-2 text-zinc-600 dark:text-zinc-450 whitespace-nowrap">
+        <td className="py-3 px-2 text-ink-secondary dark:text-ink-muted whitespace-nowrap">
           {group.schoolYearName}
         </td>
-        <td className="py-3 px-2 text-center text-zinc-600 dark:text-zinc-450">{group.studentCount}</td>
+        <td className="py-3 px-2 text-center text-ink-secondary dark:text-ink-muted">{group.studentCount}</td>
         <td className="py-3 px-2">
           <button
             type="button"
@@ -74,22 +74,22 @@ export function GroupRow({ group, schoolYearOptions, mentorOptions }: GroupRowPr
                 ? t('admin.groups.mentorCountWarning', { count: String(activeMentors.length) })
                 : t('admin.groups.mentorsTitle')
             }
-            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-ink-secondary dark:text-line hover:bg-surface-sunken dark:hover:bg-ink-secondary"
           >
-            <Users className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+            <Users className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
             <span>{activeMentors.length}</span>
             {mentorCountMismatch ? (
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden="true" />
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-status-caution" aria-hidden="true" />
             ) : null}
           </button>
         </td>
         <td className="py-3 px-2 text-center">
           {group.isActive ? (
-            <span className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-450">
+            <span className="text-[10px] font-bold uppercase text-accent dark:text-accent">
               {t('admin.groups.statusActive')}
             </span>
           ) : (
-            <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-550">
+            <span className="text-[10px] font-bold uppercase text-ink-muted dark:text-ink-muted">
               {t('admin.groups.statusInactive')}
             </span>
           )}
@@ -100,7 +100,7 @@ export function GroupRow({ group, schoolYearOptions, mentorOptions }: GroupRowPr
               type="button"
               onClick={() => setIsEditing(true)}
               title={t('admin.groups.editButton')}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-emerald-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:text-accent hover:bg-surface dark:hover:bg-ink-secondary transition-colors"
             >
               <Pencil className="h-4 w-4" />
             </button>

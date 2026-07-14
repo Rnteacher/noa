@@ -19,14 +19,14 @@ type PageProps = {
   }>;
 };
 
-export default async function AnnouncementDetailPage({ params }: PageProps) {
+export default async function MessageDetailPage({ params }: PageProps) {
   const { announcementId } = await params;
   const { announcement, acknowledged, error } = await getAnnouncementById(announcementId);
 
   if (error || !announcement) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col border-x border-line bg-surface">
-        <AppHeader title={t('nav.announcements')} backHref="/announcements" />
+        <AppHeader title={t('nav.messages')} backHref="/messages" />
         <main className="flex-1 p-4">
           <Alert variant="danger" title={t('dashboard.error.title')}>
             {t(error || 'announcements.error.notFound')}
@@ -38,7 +38,7 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col border-x border-line bg-surface">
-      <AppHeader title={t('nav.announcements')} backHref="/announcements" />
+      <AppHeader title={t('nav.messages')} backHref="/messages" />
 
       <main className="flex-1 space-y-6 p-4">
         <article className="space-y-4">

@@ -23,7 +23,7 @@ export default function UiShowcasePage() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <AppHeader
         title={t('app.title')}
-        backHref="/dashboard"
+        backHref="/calendar"
         trailing={
           <span className="flex h-10 w-10 items-center justify-center rounded-full text-ink-secondary">
             <Search aria-hidden="true" className="h-5 w-5" />
@@ -77,7 +77,7 @@ export default function UiShowcasePage() {
           <h2 className="text-sm font-bold text-ink-muted">ListRow</h2>
           <Card className="divide-y divide-line p-0">
             <ListRow
-              href="/dashboard"
+              href="/calendar"
               title={t('mock.student.name1')}
               subtitle={t('mock.student.project1')}
               leading={

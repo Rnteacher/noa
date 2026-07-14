@@ -47,16 +47,16 @@ export function AuditLogPagination({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-surface-sunken pt-4 dark:border-ink-secondary">
       <div className="flex items-center gap-2">
-        <label htmlFor="audit-page-size" className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+        <label htmlFor="audit-page-size" className="text-xs font-semibold text-ink-muted dark:text-ink-muted">
           {t('admin.audit.pageSizeLabel')}
         </label>
         <select
           id="audit-page-size"
           value={pageSize}
           onChange={handlePageSizeChange}
-          className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-950 outline-none focus:border-emerald-600 dark:border-zinc-750 dark:bg-zinc-950 dark:text-zinc-50"
+          className="h-8 rounded-lg border border-line bg-white px-2 text-xs text-ink outline-none focus:border-accent dark:border-ink-secondary dark:bg-ink dark:text-surface"
         >
           <option value="25">25</option>
           <option value="50">50</option>
@@ -69,12 +69,12 @@ export function AuditLogPagination({
           type="button"
           onClick={handlePrev}
           disabled={!hasPrevious}
-          className="h-9 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-650 hover:bg-zinc-50 disabled:opacity-50 disabled:hover:bg-transparent dark:border-zinc-750 dark:text-zinc-350 dark:hover:bg-zinc-850"
+          className="h-9 rounded-lg border border-line px-3 text-xs font-semibold text-ink-secondary hover:bg-surface disabled:opacity-50 disabled:hover:bg-transparent dark:border-ink-secondary dark:text-ink-muted dark:hover:bg-ink"
         >
           {t('admin.audit.paginationPrev')}
         </button>
 
-        <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+        <span className="text-xs font-semibold text-ink-secondary dark:text-ink-muted">
           {t('admin.audit.paginationInfo')
             .replace('{current}', String(currentPage))
             .replace('{total}', String(Math.max(1, totalPages)))}
@@ -84,7 +84,7 @@ export function AuditLogPagination({
           type="button"
           onClick={handleNext}
           disabled={!hasNext}
-          className="h-9 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-650 hover:bg-zinc-50 disabled:opacity-50 disabled:hover:bg-transparent dark:border-zinc-750 dark:text-zinc-350 dark:hover:bg-zinc-850"
+          className="h-9 rounded-lg border border-line px-3 text-xs font-semibold text-ink-secondary hover:bg-surface disabled:opacity-50 disabled:hover:bg-transparent dark:border-ink-secondary dark:text-ink-muted dark:hover:bg-ink"
         >
           {t('admin.audit.paginationNext')}
         </button>

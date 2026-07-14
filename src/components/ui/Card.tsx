@@ -16,7 +16,7 @@ export function Card({ title, description, children, className }: CardProps) {
   return (
     <section
       className={cn(
-        'rounded-2xl border border-line bg-surface-raised p-4 shadow-sm',
+        'chm-card-shadow rounded-[18px] bg-surface-raised p-4',
         className
       )}
     >

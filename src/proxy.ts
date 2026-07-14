@@ -89,7 +89,7 @@ export async function proxy(request: NextRequest) {
 
   if (isActiveStaff) {
     if (isPublic || pathname === '/') {
-      return redirectWithCookies(request, '/dashboard', response);
+      return redirectWithCookies(request, '/calendar', response);
     }
 
     return response;

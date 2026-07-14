@@ -172,7 +172,7 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
           {t('admin.calendar.titleLabel')}
         </span>
         <input
@@ -183,12 +183,12 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
           maxLength={160}
           onChange={(event) => setTitle(event.target.value)}
           placeholder={t('admin.calendar.titlePlaceholder')}
-          className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
           {t('admin.calendar.descriptionLabel')}
         </span>
         <textarea
@@ -198,38 +198,38 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
           maxLength={2000}
           onChange={(event) => setDescription(event.target.value)}
           placeholder={t('admin.calendar.descriptionPlaceholder')}
-          className="w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 p-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 resize-y"
+          className="w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent resize-y"
         />
       </label>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
+      <label className="flex items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line cursor-pointer">
         <input
           type="checkbox"
           disabled={isPending}
           checked={isAllDay}
           onChange={(event) => setIsAllDay(event.target.checked)}
-          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+          className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
         />
         {t('admin.calendar.isAllDayLabel')}
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.calendar.startsAtDateLabel')}
           </span>
           <ILDatePicker value={startDate} onChange={setStartDate} disabled={isPending} required />
         </label>
         {isAllDay ? (
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
               {t('admin.calendar.endsAtDateLabel')}
             </span>
             <ILDatePicker value={endDate} onChange={setEndDate} disabled={isPending} required />
           </label>
         ) : (
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
               {t('admin.calendar.startsAtTimeLabel')}
             </span>
             <ILTimeInput value={startTime} onChange={setStartTime} disabled={isPending} required />
@@ -240,13 +240,13 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
       {!isAllDay ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
               {t('admin.calendar.endsAtDateLabel')}
             </span>
             <ILDatePicker value={endDate} onChange={setEndDate} disabled={isPending} required />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
               {t('admin.calendar.endsAtTimeLabel')}
             </span>
             <ILTimeInput value={endTime} onChange={setEndTime} disabled={isPending} required />
@@ -256,7 +256,7 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.calendar.locationLabel')}
           </span>
           <input
@@ -266,19 +266,19 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
             maxLength={160}
             onChange={(event) => setLocation(event.target.value)}
             placeholder={t('admin.calendar.locationPlaceholder')}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.calendar.visibilityLabel')}
           </span>
           <select
             disabled={isPending}
             value={visibility}
             onChange={(event) => setVisibility(event.target.value as CalendarEventVisibility)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent"
           >
             {VISIBILITIES.map((option) => (
               <option key={option} value={option}>
@@ -290,8 +290,8 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
       </div>
 
       {visibility === 'groups' ? (
-        <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-xl border border-surface-sunken dark:border-ink-secondary bg-surface dark:bg-ink/50 p-4">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
             {t('admin.calendar.selectGroupsTitle')}
           </span>
           {groups.length > 0 ? (
@@ -299,21 +299,21 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
               {groups.map((group) => (
                 <label
                   key={group.id}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer"
+                  className="flex items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 py-2 text-xs font-medium text-ink-secondary dark:text-line cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     disabled={isPending}
                     checked={selectedGroups.has(group.id)}
                     onChange={() => handleGroupToggle(group.id)}
-                    className="h-3.5 w-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                    className="h-3.5 w-3.5 rounded border-line text-accent focus:ring-accent"
                   />
                   <span className="truncate">{group.name}</span>
                 </label>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-zinc-450 dark:text-zinc-600">
+            <p className="text-xs text-ink-muted dark:text-ink-secondary">
               {t('admin.calendar.noGroupsAvailable')}
             </p>
           )}
@@ -336,7 +336,7 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
         <button
           type="submit"
           disabled={isPending}
-          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-5 text-sm font-bold text-white transition-all disabled:opacity-50"
+          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-accent hover:bg-accent-strong px-5 text-sm font-bold text-white transition-all disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

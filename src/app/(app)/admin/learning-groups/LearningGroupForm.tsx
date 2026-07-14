@@ -183,7 +183,7 @@ export function LearningGroupForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
           {t('admin.learningGroups.titleLabel')}
         </span>
         <input
@@ -194,12 +194,12 @@ export function LearningGroupForm({
           maxLength={160}
           onChange={(event) => setTitle(event.target.value)}
           placeholder={t('admin.learningGroups.titlePlaceholder')}
-          className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
           {t('admin.learningGroups.descriptionLabel')}
         </span>
         <textarea
@@ -209,20 +209,20 @@ export function LearningGroupForm({
           maxLength={2000}
           onChange={(event) => setDescription(event.target.value)}
           placeholder={t('admin.learningGroups.descriptionPlaceholder')}
-          className="w-full resize-y rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 p-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          className="w-full resize-y rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.weekdayLabel')}
           </span>
           <select
             disabled={isPending}
             value={weekday}
             onChange={(event) => setWeekday(event.target.value as LearningGroupWeekday)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent"
           >
             {LEARNING_GROUP_WEEKDAYS.map((option) => (
               <option key={option} value={option}>
@@ -233,14 +233,14 @@ export function LearningGroupForm({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.leaderLabel')}
           </span>
           <select
             disabled={isPending}
             value={leaderId}
             onChange={(event) => setLeaderId(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent"
           >
             <option value="">{t('admin.learningGroups.noLeaderOption')}</option>
             {leaders.map((leader) => (
@@ -254,7 +254,7 @@ export function LearningGroupForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.startsAtLabel')}
           </span>
           <input
@@ -266,12 +266,12 @@ export function LearningGroupForm({
             step={300}
             value={startsAt}
             onChange={(event) => setStartsAt(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.endsAtLabel')}
           </span>
           <input
@@ -283,13 +283,13 @@ export function LearningGroupForm({
             step={300}
             value={endsAt}
             onChange={(event) => setEndsAt(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
           {t('admin.learningGroups.roomLabel')}
         </span>
         <input
@@ -299,13 +299,13 @@ export function LearningGroupForm({
           maxLength={160}
           onChange={(event) => setRoom(event.target.value)}
           placeholder={t('admin.learningGroups.roomPlaceholder')}
-          className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.activeFromLabel')}
           </span>
           <input
@@ -314,12 +314,12 @@ export function LearningGroupForm({
             disabled={isPending}
             value={activeFrom}
             onChange={(event) => setActiveFrom(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.learningGroups.activeUntilLabel')}
           </span>
           <input
@@ -327,24 +327,24 @@ export function LearningGroupForm({
             disabled={isPending}
             value={activeUntil}
             onChange={(event) => setActiveUntil(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200">
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line">
         <input
           type="checkbox"
           disabled={isPending}
           checked={isActive}
           onChange={(event) => setIsActive(event.target.checked)}
-          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+          className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
         />
         {t('admin.learningGroups.isActiveLabel')}
       </label>
 
-      <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
-        <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <div className="rounded-xl border border-surface-sunken dark:border-ink-secondary bg-surface dark:bg-ink/50 p-4">
+        <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
           {t('admin.learningGroups.selectGroupsTitle')}
         </span>
         {groups.length > 0 ? (
@@ -352,21 +352,21 @@ export function LearningGroupForm({
             {groups.map((group) => (
               <label
                 key={group.id}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200"
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 py-2 text-xs font-medium text-ink-secondary dark:text-line"
               >
                 <input
                   type="checkbox"
                   disabled={isPending}
                   checked={selectedGroups.has(group.id)}
                   onChange={() => handleGroupToggle(group.id)}
-                  className="h-3.5 w-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                  className="h-3.5 w-3.5 rounded border-line text-accent focus:ring-accent"
                 />
                 <span className="truncate">{group.name}</span>
               </label>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-450 dark:text-zinc-600">
+          <p className="text-xs text-ink-muted dark:text-ink-secondary">
             {t('admin.learningGroups.noGroupsAvailable')}
           </p>
         )}
@@ -388,7 +388,7 @@ export function LearningGroupForm({
         <button
           type="submit"
           disabled={isPending}
-          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white transition-all hover:bg-emerald-700 disabled:opacity-50"
+          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-bold text-white transition-all hover:bg-accent-strong disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

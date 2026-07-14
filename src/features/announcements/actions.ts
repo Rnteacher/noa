@@ -49,9 +49,8 @@ export async function acknowledgeAnnouncement(
     return { success: false, error: 'announcements.error.failedToAcknowledge' };
   }
 
-  revalidatePath('/dashboard');
-  revalidatePath('/announcements');
-  revalidatePath(`/announcements/${announcementId}`);
+  revalidatePath('/messages');
+  revalidatePath(`/messages/${announcementId}`);
 
   return { success: true, error: null };
 }

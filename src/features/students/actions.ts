@@ -1343,7 +1343,6 @@ export async function followStudent(
 
   // 8. Revalidate paths
   revalidatePath(`/students/${studentId}`);
-  revalidatePath('/dashboard');
 
   return { success: true, error: null };
 }
@@ -1433,7 +1432,6 @@ export async function unfollowStudent(
 
   // 8. Revalidate paths
   revalidatePath(`/students/${studentId}`);
-  revalidatePath('/dashboard');
 
   return { success: true, error: null };
 }

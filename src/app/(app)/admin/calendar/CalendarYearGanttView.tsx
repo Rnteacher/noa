@@ -101,7 +101,7 @@ export function CalendarYearGanttView({
 
   if (!selectedSchoolYear) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 py-12 text-center text-zinc-500">
+      <div className="rounded-xl border border-dashed border-line dark:border-ink-secondary py-12 text-center text-ink-muted">
         {t('admin.calendar.errorNoCurrentSchoolYear')}
       </div>
     );
@@ -307,12 +307,12 @@ export function CalendarYearGanttView({
   return (
     <div className="space-y-4">
       {/* Selector & Info */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-surface dark:bg-ink/50 p-3 rounded-xl border border-line/50 dark:border-ink-secondary/50">
         <div>
-          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-sm font-bold text-ink dark:text-surface">
             {selectedSchoolYear.name}
           </h2>
-          <p dir="ltr" className="text-[10px] text-zinc-500 text-end">
+          <p dir="ltr" className="text-[10px] text-ink-muted text-end">
             {selectedSchoolYear.startsOn} &rarr; {selectedSchoolYear.endsOn}
           </p>
         </div>
@@ -327,8 +327,8 @@ export function CalendarYearGanttView({
                 href={`/admin/calendar?view=year&date=${sy.startsOn}`}
                 className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
                   isSelected
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-750'
+                    ? 'bg-accent text-white shadow-xs'
+                    : 'bg-white dark:bg-ink-secondary border border-line dark:border-ink-secondary text-ink-secondary dark:text-line hover:bg-surface dark:hover:bg-ink-secondary'
                 }`}
               >
                 {sy.name}
@@ -348,18 +348,18 @@ export function CalendarYearGanttView({
         </div>
       ) : null}
 
-      <div dir="ltr" className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xs">
-        <div className="min-w-[800px] divide-y divide-zinc-200 dark:divide-zinc-800">
+      <div dir="ltr" className="overflow-x-auto rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink shadow-xs">
+        <div className="min-w-[800px] divide-y divide-line dark:divide-ink-secondary">
           {/* Grid Header */}
-          <div className="flex bg-zinc-50 dark:bg-zinc-900/60 font-semibold text-[10px] text-zinc-500 dark:text-zinc-400 select-none">
-            <div className="w-[240px] px-3 py-2.5 border-r border-zinc-200 dark:border-zinc-800 shrink-0">
+          <div className="flex bg-surface dark:bg-ink/60 font-semibold text-[10px] text-ink-muted dark:text-ink-muted select-none">
+            <div className="w-[240px] px-3 py-2.5 border-r border-line dark:border-ink-secondary shrink-0">
               {t('admin.calendar.colTitle')}
             </div>
             <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${months.length}, 1fr)` }}>
               {months.map((m, idx) => (
                 <div
                   key={idx}
-                  className="px-2 py-2.5 text-center border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 truncate"
+                  className="px-2 py-2.5 text-center border-r border-line dark:border-ink-secondary last:border-r-0 truncate"
                 >
                   {m.label}
                 </div>
@@ -369,14 +369,14 @@ export function CalendarYearGanttView({
 
           {/* Ruler: click or drag an empty date position to quick-create */}
           <div className="flex">
-            <div className="w-[240px] px-3 py-1.5 border-r border-zinc-200 dark:border-zinc-800 shrink-0 flex items-center">
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600">
+            <div className="w-[240px] px-3 py-1.5 border-r border-line dark:border-ink-secondary shrink-0 flex items-center">
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted dark:text-ink-secondary">
                 {t('admin.calendar.ganttRulerHint')}
               </span>
             </div>
             <div
               ref={timelineRef}
-              className="relative flex-1 h-6 cursor-crosshair bg-zinc-50/60 dark:bg-zinc-900/30 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/10 touch-none"
+              className="relative flex-1 h-6 cursor-crosshair bg-surface/60 dark:bg-ink/30 hover:bg-accent-soft/40 dark:hover:bg-accent-soft/10 touch-none"
               onPointerDown={handleRulerPointerDown}
               onPointerMove={handleRulerPointerMove}
               onPointerUp={handleRulerPointerUp}
@@ -386,7 +386,7 @@ export function CalendarYearGanttView({
             >
               {selectionRange ? (
                 <div
-                  className="absolute inset-y-0 rounded bg-emerald-500/30 border border-emerald-500 pointer-events-none"
+                  className="absolute inset-y-0 rounded bg-accent/30 border border-accent pointer-events-none"
                   style={{
                     left: `${Math.min(selectionRange.startPercent, selectionRange.endPercent)}%`,
                     width: `${Math.abs(selectionRange.endPercent - selectionRange.startPercent)}%`,
@@ -424,7 +424,7 @@ export function CalendarYearGanttView({
 
             // Colors based on visibility
             let barColorClass =
-              'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20';
+              'bg-accent/10 dark:bg-accent/20 border-accent/30 text-accent-strong dark:text-accent-soft hover:bg-accent/20';
             if (event.visibility === 'staff_only') {
               barColorClass =
                 'bg-blue-500/10 dark:bg-blue-500/20 border-blue-500/30 text-blue-800 dark:text-blue-300 hover:bg-blue-500/20';
@@ -434,29 +434,29 @@ export function CalendarYearGanttView({
             }
 
             return (
-              <div key={event.id} className="flex group hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10">
+              <div key={event.id} className="flex group hover:bg-surface/30 dark:hover:bg-ink/10">
                 {/* Left Column: Details */}
-                <div className="w-[240px] px-3 py-2 border-r border-zinc-200 dark:border-zinc-800 shrink-0 flex flex-col justify-center min-w-0">
+                <div className="w-[240px] px-3 py-2 border-r border-line dark:border-ink-secondary shrink-0 flex flex-col justify-center min-w-0">
                   <button
                     onClick={() => onEditEvent(event)}
                     dir="rtl"
-                    className="text-start font-bold text-zinc-900 dark:text-zinc-150 text-xs truncate hover:underline hover:text-emerald-600"
+                    className="text-start font-bold text-ink dark:text-line text-xs truncate hover:underline hover:text-accent"
                   >
                     {event.title}
                   </button>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <span className="inline-flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    <span className="inline-flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
                       <Eye className="h-2 w-2" />
                       {t(`admin.calendar.visibility_${event.visibility}`)}
                     </span>
                     {event.location && (
-                      <span className="inline-flex items-center gap-0.5 text-[8px] text-zinc-400 dark:text-zinc-500 truncate max-w-[100px]">
+                      <span className="inline-flex items-center gap-0.5 text-[8px] text-ink-muted dark:text-ink-muted truncate max-w-[100px]">
                         <MapPin className="h-2 w-2" />
                         {event.location}
                       </span>
                     )}
                     {event.targetGroupNames.length > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[8px] text-emerald-600 dark:text-emerald-500 truncate max-w-[100px]">
+                      <span className="inline-flex items-center gap-0.5 text-[8px] text-accent dark:text-accent truncate max-w-[100px]">
                         <Users className="h-2 w-2" />
                         {event.targetGroupNames.join(', ')}
                       </span>
@@ -474,7 +474,7 @@ export function CalendarYearGanttView({
                     {months.map((_, idx) => (
                       <div
                         key={idx}
-                        className="h-full border-r border-zinc-100 dark:border-zinc-850/50 last:border-r-0"
+                        className="h-full border-r border-surface-sunken dark:border-ink/50 last:border-r-0"
                       />
                     ))}
                   </div>
@@ -491,7 +491,7 @@ export function CalendarYearGanttView({
                     className={cn(
                       'absolute h-7 rounded-lg border text-[9px] font-bold px-2 py-1 truncate shadow-xs flex items-center justify-between transition-[background-color,box-shadow] select-none touch-none cursor-grab active:cursor-grabbing',
                       barColorClass,
-                      isDraggingThis && 'ring-2 ring-emerald-500 shadow-lg z-10'
+                      isDraggingThis && 'ring-2 ring-accent shadow-lg z-10'
                     )}
                   >
                     <span dir="rtl" className="truncate pointer-events-none">
@@ -520,8 +520,8 @@ export function CalendarYearGanttView({
           })}
 
           {activeEvents.length === 0 ? (
-            <div className="py-16 text-center text-zinc-500 flex flex-col items-center justify-center gap-2">
-              <Calendar className="h-8 w-8 text-zinc-300 dark:text-zinc-700" />
+            <div className="py-16 text-center text-ink-muted flex flex-col items-center justify-center gap-2">
+              <Calendar className="h-8 w-8 text-line dark:text-ink-secondary" />
               <p dir="rtl" className="text-sm font-medium">
                 {t('admin.calendar.emptyList')}
               </p>

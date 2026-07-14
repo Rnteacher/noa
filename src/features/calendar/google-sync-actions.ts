@@ -401,7 +401,7 @@ export async function runGoogleCalendarSyncAction(
 
   revalidatePath('/admin/calendar');
   revalidatePath('/admin/import-export');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return {
     success: true,
@@ -553,7 +553,7 @@ export async function syncSingleCalendarEventAction(
     }
 
     revalidatePath('/admin/calendar');
-    revalidatePath('/dashboard');
+    revalidatePath('/calendar');
     return { success: true, error: null };
   } catch (err) {
     console.error('Single calendar event sync failed:', err);

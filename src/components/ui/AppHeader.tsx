@@ -10,18 +10,57 @@ type AppHeaderProps = {
   backHref?: string;
   /** Slot at the end edge (search icon, avatar, overflow actions). */
   trailing?: ReactNode;
+  /** Secondary line under the title. Only used by the "large" variant. */
+  subtitle?: ReactNode;
+  /**
+   * "compact" (default): sticky, small bold title — used on sub-pages
+   * (detail screens, back-button flows). "large": big 30px/800 title with
+   * an optional subtitle, non-sticky — used on the 4 tab-root screens.
+   */
+  variant?: 'compact' | 'large';
   className?: string;
 };
 
 /**
- * Compact sticky header for protected app screens.
+ * Header for protected app screens. Compact mode is a sticky bar with an
+ * optional back affordance; large mode matches the tab-root screens in the
+ * Staff App Redesign mockup (big bold title, optional date subtitle).
  */
 export function AppHeader({
   title,
   backHref,
   trailing,
+  subtitle,
+  variant = 'compact',
   className,
 }: AppHeaderProps) {
+  if (variant === 'large') {
+    return (
+      <header
+        className={cn(
+          'flex items-start justify-between gap-2 bg-surface px-[22px] pb-3.5 pt-2.5',
+          className
+        )}
+      >
+        <div className="min-w-0">
+          <h1 className="truncate text-[30px] font-extrabold tracking-tight text-ink">
+            {title}
+          </h1>
+          {subtitle ? (
+            <p className="mt-0.5 text-[13px] font-medium text-ink-secondary">
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+        {trailing ? (
+          <div className="mt-1 flex shrink-0 items-center gap-1">
+            {trailing}
+          </div>
+        ) : null}
+      </header>
+    );
+  }
+
   return (
     <header
       className={cn(

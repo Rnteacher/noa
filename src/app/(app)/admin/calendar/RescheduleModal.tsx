@@ -56,21 +56,21 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-xs p-4" role="dialog" aria-modal="true">
       <div
-        className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-md rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-black text-zinc-950 dark:text-zinc-50 mb-2">
+        <h2 className="text-base font-black text-ink dark:text-surface mb-2">
           {t('admin.calendar.rescheduleTitle')}
         </h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 font-semibold">
+        <p className="text-xs text-ink-muted dark:text-ink-muted mb-4 font-semibold">
           {event.title}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
               {event.isAllDay ? t('admin.calendar.newStartsAtDateLabel') : t('admin.calendar.newStartsAtLabel')}
             </span>
             <div className="flex gap-2">
@@ -102,14 +102,14 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="h-9 px-4 rounded-xl text-xs font-bold bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-750 dark:text-zinc-300 transition-colors"
+              className="h-9 px-4 rounded-xl text-xs font-bold bg-surface-sunken hover:bg-line/80 text-ink-secondary dark:bg-ink-secondary dark:hover:bg-ink-secondary dark:text-line transition-colors"
             >
               {t('admin.calendar.cancelButton')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="h-9 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 transition-colors"
+              className="h-9 px-4 rounded-xl text-xs font-bold bg-accent hover:bg-accent-strong text-white flex items-center justify-center gap-1.5 transition-colors"
             >
               {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               <span>{t('admin.calendar.updateButton')}</span>

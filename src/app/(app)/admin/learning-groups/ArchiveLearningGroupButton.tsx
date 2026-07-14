@@ -42,7 +42,7 @@ export function ArchiveLearningGroupButton({
       onClick={handleArchive}
       disabled={isPending || !isActive}
       title={t('admin.learningGroups.archiveButton')}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-status-critical disabled:opacity-40 dark:hover:bg-zinc-800"
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface hover:text-status-critical disabled:opacity-40 dark:hover:bg-ink-secondary"
     >
       {isPending ? (
         <Loader2 className="h-4 w-4 animate-spin" />

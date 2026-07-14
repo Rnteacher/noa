@@ -616,13 +616,13 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
   return (
     <div className="flex flex-col gap-6">
       {/* Tab Selectors */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 scrollbar-none overflow-x-auto select-none">
+      <div className="flex border-b border-line dark:border-ink-secondary scrollbar-none overflow-x-auto select-none">
         <button
           onClick={() => setActiveTab('calendar')}
           className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'calendar'
-              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350'
+              ? 'border-accent text-accent-strong dark:text-accent-strong'
+              : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-ink-muted'
           }`}
         >
           <Calendar className="h-4 w-4" />
@@ -633,8 +633,8 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           onClick={() => setActiveTab('learningGroups')}
           className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'learningGroups'
-              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350'
+              ? 'border-accent text-accent-strong dark:text-accent-strong'
+              : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-ink-muted'
           }`}
         >
           <BookOpen className="h-4 w-4" />
@@ -645,8 +645,8 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           onClick={() => setActiveTab('staff')}
           className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'staff'
-              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350'
+              ? 'border-accent text-accent-strong dark:text-accent-strong'
+              : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-ink-muted'
           }`}
         >
           <Lock className="h-4 w-4" />
@@ -657,8 +657,8 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           onClick={() => setActiveTab('students')}
           className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'students'
-              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350'
+              ? 'border-accent text-accent-strong dark:text-accent-strong'
+              : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-ink-muted'
           }`}
         >
           <Users className="h-4 w-4" />
@@ -669,8 +669,8 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           onClick={() => setActiveTab('operatorNotes')}
           className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'operatorNotes'
-              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-350'
+              ? 'border-accent text-accent-strong dark:text-accent-strong'
+              : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-ink-muted'
           }`}
         >
           <Terminal className="h-4 w-4" />
@@ -685,16 +685,16 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
         <div className="space-y-6">
 
           {/* Tab Information */}
-          <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+          <section className="space-y-4 rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-5 shadow-xs">
+            <h2 className="text-base font-bold text-ink dark:text-surface flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-accent" />
               {activeTab === 'calendar' && t('admin.importExport.tabs.calendar')}
               {activeTab === 'learningGroups' && t('admin.importExport.tabs.learningGroups')}
               {activeTab === 'staff' && t('admin.importExport.tabs.staff')}
               {activeTab === 'students' && t('admin.importExport.tabs.students')}
               {activeTab === 'operatorNotes' && t('admin.importExport.tabs.operatorNotes')}
             </h2>
-            <p className="text-xs text-zinc-500 leading-normal">
+            <p className="text-xs text-ink-muted leading-normal">
               {activeTab === 'calendar' && t('admin.importExport.calendar.desc')}
               {activeTab === 'learningGroups' && t('admin.importExport.learningGroups.desc')}
               {activeTab === 'staff' && t('admin.importExport.staff.desc')}
@@ -708,25 +708,25 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 <a
                   href={calTemplateUri}
                   download="calendar_events_template.csv"
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors"
                 >
                   <span>Empty CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </a>
                 <a
                   href={calExampleUri}
                   download="calendar_events_example.csv"
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors"
                 >
                   <span>Mock Example CSV</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </a>
                 <a
                   href="/api/admin/calendar/export"
-                  className="flex items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-4 py-2.5 text-xs font-bold text-white dark:text-zinc-950 transition-colors mt-2"
+                  className="flex items-center justify-between rounded-xl bg-ink hover:bg-ink dark:bg-surface dark:hover:bg-line px-4 py-2.5 text-xs font-bold text-white dark:text-ink transition-colors mt-2"
                 >
                   <span>Export Calendar to CSV</span>
-                  <Download className="h-4 w-4 text-white dark:text-zinc-950" />
+                  <Download className="h-4 w-4 text-white dark:text-ink" />
                 </a>
               </div>
             )}
@@ -736,25 +736,25 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 <a
                   href={lgTemplateUri}
                   download="learning_groups_template.csv"
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors"
                 >
                   <span>Empty CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </a>
                 <a
                   href={lgExampleUri}
                   download="learning_groups_example.csv"
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors"
                 >
                   <span>Mock Example CSV</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </a>
                 <a
                   href="/api/admin/learning-groups/export"
-                  className="flex items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-4 py-2.5 text-xs font-bold text-white dark:text-zinc-950 transition-colors mt-2"
+                  className="flex items-center justify-between rounded-xl bg-ink hover:bg-ink dark:bg-surface dark:hover:bg-line px-4 py-2.5 text-xs font-bold text-white dark:text-ink transition-colors mt-2"
                 >
                   <span>Export Groups to CSV</span>
-                  <Download className="h-4 w-4 text-white dark:text-zinc-950" />
+                  <Download className="h-4 w-4 text-white dark:text-ink" />
                 </a>
               </div>
             )}
@@ -763,24 +763,24 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={() => downloadMockFile('staff_access_grants_template.csv', 'email,full_name,is_active')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Grants CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
                 <button
                   onClick={() => downloadMockFile('staff_roles_template.csv', 'email,role')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Roles CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
                 <button
                   onClick={() => downloadMockFile('staff_access_grants_example.csv', 'email,full_name,is_active\nronen@chamama.org,Ronen Chen,true\nstudio@chamama.org,Chamama Studio,true\nmentor.one@example.test,Mentor One,true')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Mock Grants CSV</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
               </div>
             )}
@@ -789,24 +789,24 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={() => downloadMockFile('student_groups_template.csv', 'group_name,layer,is_active')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Groups CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
                 <button
                   onClick={() => downloadMockFile('students_template.csv', 'external_student_id,first_name,last_name,group_name,primary_phone,secondary_phone,emergency_contact_name,emergency_contact_phone,is_active')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Students CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
                 <button
                   onClick={() => downloadMockFile('projects_template.csv', 'external_student_id,project_title,description,status,is_current')}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-line dark:border-ink-secondary bg-surface hover:bg-surface-sunken dark:bg-ink-secondary dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line transition-colors cursor-pointer"
                 >
                   <span>Projects CSV Template</span>
-                  <Download className="h-4 w-4 text-zinc-500" />
+                  <Download className="h-4 w-4 text-ink-muted" />
                 </button>
               </div>
             )}
@@ -814,23 +814,23 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
 
           {/* Tab-specific secondary controls */}
           {activeTab === 'calendar' && (
-            <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                <RefreshCw className="h-5 w-5 text-emerald-600" />
+            <section className="space-y-4 rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-5 shadow-xs">
+              <h2 className="text-base font-bold text-ink dark:text-surface flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-accent" />
                 Google Calendar Mirror
               </h2>
-              <p className="text-xs text-zinc-500 leading-normal">
+              <p className="text-xs text-ink-muted leading-normal">
                 Outbound-only mirror sync of local calendar events to the institutional calendar.
               </p>
 
               {!isSyncConfigured ? (
-                <div className="rounded-xl bg-zinc-50 dark:bg-zinc-850/40 p-3 text-xs text-zinc-500 dark:text-zinc-400 font-medium leading-normal border border-zinc-100 dark:border-zinc-800">
+                <div className="rounded-xl bg-surface dark:bg-ink/40 p-3 text-xs text-ink-muted dark:text-ink-muted font-medium leading-normal border border-surface-sunken dark:border-ink-secondary">
                   Google Calendar Outbound Sync is not configured.
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">
                   <div>
-                    <label htmlFor="sync-year-select" className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                    <label htmlFor="sync-year-select" className="block text-[10px] font-bold text-ink-muted uppercase mb-1">
                       School Year
                     </label>
                     <select
@@ -842,7 +842,7 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                         setSyncResult(null);
                         setSyncError(null);
                       }}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-850 px-3 py-2 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-hidden"
+                      className="w-full rounded-xl border border-line dark:border-ink-secondary bg-surface dark:bg-ink px-3 py-2 text-xs text-ink-secondary dark:text-line focus:outline-hidden"
                     >
                       {schoolYears.map((y) => (
                         <option key={y.id} value={y.id}>
@@ -857,7 +857,7 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                       type="button"
                       onClick={handleSyncPreview}
                       disabled={isSyncPending || !selectedYearId}
-                      className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 disabled:opacity-40 transition-colors cursor-pointer"
+                      className="flex-1 rounded-xl border border-line dark:border-ink-secondary hover:bg-surface dark:hover:bg-ink-secondary px-3 py-2 text-xs font-bold text-ink-secondary dark:text-line disabled:opacity-40 transition-colors cursor-pointer"
                     >
                       Preview Sync
                     </button>
@@ -865,7 +865,7 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                       type="button"
                       onClick={handleSyncRun}
                       disabled={isSyncPending || !selectedYearId}
-                      className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 text-xs font-bold disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="flex-1 rounded-xl bg-accent hover:bg-accent-strong text-white px-3 py-2 text-xs font-bold disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {isSyncPending && <Loader2 className="h-3 w-3 animate-spin" />}
                       Run Sync
@@ -880,35 +880,35 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                   )}
 
                   {syncPreview && (
-                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 space-y-2 text-xs">
-                      <div className="font-bold text-zinc-850 dark:text-zinc-250">Outbound Changes Preview:</div>
-                      <ul className="space-y-1.5 text-zinc-600 dark:text-zinc-400">
+                    <div className="rounded-xl border border-line dark:border-ink-secondary bg-surface/50 dark:bg-ink/40 p-3 space-y-2 text-xs">
+                      <div className="font-bold text-ink dark:text-line">Outbound Changes Preview:</div>
+                      <ul className="space-y-1.5 text-ink-secondary dark:text-ink-muted">
                         <li className="flex justify-between">
                           <span>Will Create:</span>
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">{syncPreview.insertedCount}</span>
+                          <span className="font-bold text-accent dark:text-accent-strong">{syncPreview.insertedCount}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>Will Update:</span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400">{syncPreview.updatedCount}</span>
+                          <span className="font-bold text-status-caution dark:text-status-caution">{syncPreview.updatedCount}</span>
                         </li>
                       </ul>
                     </div>
                   )}
 
                   {syncResult && (
-                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-emerald-50/20 dark:bg-emerald-950/5 p-3 space-y-2 text-xs">
-                      <div className="font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <div className="rounded-xl border border-line dark:border-ink-secondary bg-accent-soft/20 dark:bg-accent-soft/5 p-3 space-y-2 text-xs">
+                      <div className="font-bold text-ink dark:text-line flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4 text-accent" />
                         Sync Completed
                       </div>
-                      <ul className="space-y-1.5 text-zinc-600 dark:text-zinc-400">
+                      <ul className="space-y-1.5 text-ink-secondary dark:text-ink-muted">
                         <li className="flex justify-between">
                           <span>Created:</span>
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">{syncResult.insertedCount}</span>
+                          <span className="font-bold text-accent dark:text-accent-strong">{syncResult.insertedCount}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>Updated:</span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400">{syncResult.updatedCount}</span>
+                          <span className="font-bold text-status-caution dark:text-status-caution">{syncResult.updatedCount}</span>
                         </li>
                       </ul>
                     </div>
@@ -925,7 +925,7 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 <ShieldCheck className="h-4 w-4 text-rose-600" />
                 Browser Apply Gate Locked
               </h3>
-              <p className="text-[11px] text-zinc-550 dark:text-zinc-400 leading-relaxed">
+              <p className="text-[11px] text-ink-muted dark:text-ink-muted leading-relaxed">
                 Roster updates containing access grants or student profiles are sensitive. Validation and preview are fully enabled here in the browser, but direct commits to the database are locked.
               </p>
               <p className="text-[11px] font-medium text-rose-800 dark:text-rose-455">
@@ -937,12 +937,12 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
         </div>
 
         {/* RIGHT COLUMN (2/3 width): Upload & Verification Ingest Area */}
-        <section className="lg:col-span-2 space-y-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+        <section className="lg:col-span-2 space-y-6 rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-5 shadow-xs">
 
           {/* A. Calendar Events Tab Ingestion */}
           {activeTab === 'calendar' && (
             <div className="space-y-4">
-              <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors">
+              <div className="border-2 border-dashed border-line dark:border-ink-secondary rounded-xl p-6 text-center hover:border-accent/50 transition-colors">
                 <input
                   type="file"
                   accept=".csv"
@@ -952,9 +952,9 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 />
                 <label
                   htmlFor="cal-upload-input"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                  className="cursor-pointer flex flex-col items-center justify-center gap-2 text-xs font-bold text-accent hover:text-accent-strong"
                 >
-                  <Upload className="h-8 w-8 text-zinc-400" />
+                  <Upload className="h-8 w-8 text-ink-muted" />
                   <span>Click to select Calendar CSV file</span>
                 </label>
               </div>
@@ -969,9 +969,9 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
               )}
 
               {calSuccessMsg && (
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 p-3.5 flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-450 shrink-0 mt-0.5" />
-                  <div className="text-xs text-emerald-800 dark:text-emerald-350 font-medium leading-normal">
+                <div className="rounded-xl bg-accent-soft dark:bg-accent-soft/20 border border-accent-soft dark:border-accent-soft p-3.5 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-accent dark:text-accent shrink-0 mt-0.5" />
+                  <div className="text-xs text-accent-strong dark:text-accent-soft font-medium leading-normal">
                     {calSuccessMsg}
                   </div>
                 </div>
@@ -979,15 +979,15 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
 
               {calPreviewRows.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-4">
-                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <div className="flex items-center justify-between border-t border-surface-sunken dark:border-ink-secondary pt-4">
+                    <span className="text-xs font-bold text-ink-secondary dark:text-line">
                       Preview ({calPreviewRows.length} events)
                     </span>
                     <button
                       type="button"
                       onClick={handleCalendarImportApply}
                       disabled={calErrorCount > 0 || isPending}
-                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer"
+                      className="rounded-xl bg-accent hover:bg-accent-strong disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       {isPending ? (
                         <>
@@ -1009,10 +1009,10 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                     </p>
                   )}
 
-                  <div className="overflow-x-auto rounded-xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="overflow-x-auto rounded-xl border border-surface-sunken dark:border-ink-secondary">
                     <table className="w-full text-start text-xs border-collapse">
                       <thead>
-                        <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 font-semibold select-none">
+                        <tr className="bg-surface dark:bg-ink/60 border-b border-surface-sunken dark:border-ink-secondary text-ink-muted font-semibold select-none">
                           <th className="py-2.5 px-3 text-start w-12">Row</th>
                           <th className="py-2.5 px-2 text-start w-16">Status</th>
                           <th className="py-2.5 px-2 text-start">Title</th>
@@ -1022,24 +1022,24 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                           <th className="py-2.5 px-2 text-start">Groups</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                      <tbody className="divide-y divide-surface-sunken dark:divide-ink-secondary">
                         {calPreviewRows.map((row) => {
                           const hasRowErrors = row.errors.length > 0;
                           return (
                             <tr
                               key={row.rowNum}
-                              className={hasRowErrors ? 'bg-rose-50/20 dark:bg-rose-950/5' : 'hover:bg-zinc-50/40 dark:hover:bg-zinc-850/10'}
+                              className={hasRowErrors ? 'bg-rose-50/20 dark:bg-rose-950/5' : 'hover:bg-surface/40 dark:hover:bg-ink/10'}
                             >
-                              <td className="py-2.5 px-3 font-semibold text-zinc-400">{row.rowNum}</td>
+                              <td className="py-2.5 px-3 font-semibold text-ink-muted">{row.rowNum}</td>
                               <td className="py-2.5 px-2">
                                 <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                                  hasRowErrors ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-455'
+                                  hasRowErrors ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' : 'bg-accent-soft dark:bg-accent-soft/30 text-accent-strong dark:text-accent'
                                 }`}>
                                   {hasRowErrors ? t('admin.importExport.status.invalid') : t('admin.importExport.status.valid')}
                                 </span>
                               </td>
                               <td className="py-2.5 px-2">
-                                <div className="font-bold text-zinc-900 dark:text-zinc-100">{row.title}</div>
+                                <div className="font-bold text-ink dark:text-surface-sunken">{row.title}</div>
                                 {hasRowErrors && (
                                   <div className="mt-1 space-y-0.5">
                                     {row.errors.map((err, idx) => (
@@ -1050,10 +1050,10 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                                   </div>
                                 )}
                               </td>
-                              <td className="py-2.5 px-2 font-mono text-[10px] text-zinc-650 dark:text-zinc-400">{row.startsAt}</td>
-                              <td className="py-2.5 px-2 font-mono text-[10px] text-zinc-650 dark:text-zinc-400">{row.endsAt}</td>
-                              <td className="py-2.5 px-2 text-zinc-650 dark:text-zinc-400 capitalize">{row.visibility.replace('_', ' ')}</td>
-                              <td className="py-2.5 px-2 text-zinc-650 dark:text-zinc-400 truncate max-w-[120px]">
+                              <td className="py-2.5 px-2 font-mono text-[10px] text-ink-secondary dark:text-ink-muted">{row.startsAt}</td>
+                              <td className="py-2.5 px-2 font-mono text-[10px] text-ink-secondary dark:text-ink-muted">{row.endsAt}</td>
+                              <td className="py-2.5 px-2 text-ink-secondary dark:text-ink-muted capitalize">{row.visibility.replace('_', ' ')}</td>
+                              <td className="py-2.5 px-2 text-ink-secondary dark:text-ink-muted truncate max-w-[120px]">
                                 {row.targetGroupNames.length > 0 ? row.targetGroupNames.join(', ') : '-'}
                               </td>
                             </tr>
@@ -1070,7 +1070,7 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           {/* B. Learning Groups Tab Ingestion */}
           {activeTab === 'learningGroups' && (
             <div className="space-y-4">
-              <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors">
+              <div className="border-2 border-dashed border-line dark:border-ink-secondary rounded-xl p-6 text-center hover:border-accent/50 transition-colors">
                 <input
                   type="file"
                   accept=".csv"
@@ -1080,9 +1080,9 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 />
                 <label
                   htmlFor="lg-upload-input"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2 text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                  className="cursor-pointer flex flex-col items-center justify-center gap-2 text-xs font-bold text-accent hover:text-accent-strong"
                 >
-                  <Upload className="h-8 w-8 text-zinc-400" />
+                  <Upload className="h-8 w-8 text-ink-muted" />
                   <span>Click to select Learning Groups CSV file</span>
                 </label>
               </div>
@@ -1097,9 +1097,9 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
               )}
 
               {lgSuccessMsg && (
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 p-3.5 flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-450 shrink-0 mt-0.5" />
-                  <div className="text-xs text-emerald-800 dark:text-emerald-350 font-medium leading-normal">
+                <div className="rounded-xl bg-accent-soft dark:bg-accent-soft/20 border border-accent-soft dark:border-accent-soft p-3.5 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-accent dark:text-accent shrink-0 mt-0.5" />
+                  <div className="text-xs text-accent-strong dark:text-accent-soft font-medium leading-normal">
                     {lgSuccessMsg}
                   </div>
                 </div>
@@ -1107,15 +1107,15 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
 
               {lgPreviewRows.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-4">
-                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <div className="flex items-center justify-between border-t border-surface-sunken dark:border-ink-secondary pt-4">
+                    <span className="text-xs font-bold text-ink-secondary dark:text-line">
                       Preview ({lgPreviewRows.length} groups)
                     </span>
                     <button
                       type="button"
                       onClick={handleLearningGroupsImportApply}
                       disabled={lgErrorCount > 0 || isPending}
-                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer"
+                      className="rounded-xl bg-accent hover:bg-accent-strong disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       {isPending ? (
                         <>
@@ -1137,10 +1137,10 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                     </p>
                   )}
 
-                  <div className="overflow-x-auto rounded-xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="overflow-x-auto rounded-xl border border-surface-sunken dark:border-ink-secondary">
                     <table className="w-full text-start text-xs border-collapse">
                       <thead>
-                        <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 font-semibold select-none">
+                        <tr className="bg-surface dark:bg-ink/60 border-b border-surface-sunken dark:border-ink-secondary text-ink-muted font-semibold select-none">
                           <th className="py-2.5 px-3 text-start w-12">Row</th>
                           <th className="py-2.5 px-2 text-start w-16">Status</th>
                           <th className="py-2.5 px-2 text-start">Title</th>
@@ -1151,24 +1151,24 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                           <th className="py-2.5 px-2 text-start">Groups</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                      <tbody className="divide-y divide-surface-sunken dark:divide-ink-secondary">
                         {lgPreviewRows.map((row) => {
                           const hasRowErrors = row.errors.length > 0;
                           return (
                             <tr
                               key={row.rowNum}
-                              className={hasRowErrors ? 'bg-rose-50/20 dark:bg-rose-950/5' : 'hover:bg-zinc-50/40 dark:hover:bg-zinc-850/10'}
+                              className={hasRowErrors ? 'bg-rose-50/20 dark:bg-rose-950/5' : 'hover:bg-surface/40 dark:hover:bg-ink/10'}
                             >
-                              <td className="py-2.5 px-3 font-semibold text-zinc-400">{row.rowNum}</td>
+                              <td className="py-2.5 px-3 font-semibold text-ink-muted">{row.rowNum}</td>
                               <td className="py-2.5 px-2">
                                 <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                                  hasRowErrors ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-455'
+                                  hasRowErrors ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' : 'bg-accent-soft dark:bg-accent-soft/30 text-accent-strong dark:text-accent'
                                 }`}>
                                   {hasRowErrors ? t('admin.importExport.status.invalid') : t('admin.importExport.status.valid')}
                                 </span>
                               </td>
                               <td className="py-2.5 px-2">
-                                <div className="font-bold text-zinc-900 dark:text-zinc-100">{row.title}</div>
+                                <div className="font-bold text-ink dark:text-surface-sunken">{row.title}</div>
                                 {hasRowErrors && (
                                   <div className="mt-1 space-y-0.5">
                                     {row.errors.map((err, idx) => (
@@ -1180,14 +1180,14 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                                 )}
                               </td>
                               <td className="py-2.5 px-2 capitalize">{row.weekday}</td>
-                              <td className="py-2.5 px-2 font-mono text-[10px] text-zinc-650 dark:text-zinc-400">
+                              <td className="py-2.5 px-2 font-mono text-[10px] text-ink-secondary dark:text-ink-muted">
                                 {row.startsAt} - {row.endsAt}
                               </td>
-                              <td className="py-2.5 px-2 text-zinc-650 dark:text-zinc-400">{row.room ?? '-'}</td>
-                              <td className="py-2.5 px-2 text-zinc-650 dark:text-zinc-400 truncate max-w-[100px]" title={row.leaderEmail}>
+                              <td className="py-2.5 px-2 text-ink-secondary dark:text-ink-muted">{row.room ?? '-'}</td>
+                              <td className="py-2.5 px-2 text-ink-secondary dark:text-ink-muted truncate max-w-[100px]" title={row.leaderEmail}>
                                 {row.leaderEmail ?? '-'}
                               </td>
-                              <td className="py-2.5 px-2 text-zinc-650 dark:text-zinc-400 truncate max-w-[120px]">
+                              <td className="py-2.5 px-2 text-ink-secondary dark:text-ink-muted truncate max-w-[120px]">
                                 {row.targetGroupNames.length > 0 ? row.targetGroupNames.join(', ') : '-'}
                               </td>
                             </tr>
@@ -1205,34 +1205,34 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           {activeTab === 'staff' && (
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-                  <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                    <Lock className="h-4 w-4 text-emerald-600" />
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-4 space-y-3">
+                  <h3 className="text-xs font-bold text-ink-secondary dark:text-line flex items-center gap-1.5">
+                    <Lock className="h-4 w-4 text-accent" />
                     1. Staff Access Grants CSV
                   </h3>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'staffGrants')}
-                    className="w-full text-xs text-zinc-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-zinc-100 dark:file:bg-zinc-800 file:text-zinc-800 dark:file:text-zinc-200 hover:file:bg-zinc-200 cursor-pointer"
+                    className="w-full text-xs text-ink-muted file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-surface-sunken dark:file:bg-ink-secondary file:text-ink-secondary dark:file:text-line hover:file:bg-line cursor-pointer"
                   />
-                  <div className="text-[10px] text-zinc-400">
+                  <div className="text-[10px] text-ink-muted">
                     {rosterFiles.staffGrants ? '✓ File loaded' : 'Missing file'}
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-                  <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-4 space-y-3">
+                  <h3 className="text-xs font-bold text-ink-secondary dark:text-line flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-accent" />
                     2. Staff App Roles CSV
                   </h3>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'staffRoles')}
-                    className="w-full text-xs text-zinc-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-zinc-100 dark:file:bg-zinc-800 file:text-zinc-800 dark:file:text-zinc-200 hover:file:bg-zinc-200 cursor-pointer"
+                    className="w-full text-xs text-ink-muted file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-surface-sunken dark:file:bg-ink-secondary file:text-ink-secondary dark:file:text-line hover:file:bg-line cursor-pointer"
                   />
-                  <div className="text-[10px] text-zinc-400">
+                  <div className="text-[10px] text-ink-muted">
                     {rosterFiles.staffRoles ? '✓ File loaded' : 'Missing file'}
                   </div>
                 </div>
@@ -1242,14 +1242,14 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 <button
                   onClick={handleValidateRoster}
                   disabled={rosterValidating || (!rosterFiles.staffGrants && !rosterFiles.staffRoles)}
-                  className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="flex-1 rounded-xl bg-accent hover:bg-accent-strong disabled:opacity-40 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   {rosterValidating && <Loader2 className="h-4 w-4 animate-spin" />}
                   Verify Staff Roster
                 </button>
                 <button
                   onClick={handleClearRosterFiles}
-                  className="rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-4 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer transition-colors"
+                  className="rounded-xl border border-line dark:border-ink-secondary hover:bg-surface dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line cursor-pointer transition-colors"
                 >
                   Clear Files
                 </button>
@@ -1263,92 +1263,92 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
           {activeTab === 'students' && (
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">1. Manifest CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">1. Manifest CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'manifest')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.manifest ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.manifest ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">2. Student Groups CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">2. Student Groups CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'studentGroups')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.studentGroups ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.studentGroups ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">3. Students Roster CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">3. Students Roster CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'students')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.students ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.students ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">4. Group Mentors CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">4. Group Mentors CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'groupMentors')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.groupMentors ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.groupMentors ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">5. Student Projects CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">5. Student Projects CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'projects')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.projects ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.projects ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">6. Student Masters CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">6. Student Masters CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'studentMasters')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.studentMasters ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.studentMasters ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">7. Learning Goals CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">7. Learning Goals CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'studentGoals')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.studentGoals ? '✓ Loaded' : 'Missing'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.studentGoals ? '✓ Loaded' : 'Missing'}</div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase text-zinc-500">8. Emotional Baseline CSV</h4>
+                <div className="rounded-xl border border-line dark:border-ink-secondary p-3 space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase text-ink-muted">8. Emotional Baseline CSV</h4>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={(e) => handleRosterFileSelect(e, 'emotionalBaseline')}
-                    className="w-full text-[11px] text-zinc-500"
+                    className="w-full text-[11px] text-ink-muted"
                   />
-                  <div className="text-[9px] text-zinc-400">{rosterFiles.emotionalBaseline ? '✓ Loaded' : 'Optional'}</div>
+                  <div className="text-[9px] text-ink-muted">{rosterFiles.emotionalBaseline ? '✓ Loaded' : 'Optional'}</div>
                 </div>
               </div>
 
@@ -1356,14 +1356,14 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 <button
                   onClick={handleValidateRoster}
                   disabled={rosterValidating || Object.keys(rosterFiles).length === 0}
-                  className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="flex-1 rounded-xl bg-accent hover:bg-accent-strong disabled:opacity-40 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   {rosterValidating && <Loader2 className="h-4 w-4 animate-spin" />}
                   Verify Student Roster
                 </button>
                 <button
                   onClick={handleClearRosterFiles}
-                  className="rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-4 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer transition-colors"
+                  className="rounded-xl border border-line dark:border-ink-secondary hover:bg-surface dark:hover:bg-ink-secondary px-4 py-2.5 text-xs font-bold text-ink-secondary dark:text-line cursor-pointer transition-colors"
                 >
                   Clear Files
                 </button>
@@ -1375,10 +1375,10 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
 
           {/* E. Operator Notes Tab */}
           {activeTab === 'operatorNotes' && (
-            <div className="space-y-5 text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
-              <div className="rounded-xl bg-zinc-50 dark:bg-zinc-850 p-4 border border-zinc-200 dark:border-zinc-800 space-y-2.5">
-                <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
-                  <Terminal className="h-4.5 w-4.5 text-emerald-600" />
+            <div className="space-y-5 text-xs text-ink-secondary dark:text-line leading-relaxed">
+              <div className="rounded-xl bg-surface dark:bg-ink p-4 border border-line dark:border-ink-secondary space-y-2.5">
+                <h3 className="text-sm font-bold text-ink dark:text-surface flex items-center gap-2">
+                  <Terminal className="h-4.5 w-4.5 text-accent" />
                   Local Ingestion CLI Commands
                 </h3>
                 <p>
@@ -1386,20 +1386,20 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
                 </p>
                 <div className="space-y-3 pt-2">
                   <div>
-                    <span className="font-bold block text-[10px] text-zinc-400 uppercase">1. Run Directory Invalidation Check</span>
-                    <pre className="mt-1 bg-zinc-900 text-zinc-100 p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
+                    <span className="font-bold block text-[10px] text-ink-muted uppercase">1. Run Directory Invalidation Check</span>
+                    <pre className="mt-1 bg-ink text-surface-sunken p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
                       npm run validate:import -- docs/import/examples
                     </pre>
                   </div>
                   <div>
-                    <span className="font-bold block text-[10px] text-zinc-400 uppercase">2. Dry-Run Ingestion (Simulate & Rollback)</span>
-                    <pre className="mt-1 bg-zinc-900 text-zinc-100 p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
+                    <span className="font-bold block text-[10px] text-ink-muted uppercase">2. Dry-Run Ingestion (Simulate & Rollback)</span>
+                    <pre className="mt-1 bg-ink text-surface-sunken p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
                       IMPORT_DATABASE_URL=&quot;your-supabase-db-connection-string&quot; npm run import:dry-run -- --input docs/import/examples
                     </pre>
                   </div>
                   <div>
-                    <span className="font-bold block text-[10px] text-zinc-400 uppercase">3. Execute Safe Local Ingestion</span>
-                    <pre className="mt-1 bg-zinc-900 text-zinc-100 p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
+                    <span className="font-bold block text-[10px] text-ink-muted uppercase">3. Execute Safe Local Ingestion</span>
+                    <pre className="mt-1 bg-ink text-surface-sunken p-2.5 rounded-xl font-mono text-[10px] select-all overflow-x-auto">
                       IMPORT_ALLOW_LOCAL_APPLY=1 IMPORT_DATABASE_URL=&quot;your-supabase-db-connection-string&quot; npm run import:apply:local -- --input docs/import/examples
                     </pre>
                   </div>
@@ -1407,11 +1407,11 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                  <HelpCircle className="h-4 w-4 text-emerald-600" />
+                <h4 className="font-bold text-ink dark:text-surface-sunken flex items-center gap-1.5">
+                  <HelpCircle className="h-4 w-4 text-accent" />
                   Roster Validation Details
                 </h4>
-                <ul className="list-disc pl-5 space-y-1.5 text-zinc-500">
+                <ul className="list-disc pl-5 space-y-1.5 text-ink-muted">
                   <li><strong>Manifest</strong>: Checks that starts_on date is before ends_on and that owner/operator emails match the whitelisted domain.</li>
                   <li><strong>Staff access & roles</strong>: Enforces active email domain mapping, whitelisted lowercase strings, and valid role assignments.</li>
                   <li><strong>Relational integrity</strong>: Resolves group mentors, student projects, student masters, and goals to actual IDs inside the students roster. Any orphan key triggers a failure.</li>
@@ -1444,22 +1444,22 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
     const hasErrors = rosterReport.errors.length > 0;
 
     return (
-      <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="space-y-4 pt-4 border-t border-surface-sunken dark:border-ink-secondary">
         <div className="flex items-center gap-3">
           <span className={`inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-bold ${
             hasErrors
               ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200/50'
-              : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-450 border border-emerald-200/50'
+              : 'bg-accent-soft dark:bg-accent-soft/30 text-accent-strong dark:text-accent border border-accent-soft/50'
           }`}>
             {hasErrors ? 'Roster Validation Failed' : 'Roster Validation Passed'}
           </span>
-          <span className="text-[10px] text-zinc-400 uppercase font-bold">
+          <span className="text-[10px] text-ink-muted uppercase font-bold">
             Readiness Report Compiled
           </span>
         </div>
 
         {/* Counts summary grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-zinc-50/50 dark:bg-zinc-900/40 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-surface/50 dark:bg-ink/40 p-4 rounded-xl border border-surface-sunken dark:border-ink-secondary">
           {Object.entries(rosterReport.counts).map(([key, count]) => {
             if (count === 0) return null;
             const labelMap: Record<string, string> = {
@@ -1475,8 +1475,8 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
             };
             return (
               <div key={key} className="text-center md:text-start">
-                <span className="block text-[10px] text-zinc-400 font-bold uppercase">{labelMap[key] || key}</span>
-                <span className="text-lg font-black text-zinc-800 dark:text-zinc-200">{count}</span>
+                <span className="block text-[10px] text-ink-muted font-bold uppercase">{labelMap[key] || key}</span>
+                <span className="text-lg font-black text-ink-secondary dark:text-line">{count}</span>
               </div>
             );
           })}
@@ -1502,13 +1502,13 @@ Robot Safety Club,Initial safety training and parts inventory,thursday,12:00,13:
         {/* Warnings list */}
         {rosterReport.warnings.length > 0 && (
           <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-amber-700 dark:text-amber-450 flex items-center gap-1.5 uppercase">
+            <h4 className="text-xs font-bold text-status-caution dark:text-status-caution flex items-center gap-1.5 uppercase">
               <Clock className="h-4.5 w-4.5" />
               {t('admin.importExport.warnings.title')} ({rosterReport.warnings.length})
             </h4>
-            <div className="max-h-40 overflow-y-auto rounded-xl border border-amber-200/40 bg-amber-50/10 dark:bg-amber-950/5 p-3 space-y-1.5 font-mono text-[10px] text-amber-800 dark:text-amber-350">
+            <div className="max-h-40 overflow-y-auto rounded-xl border border-status-caution-soft/40 bg-status-caution-soft/10 dark:bg-status-caution-soft/5 p-3 space-y-1.5 font-mono text-[10px] text-status-caution dark:text-status-caution-soft">
               {rosterReport.warnings.map((warn, idx) => (
-                <div key={idx} className="leading-relaxed border-b border-amber-200/10 pb-1 last:border-0 last:pb-0">
+                <div key={idx} className="leading-relaxed border-b border-status-caution-soft/10 pb-1 last:border-0 last:pb-0">
                   &bull; {warn}
                 </div>
               ))}

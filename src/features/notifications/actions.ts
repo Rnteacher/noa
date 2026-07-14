@@ -34,8 +34,8 @@ export async function markNotificationRead(
   }
 
   revalidatePath('/notifications');
-  revalidatePath('/dashboard');
-  revalidatePath('/more');
+  revalidatePath('/messages');
+  revalidatePath('/settings');
 
   return { success: true, error: null };
 }
@@ -64,8 +64,8 @@ export async function markAllNotificationsRead(): Promise<NotificationActionResu
   }
 
   revalidatePath('/notifications');
-  revalidatePath('/dashboard');
-  revalidatePath('/more');
+  revalidatePath('/messages');
+  revalidatePath('/settings');
 
   return { success: true, error: null };
 }

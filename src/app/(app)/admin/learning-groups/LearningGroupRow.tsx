@@ -36,17 +36,17 @@ export function LearningGroupRow({ learningGroup, groups, leaders }: LearningGro
 
   if (isEditing) {
     return (
-      <tr className="bg-zinc-50/60 dark:bg-zinc-900/40">
+      <tr className="bg-surface/60 dark:bg-ink/40">
         <td colSpan={8} className="p-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-750 dark:bg-zinc-950">
+          <div className="rounded-xl border border-line bg-white p-4 dark:border-ink-secondary dark:bg-ink">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+              <h3 className="text-sm font-bold text-ink dark:text-surface">
                 {t('admin.learningGroups.editTitle')}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-sunken dark:hover:bg-ink-secondary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -78,36 +78,36 @@ export function LearningGroupRow({ learningGroup, groups, leaders }: LearningGro
   }
 
   return (
-    <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30">
-      <td className="max-w-[180px] px-2 py-3 font-medium text-zinc-900 dark:text-zinc-100 sm:max-w-[260px]">
+    <tr className="hover:bg-surface/50 dark:hover:bg-ink/30">
+      <td className="max-w-[180px] px-2 py-3 font-medium text-ink dark:text-surface-sunken sm:max-w-[260px]">
         <div className="truncate">{learningGroup.title}</div>
         {learningGroup.description ? (
-          <div className="mt-0.5 truncate text-[10px] text-zinc-400 dark:text-zinc-550">
+          <div className="mt-0.5 truncate text-[10px] text-ink-muted dark:text-ink-muted">
             {learningGroup.description}
           </div>
         ) : null}
       </td>
-      <td className="whitespace-nowrap px-2 py-3 text-zinc-600 dark:text-zinc-450">
+      <td className="whitespace-nowrap px-2 py-3 text-ink-secondary dark:text-ink-muted">
         {t(`admin.learningGroups.weekday_${learningGroup.weekday}`)}
       </td>
-      <td className="whitespace-nowrap px-2 py-3 font-mono text-[11px] text-zinc-600 dark:text-zinc-450">
+      <td className="whitespace-nowrap px-2 py-3 font-mono text-[11px] text-ink-secondary dark:text-ink-muted">
         {formatTime(learningGroup.startsAt)}-{formatTime(learningGroup.endsAt)}
       </td>
-      <td className="max-w-[140px] px-2 py-3 text-zinc-600 dark:text-zinc-450">
+      <td className="max-w-[140px] px-2 py-3 text-ink-secondary dark:text-ink-muted">
         <div className="truncate">
           {learningGroup.leaderName ?? t('admin.learningGroups.noLeader')}
         </div>
       </td>
-      <td className="max-w-[120px] px-2 py-3 text-zinc-600 dark:text-zinc-450">
+      <td className="max-w-[120px] px-2 py-3 text-ink-secondary dark:text-ink-muted">
         <div className="truncate">{learningGroup.room ?? '-'}</div>
       </td>
-      <td className="max-w-[180px] px-2 py-3 text-zinc-600 dark:text-zinc-450">
+      <td className="max-w-[180px] px-2 py-3 text-ink-secondary dark:text-ink-muted">
         <div className="truncate">
           {learningGroup.targetGroupNames.length > 0
             ? learningGroup.targetGroupNames.join(', ')
             : '-'}
         </div>
-        <div className="mt-0.5 truncate text-[10px] text-zinc-400 dark:text-zinc-550">
+        <div className="mt-0.5 truncate text-[10px] text-ink-muted dark:text-ink-muted">
           {formatDate(learningGroup.activeFrom)}
           {learningGroup.activeUntil ? ` - ${formatDate(learningGroup.activeUntil)}` : ''}
         </div>
@@ -116,8 +116,8 @@ export function LearningGroupRow({ learningGroup, groups, leaders }: LearningGro
         <span
           className={
             learningGroup.isActive
-              ? 'rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
-              : 'rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+              ? 'rounded-full bg-accent-soft px-2 py-1 text-[10px] font-bold text-accent-strong dark:bg-accent-soft/30 dark:text-accent-soft'
+              : 'rounded-full bg-surface-sunken px-2 py-1 text-[10px] font-bold text-ink-muted dark:bg-ink-secondary dark:text-ink-muted'
           }
         >
           {learningGroup.isActive
@@ -131,7 +131,7 @@ export function LearningGroupRow({ learningGroup, groups, leaders }: LearningGro
             type="button"
             onClick={() => setIsEditing(true)}
             title={t('admin.learningGroups.editButton')}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-emerald-600 dark:hover:bg-zinc-800"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface hover:text-accent dark:hover:bg-ink-secondary"
           >
             <Pencil className="h-4 w-4" />
           </button>

@@ -162,8 +162,7 @@ export async function createAnnouncementAction(
 
   // 9. Revalidate cache paths
   revalidatePath('/admin/announcements');
-  revalidatePath('/announcements');
-  revalidatePath('/dashboard');
+  revalidatePath('/messages');
 
   return { success: true, error: null };
 }
@@ -223,8 +222,7 @@ export async function deleteAnnouncementAction(
 
   // 5. Revalidate cache paths
   revalidatePath('/admin/announcements');
-  revalidatePath('/announcements');
-  revalidatePath('/dashboard');
+  revalidatePath('/messages');
 
   return { success: true, error: null };
 }

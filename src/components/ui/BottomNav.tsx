@@ -1,24 +1,24 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { CalendarDays, Ellipsis, Home, Megaphone, Users } from 'lucide-react';
+import { CalendarDays, Megaphone, SlidersHorizontal, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', labelKey: 'nav.dashboard', icon: Home },
-  { href: '/today', labelKey: 'nav.today', icon: CalendarDays },
+  { href: '/messages', labelKey: 'nav.messages', icon: Megaphone },
+  { href: '/calendar', labelKey: 'nav.calendar', icon: CalendarDays },
   { href: '/students', labelKey: 'nav.students', icon: Users },
-  { href: '/announcements', labelKey: 'nav.announcements', icon: Megaphone },
-  { href: '/more', labelKey: 'nav.more', icon: Ellipsis },
+  { href: '/settings', labelKey: 'nav.settings', icon: SlidersHorizontal },
 ] as const;
 
 /**
- * Persistent mobile tab bar with the five app slots. Detail screens are
- * expected to push over it; badges (unread counts) are deferred until the
- * data layer exists.
+ * Persistent mobile tab bar with the four app slots (Staff App Redesign
+ * mockup). Detail screens are expected to push over it. The unread-messages
+ * badge (announcements + student-update notifications) shows on the
+ * Messages tab, since that's where the merged feed now lives.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -29,9 +29,9 @@ export function BottomNav() {
     const prevPath = prevPathnameRef.current;
     const shouldFetch =
       prevPath === null ||
-      pathname === '/more' ||
+      pathname === '/messages' ||
       pathname === '/notifications' ||
-      prevPath === '/more' ||
+      prevPath === '/messages' ||
       prevPath === '/notifications';
 
     prevPathnameRef.current = pathname;
@@ -54,7 +54,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t('nav.main')}
-      className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-surface-raised/95 backdrop-blur-sm"
+      className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-[var(--tab-bar-bg)] backdrop-blur-xl"
     >
       <div className="mx-auto flex max-w-md items-stretch justify-around px-1 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
         {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => {
@@ -76,7 +76,7 @@ export function BottomNav() {
             >
               <div className="relative">
                 <Icon aria-hidden="true" className="h-5 w-5" />
-                {href === '/more' && unreadCount > 0 ? (
+                {href === '/messages' && unreadCount > 0 ? (
                   <span
                     className="absolute -top-1.5 -end-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-critical px-1 text-[9px] font-bold text-white ring-2 ring-surface-raised"
                     aria-label={t('notifications.unread')}

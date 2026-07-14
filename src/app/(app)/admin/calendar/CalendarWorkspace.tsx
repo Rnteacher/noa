@@ -63,8 +63,8 @@ export function CalendarWorkspace({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] items-start">
-      <section className="space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm min-w-0">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+      <section className="space-y-4 rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-4 shadow-sm min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-surface-sunken dark:border-ink-secondary pb-4">
           <CalendarDateNavigator view={view} currentDateStr={dateStr} />
           <CalendarViewSwitcher currentView={view} />
         </div>
@@ -72,18 +72,18 @@ export function CalendarWorkspace({
         {view === 'list' ? (
           <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
+              <h2 className="text-base font-bold text-ink dark:text-surface">
                 {t('admin.calendar.listTitle')}
               </h2>
-              <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-850 p-0.5 rounded-lg text-[10px]">
+              <div className="flex gap-1 bg-surface-sunken dark:bg-ink p-0.5 rounded-lg text-[10px]">
                 {['upcoming', 'today', 'week', 'month'].map((opt) => (
                   <a
                     key={opt}
                     href={opt === 'upcoming' ? '/admin/calendar?view=list' : `/admin/calendar?view=list&range=${opt}`}
                     className={`px-2.5 py-1 rounded-md font-bold transition-all ${
                       listRange === opt
-                        ? 'bg-white dark:bg-zinc-950 text-emerald-600 dark:text-emerald-450 shadow-sm'
-                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                        ? 'bg-white dark:bg-ink text-accent dark:text-accent shadow-sm'
+                        : 'text-ink-muted dark:text-ink-muted hover:text-ink-secondary dark:hover:text-line'
                     }`}
                   >
                     {t(`admin.calendar.range_${opt}`)}
@@ -96,7 +96,7 @@ export function CalendarWorkspace({
               <div className="overflow-x-auto">
                 <table className="w-full text-start text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-semibold">
+                    <tr className="border-b border-surface-sunken dark:border-ink-secondary text-ink-muted dark:text-ink-muted font-semibold">
                       <th className="py-2.5 px-2 text-start">{t('admin.calendar.colTitle')}</th>
                       <th className="py-2.5 px-2 text-start">{t('admin.calendar.colStartsAt')}</th>
                       <th className="py-2.5 px-2 text-start">{t('admin.calendar.colEndsAt')}</th>
@@ -105,7 +105,7 @@ export function CalendarWorkspace({
                       <th className="py-2.5 px-2 text-center w-20"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                  <tbody className="divide-y divide-surface-sunken dark:divide-ink-secondary/50">
                     {events.map((event) => (
                       <CalendarEventRow
                         key={event.id}
@@ -117,7 +117,7 @@ export function CalendarWorkspace({
                 </table>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-850 py-10 text-center text-zinc-500 dark:text-zinc-450">
+              <div className="rounded-xl border border-dashed border-line dark:border-ink py-10 text-center text-ink-muted dark:text-ink-muted">
                 {t('admin.calendar.emptyList')}
               </div>
             )}
@@ -142,11 +142,11 @@ export function CalendarWorkspace({
       </section>
 
       <aside className="sticky top-6">
-        <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <section className="rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-5 shadow-sm">
           {editingEvent ? (
             <div>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
+                <h2 className="text-lg font-bold text-ink dark:text-surface">
                   {t('admin.calendar.editTitle')}
                 </h2>
                 <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ export function CalendarWorkspace({
                       setSyncError(null);
                       setSyncSuccess(false);
                     }}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 font-bold"
+                    className="text-xs text-accent hover:text-accent-strong font-bold"
                   >
                     {t('admin.calendar.cancelButton')}
                   </button>
@@ -170,16 +170,16 @@ export function CalendarWorkspace({
               </div>
 
               {isSyncConfigured && (
-                <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-3 text-xs">
+                <div className="mb-4 rounded-xl border border-line dark:border-ink-secondary bg-surface dark:bg-ink/60 p-3 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-zinc-650 dark:text-zinc-400">Google Calendar:</span>
+                    <span className="font-semibold text-ink-secondary dark:text-ink-muted">Google Calendar:</span>
                     {editingEvent.googleCalendarEventId ? (
-                      <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-450">
+                      <span className="inline-flex items-center gap-1 font-bold text-accent dark:text-accent">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Synced
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-500">
+                      <span className="inline-flex items-center gap-1 font-bold text-status-caution dark:text-status-caution">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Not Synced
                       </span>
@@ -187,13 +187,13 @@ export function CalendarWorkspace({
                   </div>
 
                   {!editingEvent.googleCalendarEventId && (
-                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-zinc-150 dark:border-zinc-800 pt-2">
-                      <p className="text-[10px] text-zinc-500">Mirror event to Google Calendar</p>
+                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-line dark:border-ink-secondary pt-2">
+                      <p className="text-[10px] text-ink-muted">Mirror event to Google Calendar</p>
                       <button
                         type="button"
                         onClick={() => handleSingleSync(editingEvent.id)}
                         disabled={isSyncing}
-                        className="rounded-lg bg-zinc-900 hover:bg-zinc-850 dark:bg-zinc-50 dark:hover:bg-zinc-200 px-2 py-1 text-[10px] font-bold text-white dark:text-zinc-950 transition-colors flex items-center gap-1 cursor-pointer"
+                        className="rounded-lg bg-ink hover:bg-ink dark:bg-surface dark:hover:bg-line px-2 py-1 text-[10px] font-bold text-white dark:text-ink transition-colors flex items-center gap-1 cursor-pointer"
                       >
                         {isSyncing ? (
                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -209,7 +209,7 @@ export function CalendarWorkspace({
                     <p className="mt-1.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">{syncError}</p>
                   )}
                   {syncSuccess && (
-                    <p className="mt-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Synced successfully!</p>
+                    <p className="mt-1.5 text-[10px] font-bold text-accent dark:text-accent-strong">Synced successfully!</p>
                   )}
                 </div>
               )}
@@ -234,7 +234,7 @@ export function CalendarWorkspace({
             </div>
           ) : (
             <div>
-              <h2 className="mb-4 text-lg font-bold text-zinc-950 dark:text-zinc-50">
+              <h2 className="mb-4 text-lg font-bold text-ink dark:text-surface">
                 {t('admin.calendar.createTitle')}
               </h2>
               <CalendarEventForm groups={groups} mode="create" />

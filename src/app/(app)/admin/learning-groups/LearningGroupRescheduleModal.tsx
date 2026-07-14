@@ -72,28 +72,28 @@ export function LearningGroupRescheduleModal({ group, onClose }: LearningGroupRe
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-xs p-4" role="dialog" aria-modal="true">
       <div 
-        className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-md rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-black text-zinc-950 dark:text-zinc-550 mb-2">
+        <h2 className="text-base font-black text-ink dark:text-ink-muted mb-2">
           {t('admin.learningGroups.rescheduleTitle')}
         </h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 font-semibold">
+        <p className="text-xs text-ink-muted dark:text-ink-muted mb-4 font-semibold">
           {group.title}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
               {t('admin.learningGroups.weekdayLabel')}
             </span>
             <select
               disabled={isPending}
               value={weekday}
               onChange={(e) => setWeekday(e.target.value as LearningGroupWeekday)}
-              className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-xs text-zinc-950 dark:text-zinc-550 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              className="h-10 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-xs text-ink dark:text-ink-muted outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
             >
               {LEARNING_GROUP_WEEKDAYS.map((day) => (
                 <option key={day} value={day}>
@@ -104,7 +104,7 @@ export function LearningGroupRescheduleModal({ group, onClose }: LearningGroupRe
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
               {t('admin.learningGroups.newStartsAtLabel')}
             </span>
             <input
@@ -113,12 +113,12 @@ export function LearningGroupRescheduleModal({ group, onClose }: LearningGroupRe
               disabled={isPending}
               value={startsAt}
               onChange={(e) => setStartsAt(e.target.value)}
-              className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-xs text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              className="h-10 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-xs text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </label>
 
-          <div className="rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-150 dark:border-zinc-800 p-3 text-xs text-zinc-600 dark:text-zinc-400 font-mono">
-            <div className="font-semibold mb-1 text-[10px] uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
+          <div className="rounded-xl bg-surface dark:bg-ink/60 border border-line dark:border-ink-secondary p-3 text-xs text-ink-secondary dark:text-ink-muted font-mono">
+            <div className="font-semibold mb-1 text-[10px] uppercase text-ink-muted dark:text-ink-muted tracking-wider">
               {t('admin.learningGroups.startsAtLabel')} &rarr; {t('admin.learningGroups.endsAtLabel')}
             </div>
             <div>
@@ -143,14 +143,14 @@ export function LearningGroupRescheduleModal({ group, onClose }: LearningGroupRe
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="h-9 px-4 rounded-xl text-xs font-bold bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-750 dark:text-zinc-300 transition-colors"
+              className="h-9 px-4 rounded-xl text-xs font-bold bg-surface-sunken hover:bg-line/80 text-ink-secondary dark:bg-ink-secondary dark:hover:bg-ink-secondary dark:text-line transition-colors"
             >
               {t('admin.learningGroups.cancelButton')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="h-9 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 transition-colors"
+              className="h-9 px-4 rounded-xl text-xs font-bold bg-accent hover:bg-accent-strong text-white flex items-center justify-center gap-1.5 transition-colors"
             >
               {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               <span>{t('admin.learningGroups.updateButton')}</span>

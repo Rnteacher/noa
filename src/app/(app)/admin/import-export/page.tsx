@@ -6,20 +6,20 @@ import { t } from '@/lib/i18n';
 
 function ForbiddenState() {
   return (
-    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-950 px-4 py-8">
-      <section className="mx-auto max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-center shadow-xl">
+    <main className="min-h-screen bg-surface-sunken dark:bg-ink px-4 py-8">
+      <section className="mx-auto max-w-md rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 text-center shadow-xl">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-600 text-white">
           <ShieldAlert className="h-6 w-6" />
         </div>
-        <h1 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+        <h1 className="text-xl font-bold text-ink dark:text-surface">
           {t('admin.accessGrants.forbiddenTitle')}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 text-ink-secondary dark:text-ink-muted">
           {t('admin.calendar.errorForbidden')}
         </p>
         <Link
-          href="/dashboard"
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          href="/calendar"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-ink px-4 text-sm font-bold text-white transition-colors hover:bg-ink-secondary dark:bg-surface dark:text-ink dark:hover:bg-line"
         >
           {t('admin.accessGrants.backToDashboard')}
         </Link>
@@ -79,13 +79,13 @@ export default async function AdminImportExportPage() {
     <main className="p-4 md:p-6 lg:p-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <header>
-          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+          <p className="text-sm font-semibold text-accent-strong dark:text-accent-strong">
             {t('nav.admin')}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-surface">
             {t('admin.nav.importExport')}
           </h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-650 dark:text-zinc-400">
+          <p className="mt-2 text-sm leading-6 text-ink-secondary dark:text-ink-muted">
             Bulk validation, ingestion, and export center for school planning rosters.
           </p>
         </header>

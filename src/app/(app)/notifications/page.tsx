@@ -40,7 +40,7 @@ export default async function NotificationsPage() {
                   key={notification.id}
                   className={`flex flex-col gap-2 p-4 rounded-2xl border transition-all duration-200 ${
                     isUnread
-                      ? 'border-primary-100 bg-primary-50/30 dark:border-primary-900/30 dark:bg-primary-950/10'
+                      ? 'border-accent/20 bg-accent-soft/40'
                       : 'border-line bg-surface-raised'
                   }`}
                 >
@@ -49,11 +49,11 @@ export default async function NotificationsPage() {
                       <div className="flex items-center gap-2">
                         {isUnread ? (
                           <span
-                            className="h-2 w-2 rounded-full bg-primary-500 shrink-0"
+                            className="h-2 w-2 rounded-full bg-accent shrink-0"
                             aria-hidden="true"
                           />
                         ) : null}
-                        <h3 className={`text-sm font-bold text-ink ${isUnread ? 'text-primary-950 dark:text-primary-50' : ''}`}>
+                        <h3 className="text-sm font-bold text-ink">
                           {notification.title}
                         </h3>
                       </div>
@@ -75,7 +75,7 @@ export default async function NotificationsPage() {
                     <div className="flex justify-end mt-1">
                       <Link
                         href={notification.deep_link}
-                        className="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200"
+                        className="text-xs font-semibold text-accent hover:text-accent-strong transition-colors duration-200"
                       >
                         {t('common.view')}
                       </Link>

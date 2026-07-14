@@ -137,24 +137,24 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-xs p-4"
       role="dialog"
       aria-modal="true"
       aria-label={t('admin.calendar.quickCreateTitle')}
     >
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-black text-zinc-950 dark:text-zinc-50">
+          <h2 className="text-base font-black text-ink dark:text-surface">
             {t('admin.calendar.quickCreateTitle')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label={t('admin.calendar.cancelButton')}
-            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-sunken dark:hover:bg-ink-secondary"
           >
             <X className="h-4 w-4" />
           </button>
@@ -162,7 +162,7 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
               {t('admin.calendar.titleLabel')}
             </span>
             <input
@@ -174,38 +174,38 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
               maxLength={160}
               onChange={(event) => setTitle(event.target.value)}
               placeholder={t('admin.calendar.titlePlaceholder')}
-              className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line cursor-pointer">
             <input
               type="checkbox"
               disabled={isPending}
               checked={isAllDay}
               onChange={(event) => setIsAllDay(event.target.checked)}
-              className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+              className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
             />
             {t('admin.calendar.isAllDayLabel')}
           </label>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                 {t('admin.calendar.startsAtDateLabel')}
               </span>
               <ILDatePicker value={startDate} onChange={setStartDate} disabled={isPending} required />
             </label>
             {isAllDay ? (
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                   {t('admin.calendar.endsAtDateLabel')}
                 </span>
                 <ILDatePicker value={endDate} onChange={setEndDate} disabled={isPending} required />
               </label>
             ) : (
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                   {t('admin.calendar.startsAtTimeLabel')}
                 </span>
                 <ILTimeInput value={startTime} onChange={setStartTime} disabled={isPending} required />
@@ -214,20 +214,20 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
           </div>
 
           {!isAllDay && !showAdvanced && defaultEndPreview ? (
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+            <p className="text-[11px] text-ink-muted dark:text-ink-muted">
               {t('admin.calendar.quickCreateDefaultEndHint', { time: formatILTime(defaultEndPreview) })}
             </p>
           ) : null}
 
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
               {t('admin.calendar.visibilityLabel')}
             </span>
             <select
               disabled={isPending}
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as CalendarEventVisibility)}
-              className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none focus:border-emerald-600"
+              className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none focus:border-accent"
             >
               {VISIBILITIES.map((option) => (
                 <option key={option} value={option}>
@@ -238,8 +238,8 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
           </label>
 
           {visibility === 'groups' ? (
-            <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-              <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-xl border border-surface-sunken dark:border-ink-secondary bg-surface dark:bg-ink/50 p-3">
+              <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
                 {t('admin.calendar.selectGroupsTitle')}
               </span>
               {groups.length > 0 ? (
@@ -247,21 +247,21 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
                   {groups.map((group) => (
                     <label
                       key={group.id}
-                      className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer"
+                      className="flex items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-2.5 py-1.5 text-xs font-medium text-ink-secondary dark:text-line cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         disabled={isPending}
                         checked={selectedGroups.has(group.id)}
                         onChange={() => handleGroupToggle(group.id)}
-                        className="h-3.5 w-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                        className="h-3.5 w-3.5 rounded border-line text-accent focus:ring-accent"
                       />
                       <span className="truncate">{group.name}</span>
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-zinc-450 dark:text-zinc-600">
+                <p className="text-xs text-ink-muted dark:text-ink-secondary">
                   {t('admin.calendar.noGroupsAvailable')}
                 </p>
               )}
@@ -272,16 +272,16 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
             type="button"
             onClick={() => setShowAdvanced((value) => !value)}
             aria-expanded={showAdvanced}
-            className="flex w-full items-center justify-between rounded-xl border border-zinc-100 dark:border-zinc-800 px-3 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            className="flex w-full items-center justify-between rounded-xl border border-surface-sunken dark:border-ink-secondary px-3 py-2 text-xs font-bold text-ink-secondary dark:text-line hover:bg-surface dark:hover:bg-ink-secondary/50"
           >
             <span>{t('admin.calendar.advancedFieldsToggle')}</span>
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
           </button>
 
           {showAdvanced ? (
-            <div className="space-y-3 rounded-xl border border-zinc-100 dark:border-zinc-800 p-3">
+            <div className="space-y-3 rounded-xl border border-surface-sunken dark:border-ink-secondary p-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                   {t('admin.calendar.descriptionLabel')}
                 </span>
                 <textarea
@@ -290,11 +290,11 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
                   value={description}
                   maxLength={2000}
                   onChange={(event) => setDescription(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 p-2.5 text-xs text-zinc-950 dark:text-zinc-50 outline-none focus:border-emerald-600 resize-y"
+                  className="w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-2.5 text-xs text-ink dark:text-surface outline-none focus:border-accent resize-y"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                   {t('admin.calendar.locationLabel')}
                 </span>
                 <input
@@ -303,19 +303,19 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
                   value={location}
                   maxLength={160}
                   onChange={(event) => setLocation(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-xs text-zinc-950 dark:text-zinc-50 outline-none focus:border-emerald-600"
+                  className="h-10 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-xs text-ink dark:text-surface outline-none focus:border-accent"
                 />
               </label>
               {!isAllDay ? (
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                       {t('admin.calendar.endsAtDateLabel')}
                     </span>
                     <ILDatePicker value={customEndDate ?? startDate} onChange={setCustomEndDate} disabled={isPending} />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    <span className="mb-1 block text-xs font-bold text-ink-secondary dark:text-line">
                       {t('admin.calendar.endsAtTimeLabel')}
                     </span>
                     <ILTimeInput value={customEndTime} onChange={setCustomEndTime} disabled={isPending} />
@@ -336,14 +336,14 @@ export function QuickCreateModal({ range, groups, onClose, onCreated }: QuickCre
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="h-10 px-4 rounded-xl text-xs font-bold bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-750 dark:text-zinc-300 transition-colors"
+              className="h-10 px-4 rounded-xl text-xs font-bold bg-surface-sunken hover:bg-line/80 text-ink-secondary dark:bg-ink-secondary dark:hover:bg-ink-secondary dark:text-line transition-colors"
             >
               {t('admin.calendar.cancelButton')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="h-10 px-5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 transition-colors"
+              className="h-10 px-5 rounded-xl text-xs font-bold bg-accent hover:bg-accent-strong text-white flex items-center justify-center gap-1.5 transition-colors"
             >
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
               <span>{t('admin.calendar.createButton')}</span>

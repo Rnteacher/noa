@@ -21,7 +21,7 @@ export function CalendarViewSwitcher({ currentView }: CalendarViewSwitcherProps)
   }
 
   return (
-    <nav className="flex gap-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1" aria-label={t('admin.calendar.filterLabel')}>
+    <nav className="flex gap-1 rounded-xl bg-surface-sunken dark:bg-ink-secondary p-1" aria-label={t('admin.calendar.filterLabel')}>
       {VIEWS.map((view) => (
         <button
           key={view}
@@ -30,8 +30,8 @@ export function CalendarViewSwitcher({ currentView }: CalendarViewSwitcherProps)
           className={cn(
             'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all',
             currentView === view
-              ? 'bg-white dark:bg-zinc-950 text-emerald-600 dark:text-emerald-400 shadow-sm'
-              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-850 dark:hover:text-zinc-200'
+              ? 'bg-white dark:bg-ink text-accent dark:text-accent-strong shadow-sm'
+              : 'text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-line'
           )}
         >
           {t(`admin.calendar.view_${view}`)}

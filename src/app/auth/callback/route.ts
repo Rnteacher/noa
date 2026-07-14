@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const syncResult = await syncProfileAfterOAuth(user);
 
     if (syncResult.state === 'authorized') {
-      return redirectTo(request, '/dashboard');
+      return redirectTo(request, '/calendar');
     }
 
     if (syncResult.state === 'access_pending') {

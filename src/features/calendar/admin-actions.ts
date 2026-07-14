@@ -203,7 +203,7 @@ export async function createCalendarEvent(
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }
@@ -318,7 +318,7 @@ export async function updateCalendarEvent(
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }
@@ -410,7 +410,7 @@ export async function deleteCalendarEvent(eventId: string): Promise<CalendarActi
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }
@@ -497,7 +497,7 @@ export async function rescheduleCalendarEvent(
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }
@@ -610,7 +610,7 @@ async function applyCalendarEventTimeChange(
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }
@@ -772,7 +772,7 @@ export async function importCalendarEvents(
   }
 
   revalidatePath('/admin/calendar');
-  revalidatePath('/dashboard');
+  revalidatePath('/calendar');
 
   return { success: true, error: null };
 }

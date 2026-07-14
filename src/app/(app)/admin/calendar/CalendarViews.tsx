@@ -13,9 +13,9 @@ export function SyncIndicator({ googleCalendarEventId }: SyncIndicatorProps) {
       className="inline-flex items-center justify-center p-0.5"
     >
       {isSynced ? (
-        <CheckCircle className="h-3 w-3 text-emerald-600 dark:text-emerald-450" />
+        <CheckCircle className="h-3 w-3 text-accent dark:text-accent" />
       ) : (
-        <AlertCircle className="h-3 w-3 text-zinc-350 dark:text-zinc-650" />
+        <AlertCircle className="h-3 w-3 text-ink-muted dark:text-ink-secondary" />
       )}
     </span>
   );

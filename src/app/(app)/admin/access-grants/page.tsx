@@ -30,14 +30,14 @@ function RoleCheckboxes({ selectedRoles }: { selectedRoles?: AppRole[] }) {
       {APP_ROLES.map((role) => (
         <label
           key={role}
-          className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200"
+          className="flex items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 py-2 text-sm text-ink-secondary dark:text-line"
         >
           <input
             name="roles"
             type="checkbox"
             value={role}
             defaultChecked={selected.has(role)}
-            className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+            className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
           />
           <span>{t(`admin.accessGrants.roles.${role}`)}</span>
         </label>
@@ -48,20 +48,20 @@ function RoleCheckboxes({ selectedRoles }: { selectedRoles?: AppRole[] }) {
 
 function ForbiddenState() {
   return (
-    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-950 px-4 py-8">
-      <section className="mx-auto max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-center shadow-xl">
+    <main className="min-h-screen bg-surface-sunken dark:bg-ink px-4 py-8">
+      <section className="mx-auto max-w-md rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-6 text-center shadow-xl">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-600 text-white">
           <ShieldAlert className="h-6 w-6" />
         </div>
-        <h1 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+        <h1 className="text-xl font-bold text-ink dark:text-surface">
           {t('admin.accessGrants.forbiddenTitle')}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 text-ink-secondary dark:text-ink-muted">
           {t('admin.accessGrants.forbiddenDescription')}
         </p>
         <Link
-          href="/dashboard"
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          href="/calendar"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-ink px-4 text-sm font-bold text-white transition-colors hover:bg-ink-secondary dark:bg-surface dark:text-ink dark:hover:bg-line"
         >
           {t('admin.accessGrants.backToDashboard')}
         </Link>
@@ -76,25 +76,25 @@ function GrantForm({ grant }: { grant: GrantRow }) {
   return (
     <form
       action={updateAccessGrantAction}
-      className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm"
+      className="rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-4 shadow-sm"
     >
       <input type="hidden" name="grant_id" value={grant.id} />
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
-          <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
+          <h2 className="text-base font-bold text-ink dark:text-surface">
             {grant.email}
           </h2>
-          <div className="flex flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex flex-wrap gap-2 text-xs text-ink-muted dark:text-ink-muted">
             <span>{t('admin.accessGrants.createdAt')}: {formatDate(grant.created_at)}</span>
             <span>{t('admin.accessGrants.updatedAt')}: {formatDate(grant.updated_at)}</span>
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200">
+        <label className="flex items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line">
           <input
             name="is_active"
             type="checkbox"
             defaultChecked={grant.is_active}
-            className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+            className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
           />
           {t('admin.accessGrants.active')}
         </label>
@@ -107,7 +107,7 @@ function GrantForm({ grant }: { grant: GrantRow }) {
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+          className="h-10 rounded-xl bg-accent px-4 text-sm font-bold text-white transition-colors hover:bg-accent-strong"
         >
           {t('admin.accessGrants.saveGrant')}
         </button>
@@ -138,30 +138,30 @@ export default async function AccessGrantsPage() {
       <div className="mx-auto flex max-w-5xl flex-col gap-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+            <p className="text-sm font-semibold text-accent-strong dark:text-accent-strong">
               {t('nav.admin')}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+            <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-surface">
               {t('admin.accessGrants.title')}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-secondary dark:text-ink-muted">
               {t('admin.accessGrants.description')}
             </p>
           </div>
           <Link
-            href="/dashboard"
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            href="/calendar"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-4 text-sm font-bold text-ink-secondary dark:text-line transition-colors hover:bg-surface dark:hover:bg-ink-secondary"
           >
             {t('admin.accessGrants.backToDashboard')}
           </Link>
         </header>
 
-        <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+        <section className="rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-white">
               <UserPlus className="h-5 w-5" />
             </div>
-            <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
+            <h2 className="text-lg font-bold text-ink dark:text-surface">
               {t('admin.accessGrants.createTitle')}
             </h2>
           </div>
@@ -169,7 +169,7 @@ export default async function AccessGrantsPage() {
           <form action={createAccessGrantAction} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
                   {t('admin.accessGrants.email')}
                 </span>
                 <input
@@ -177,15 +177,15 @@ export default async function AccessGrantsPage() {
                   type="email"
                   required
                   placeholder={t('admin.accessGrants.emailPlaceholder')}
-                  className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
+                  className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent"
                 />
               </label>
-              <label className="flex h-11 items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              <label className="flex h-11 items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line">
                 <input
                   name="is_active"
                   type="checkbox"
                   defaultChecked
-                  className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                  className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
                 />
                 {t('admin.accessGrants.active')}
               </label>
@@ -196,7 +196,7 @@ export default async function AccessGrantsPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="h-10 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+                className="h-10 rounded-xl bg-accent px-4 text-sm font-bold text-white transition-colors hover:bg-accent-strong"
               >
                 {t('admin.accessGrants.createGrant')}
               </button>
@@ -206,10 +206,10 @@ export default async function AccessGrantsPage() {
 
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
+            <h2 className="text-lg font-bold text-ink dark:text-surface">
               {t('admin.accessGrants.existingTitle')}
             </h2>
-            <span className="rounded-full bg-zinc-200 dark:bg-zinc-800 px-3 py-1 text-xs font-bold text-zinc-600 dark:text-zinc-300">
+            <span className="rounded-full bg-line dark:bg-ink-secondary px-3 py-1 text-xs font-bold text-ink-secondary dark:text-line">
               {grants?.length || 0}
             </span>
           </div>
@@ -221,7 +221,7 @@ export default async function AccessGrantsPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-xl border border-dashed border-line dark:border-ink-secondary p-6 text-center text-sm text-ink-muted dark:text-ink-muted">
               {t('admin.accessGrants.empty')}
             </div>
           )}

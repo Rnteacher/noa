@@ -64,10 +64,10 @@ export function LearningGroupsWorkspace({
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_380px]">
-      <section className="min-w-0 space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between border-b border-zinc-100 dark:border-zinc-805 pb-4">
+      <section className="min-w-0 space-y-4 rounded-2xl border border-line bg-white p-4 shadow-sm dark:border-ink-secondary dark:bg-ink">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between border-b border-surface-sunken dark:border-ink-secondary pb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-50 leading-none">
+            <h2 className="text-base font-bold text-ink dark:text-surface leading-none">
               {t('admin.learningGroups.listTitle')}
             </h2>
             <LearningGroupsViewSwitcher currentView={view} />
@@ -75,7 +75,7 @@ export function LearningGroupsWorkspace({
 
           <div className="flex flex-wrap gap-2">
             <nav
-              className="flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-850"
+              className="flex gap-1 rounded-lg bg-surface-sunken p-1 dark:bg-ink"
               aria-label={t('admin.learningGroups.weekdayFilterLabel')}
             >
               {(['all', ...LEARNING_GROUP_WEEKDAYS] as Array<LearningGroupWeekday | 'all'>).map(
@@ -86,8 +86,8 @@ export function LearningGroupsWorkspace({
                     className={cn(
                       'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
                       weekdayFilter === option
-                        ? 'bg-white text-emerald-700 shadow-sm dark:bg-zinc-950 dark:text-emerald-400'
-                        : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                        ? 'bg-white text-accent-strong shadow-sm dark:bg-ink dark:text-accent-strong'
+                        : 'text-ink-muted hover:text-ink-secondary dark:text-ink-muted dark:hover:text-line'
                     )}
                   >
                     {option === 'all'
@@ -98,7 +98,7 @@ export function LearningGroupsWorkspace({
               )}
             </nav>
             <nav
-              className="flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-850"
+              className="flex gap-1 rounded-lg bg-surface-sunken p-1 dark:bg-ink"
               aria-label={t('admin.learningGroups.stateFilterLabel')}
             >
               {STATE_OPTIONS.map((option) => (
@@ -108,8 +108,8 @@ export function LearningGroupsWorkspace({
                   className={cn(
                     'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
                     stateFilter === option
-                      ? 'bg-white text-emerald-700 shadow-sm dark:bg-zinc-950 dark:text-emerald-400'
-                      : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      ? 'bg-white text-accent-strong shadow-sm dark:bg-ink dark:text-accent-strong'
+                      : 'text-ink-muted hover:text-ink-secondary dark:text-ink-muted dark:hover:text-line'
                   )}
                 >
                   {t(`admin.learningGroups.state_${option}`)}
@@ -124,7 +124,7 @@ export function LearningGroupsWorkspace({
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-start text-xs">
                 <thead>
-                  <tr className="border-b border-zinc-100 font-semibold text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                  <tr className="border-b border-surface-sunken font-semibold text-ink-muted dark:border-ink-secondary dark:text-ink-muted">
                     <th className="px-2 py-2.5 text-start">{t('admin.learningGroups.colTitle')}</th>
                     <th className="px-2 py-2.5 text-start">{t('admin.learningGroups.colWeekday')}</th>
                     <th className="px-2 py-2.5 text-start">{t('admin.learningGroups.colTime')}</th>
@@ -135,7 +135,7 @@ export function LearningGroupsWorkspace({
                     <th className="w-20 px-2 py-2.5 text-center"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                <tbody className="divide-y divide-surface-sunken dark:divide-ink-secondary/50">
                   {learningGroups.map((learningGroup) => (
                     <LearningGroupRow
                       key={learningGroup.id}
@@ -148,7 +148,7 @@ export function LearningGroupsWorkspace({
               </table>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-zinc-500 dark:border-zinc-850 dark:text-zinc-450">
+            <div className="rounded-xl border border-dashed border-line py-10 text-center text-ink-muted dark:border-ink dark:text-ink-muted">
               {t('admin.learningGroups.emptyList')}
             </div>
           )
@@ -162,7 +162,7 @@ export function LearningGroupsWorkspace({
                 onRescheduleGroup={(group) => setReschedulingGroup(group)}
               />
             ) : (
-              <div className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-zinc-500 dark:border-zinc-850 dark:text-zinc-450">
+              <div className="rounded-xl border border-dashed border-line py-10 text-center text-ink-muted dark:border-ink dark:text-ink-muted">
                 {t('admin.learningGroups.emptyList')}
               </div>
             )}
@@ -171,17 +171,17 @@ export function LearningGroupsWorkspace({
       </section>
 
       <aside className="sticky top-6">
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <section className="rounded-2xl border border-line bg-white p-5 shadow-sm dark:border-ink-secondary dark:bg-ink">
           {editingGroup ? (
             <div>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
+                <h2 className="text-lg font-bold text-ink dark:text-surface">
                   {t('admin.learningGroups.editTitle')}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setEditingGroup(null)}
-                  className="text-xs text-emerald-600 hover:text-emerald-700 font-bold"
+                  className="text-xs text-accent hover:text-accent-strong font-bold"
                 >
                   {t('admin.learningGroups.cancelButton')}
                 </button>
@@ -210,7 +210,7 @@ export function LearningGroupsWorkspace({
             </div>
           ) : (
             <div>
-              <h2 className="mb-4 text-lg font-bold text-zinc-950 dark:text-zinc-50">
+              <h2 className="mb-4 text-lg font-bold text-ink dark:text-surface">
                 {t('admin.learningGroups.createTitle')}
               </h2>
               <LearningGroupForm

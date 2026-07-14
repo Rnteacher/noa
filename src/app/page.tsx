@@ -5,7 +5,7 @@ export default async function RootPage() {
   const accessState = await getCurrentAccessState();
 
   if (accessState === 'authorized') {
-    redirect('/dashboard');
+    redirect('/calendar');
   }
 
   if (accessState === 'access_denied') {

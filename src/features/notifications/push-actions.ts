@@ -114,7 +114,7 @@ export async function savePushSubscription(
   }
 
   revalidatePath('/notifications');
-  revalidatePath('/more');
+  revalidatePath('/settings');
 
   return { success: true, error: null };
 }
@@ -149,7 +149,7 @@ export async function deletePushSubscription(
   }
 
   revalidatePath('/notifications');
-  revalidatePath('/more');
+  revalidatePath('/settings');
 
   return { success: true, error: null };
 }
@@ -176,7 +176,7 @@ export async function deleteAllMyPushSubscriptions(): Promise<PushSubscriptionAc
   }
 
   revalidatePath('/notifications');
-  revalidatePath('/more');
+  revalidatePath('/settings');
 
   return { success: true, error: null };
 }

@@ -116,12 +116,12 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
   };
 
   return (
-    <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+    <section className="rounded-2xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-5 shadow-sm">
       <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-white">
           <Megaphone className="h-5 w-5" />
         </div>
-        <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
+        <h2 className="text-lg font-bold text-ink dark:text-surface">
           {t('admin.announcements.createTitle')}
         </h2>
       </div>
@@ -129,7 +129,7 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.announcements.titleLabel')}
           </span>
           <input
@@ -139,13 +139,13 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('admin.announcements.titlePlaceholder')}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </label>
 
         {/* Body */}
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
             {t('admin.announcements.bodyLabel')}
           </span>
           <textarea
@@ -155,7 +155,7 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder={t('admin.announcements.bodyPlaceholder')}
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 p-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 resize-y"
+            className="w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent resize-y"
           />
         </label>
 
@@ -163,14 +163,14 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Target Type */}
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary dark:text-line">
               {t('admin.announcements.targetTypeLabel')}
             </span>
             <select
               disabled={isPending}
               value={targetType}
               onChange={(e) => setTargetType(e.target.value as 'all_staff' | 'roles' | 'groups')}
-              className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600"
+              className="h-11 w-full rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 text-sm text-ink dark:text-surface outline-none transition-colors focus:border-accent"
             >
               <option value="all_staff">{t('admin.announcements.targetAll')}</option>
               <option value="roles">{t('admin.announcements.targetRoles')}</option>
@@ -180,24 +180,24 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
 
           {/* Config switches (Pinned & Acknowledgement) */}
           <div className="flex flex-col gap-2 justify-end pb-1.5">
-            <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line cursor-pointer">
               <input
                 type="checkbox"
                 disabled={isPending}
                 checked={isPinned}
                 onChange={(e) => setIsPinned(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
               />
               {t('admin.announcements.isPinnedLabel')}
             </label>
 
-            <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink-secondary dark:text-line cursor-pointer">
               <input
                 type="checkbox"
                 disabled={isPending}
                 checked={requiresAcknowledgement}
                 onChange={(e) => setRequiresAcknowledgement(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                className="h-4 w-4 rounded border-line text-accent focus:ring-accent"
               />
               {t('admin.announcements.requiresAcknowledgementLabel')}
             </label>
@@ -206,22 +206,22 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
 
         {/* Roles Checkboxes */}
         {targetType === 'roles' ? (
-          <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-xl border border-surface-sunken dark:border-ink-secondary bg-surface dark:bg-ink/50 p-4">
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
               {t('admin.announcements.selectRolesTitle')}
             </span>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {ROLES_LIST.map((role) => (
                 <label
                   key={role}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer"
+                  className="flex items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 py-2 text-xs font-medium text-ink-secondary dark:text-line cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     disabled={isPending}
                     checked={selectedRoles.has(role)}
                     onChange={() => handleRoleToggle(role)}
-                    className="h-3.5 w-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                    className="h-3.5 w-3.5 rounded border-line text-accent focus:ring-accent"
                   />
                   <span>{t(`admin.accessGrants.roles.${role}`)}</span>
                 </label>
@@ -232,8 +232,8 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
 
         {/* Groups Checkboxes */}
         {targetType === 'groups' ? (
-          <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-xl border border-surface-sunken dark:border-ink-secondary bg-surface dark:bg-ink/50 p-4">
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-ink-muted">
               {t('admin.announcements.selectGroupsTitle')}
             </span>
             {groups.length > 0 ? (
@@ -241,21 +241,21 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
                 {groups.map((group) => (
                   <label
                     key={group.id}
-                    className="flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer"
+                    className="flex items-center gap-2 rounded-lg border border-line dark:border-ink-secondary bg-white dark:bg-ink px-3 py-2 text-xs font-medium text-ink-secondary dark:text-line cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       disabled={isPending}
                       checked={selectedGroups.has(group.id)}
                       onChange={() => handleGroupToggle(group.id)}
-                      className="h-3.5 w-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+                      className="h-3.5 w-3.5 rounded border-line text-accent focus:ring-accent"
                     />
                     <span className="truncate">{group.name}</span>
                   </label>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-zinc-450 dark:text-zinc-600">
+              <p className="text-xs text-ink-muted dark:text-ink-secondary">
                 {t('admin.announcements.noGroupsAvailable')}
               </p>
             )}
@@ -280,7 +280,7 @@ export function AnnouncementForm({ groups }: AnnouncementFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-5 text-sm font-bold text-white transition-all disabled:opacity-50"
+            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-accent hover:bg-accent-strong px-5 text-sm font-bold text-white transition-all disabled:opacity-50"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -36,7 +36,7 @@ export function DeleteAnnouncementButton({ announcementId, title }: DeleteAnnoun
       onClick={handleDelete}
       disabled={isPending}
       title={t('admin.announcements.deleteButton')}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-status-critical hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:text-status-critical hover:bg-surface dark:hover:bg-ink-secondary transition-colors disabled:opacity-50"
     >
       {isPending ? (
         <Loader2 className="h-4 w-4 animate-spin" />

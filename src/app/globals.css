@@ -1,71 +1,134 @@
 @import "tailwindcss";
 
 /*
- * Semantic design tokens (docs/design/05_VISUAL_SYSTEM_DIRECTION.md).
- * Raw values live only here; components consume the generated utilities
- * (bg-surface, text-ink, border-line, text-status-positive, ...).
- * Dark values swap via prefers-color-scheme, so token-based components
- * do not need dark: variants.
+ * Redefine Tailwind's `dark:` variant to key off our explicit `data-theme`
+ * attribute instead of the OS-level prefers-color-scheme media feature.
+ * Theme selection is a persisted user choice (src/lib/theme.ts), not an
+ * automatic OS setting, so every existing `dark:` utility class in the
+ * codebase should follow that choice rather than the device's OS setting.
  */
-:root {
-  /* Quiet warm-neutral surfaces */
-  --surface: #f7f6f4;
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Semantic design tokens, sourced from the "Staff App Redesign" Claude
+ * Design mockup (project f2664526-8c42-4b3d-a774-9a517faf1034). Raw values
+ * live only here; components consume the generated utilities (bg-surface,
+ * text-ink, border-line, text-status-positive, ...). Four selectable themes
+ * (light/dark/warm/violet) swap via a `data-theme` attribute on <html> set
+ * by src/lib/theme.ts — not prefers-color-scheme — so a user's explicit
+ * choice always wins and persists.
+ */
+:root,
+[data-theme="light"] {
+  --surface: #f2f2f7;
   --surface-raised: #ffffff;
-  --surface-sunken: #efedea;
+  --surface-sunken: #e8e8ee;
 
-  /* Text */
-  --ink: #1c1917;
-  --ink-secondary: #57534e;
-  --ink-muted: #8f8a84;
+  --ink: #1c1c1e;
+  --ink-secondary: #6b6b70;
+  --ink-muted: #9a9a9e;
 
-  /* Borders */
-  --line: #e7e5e1;
+  --line: #e9e9ee;
 
-  /* Interactive accent — deliberately not green/yellow/red so interactive
-     elements never masquerade as traffic-light statuses. */
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-soft: #dbeafe;
+  --accent: #0a84ff;
+  --accent-strong: #0060df;
+  --accent-soft: #e4f1ff;
   --on-accent: #ffffff;
 
-  /* Traffic-light status tokens. Base = text/icon/border, soft = tint bg.
-     Reserved for student statuses and destructive/feedback contexts. */
-  --status-positive: #15803d;
-  --status-positive-soft: #dcfce7;
-  --status-caution: #a16207;
-  --status-caution-soft: #fef3c7;
-  --status-critical: #b91c1c;
-  --status-critical-soft: #fee2e2;
+  --tab-bar-bg: rgba(249, 249, 251, 0.86);
+  --shadow-card: rgba(28, 28, 30, 0.08);
+
+  --status-positive: #1fa053;
+  --status-positive-soft: #e2f6ea;
+  --status-caution: #c58a1e;
+  --status-caution-soft: #faf0da;
+  --status-critical: #d64545;
+  --status-critical-soft: #fbe4e4;
 
   /* Legacy aliases kept for existing screens */
   --background: var(--surface);
   --foreground: var(--ink);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #121110;
-    --surface-raised: #1c1a19;
-    --surface-sunken: #0c0b0a;
+[data-theme="dark"] {
+  --surface: #000000;
+  --surface-raised: #1c1c1e;
+  --surface-sunken: #0d0d0f;
 
-    --ink: #f2f0ee;
-    --ink-secondary: #b3ada7;
-    --ink-muted: #7d7770;
+  --ink: #f5f5f7;
+  --ink-secondary: #aeaeb2;
+  --ink-muted: #8e8e93;
 
-    --line: #2c2a28;
+  --line: #2c2c2e;
 
-    --accent: #60a5fa;
-    --accent-strong: #93c5fd;
-    --accent-soft: #1e3a5f;
-    --on-accent: #0c1524;
+  --accent: #409cff;
+  --accent-strong: #7cbcff;
+  --accent-soft: #163049;
+  --on-accent: #0c1524;
 
-    --status-positive: #4ade80;
-    --status-positive-soft: #10331d;
-    --status-caution: #fbbf24;
-    --status-caution-soft: #3a2b08;
-    --status-critical: #f87171;
-    --status-critical-soft: #3f1414;
-  }
+  --tab-bar-bg: rgba(20, 20, 22, 0.86);
+  --shadow-card: rgba(0, 0, 0, 0.5);
+
+  --status-positive: #1fa053;
+  --status-positive-soft: #e2f6ea;
+  --status-caution: #c58a1e;
+  --status-caution-soft: #faf0da;
+  --status-critical: #d64545;
+  --status-critical-soft: #fbe4e4;
+}
+
+[data-theme="warm"] {
+  --surface: #faf4ec;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f0e7d8;
+
+  --ink: #2b2420;
+  --ink-secondary: #7a6f64;
+  --ink-muted: #a79c8f;
+
+  --line: #efe3d3;
+
+  --accent: #e0703f;
+  --accent-strong: #b8571f;
+  --accent-soft: #fbe5d5;
+  --on-accent: #ffffff;
+
+  --tab-bar-bg: rgba(250, 244, 236, 0.86);
+  --shadow-card: rgba(43, 36, 32, 0.08);
+
+  --status-positive: #1fa053;
+  --status-positive-soft: #e2f6ea;
+  --status-caution: #c58a1e;
+  --status-caution-soft: #faf0da;
+  --status-critical: #d64545;
+  --status-critical-soft: #fbe4e4;
+}
+
+[data-theme="violet"] {
+  --surface: #f5f3fb;
+  --surface-raised: #ffffff;
+  --surface-sunken: #ebe7f5;
+
+  --ink: #201c2b;
+  --ink-secondary: #6f6a80;
+  --ink-muted: #9a95ab;
+
+  --line: #e8e2f6;
+
+  --accent: #7c5cff;
+  --accent-strong: #6339ff;
+  --accent-soft: #ece6fd;
+  --on-accent: #ffffff;
+
+  --tab-bar-bg: rgba(245, 243, 251, 0.86);
+  --shadow-card: rgba(32, 28, 43, 0.08);
+
+  --status-positive: #1fa053;
+  --status-positive-soft: #e2f6ea;
+  --status-caution: #c58a1e;
+  --status-caution-soft: #faf0da;
+  --status-critical: #d64545;
+  --status-critical-soft: #fbe4e4;
 }
 
 @theme inline {
@@ -94,7 +157,7 @@
   --color-status-critical: var(--status-critical);
   --color-status-critical-soft: var(--status-critical-soft);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, "Segoe UI",
+  --font-sans: var(--font-heebo), ui-sans-serif, system-ui, "Segoe UI",
     Arial, "Noto Sans Hebrew", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -105,14 +168,21 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Card shadow (two-layer, tinted per active theme) — used by Card.tsx. */
+.chm-card-shadow {
+  box-shadow:
+    0 1px 2px var(--shadow-card),
+    0 8px 20px var(--shadow-card);
+}
+
 /* FullCalendar (Day/Week/Month admin calendar views) — align its built-in
-   CSS custom properties with this app's zinc/emerald theme instead of
+   CSS custom properties with the active semantic theme instead of
    FullCalendar's defaults. */
 .il-fullcalendar {
-  --fc-border-color: #e4e4e7;
-  --fc-neutral-bg-color: #fafafa;
+  --fc-border-color: var(--line);
+  --fc-neutral-bg-color: var(--surface-sunken);
   --fc-page-bg-color: transparent;
-  --fc-today-bg-color: rgba(16, 185, 129, 0.06);
+  --fc-today-bg-color: var(--accent-soft);
   --fc-event-border-color: transparent;
   font-family: var(--font-sans);
 }
@@ -128,12 +198,4 @@ body {
 .il-fullcalendar .fc-event {
   border-radius: 0.5rem;
   cursor: pointer;
-}
-
-@media (prefers-color-scheme: dark) {
-  .il-fullcalendar {
-    --fc-border-color: #27272a;
-    --fc-neutral-bg-color: #18181b;
-    --fc-today-bg-color: rgba(16, 185, 129, 0.1);
-  }
 }

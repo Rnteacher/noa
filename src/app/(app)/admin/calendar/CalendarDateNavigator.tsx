@@ -92,12 +92,12 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-0.5 shadow-sm">
+      <div className="flex rounded-xl border border-line dark:border-ink-secondary bg-white dark:bg-ink p-0.5 shadow-sm">
         <button
           type="button"
           onClick={handlePrev}
           title={t('admin.calendar.prev')}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary dark:text-ink-muted hover:bg-surface dark:hover:bg-ink-secondary/60 transition-colors"
         >
           <ChevronRight className="h-4 w-4 rtl:hidden" />
           <ChevronLeft className="h-4 w-4 ltr:hidden" />
@@ -105,7 +105,7 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
         <button
           type="button"
           onClick={handleToday}
-          className="px-3 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-lg transition-colors border-x border-zinc-100 dark:border-zinc-800"
+          className="px-3 text-xs font-bold text-ink-secondary dark:text-line hover:bg-surface dark:hover:bg-ink-secondary/60 rounded-lg transition-colors border-x border-surface-sunken dark:border-ink-secondary"
         >
           {t('admin.calendar.today')}
         </button>
@@ -113,13 +113,13 @@ export function CalendarDateNavigator({ view, currentDateStr }: CalendarDateNavi
           type="button"
           onClick={handleNext}
           title={t('admin.calendar.next')}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-secondary dark:text-ink-muted hover:bg-surface dark:hover:bg-ink-secondary/60 transition-colors"
         >
           <ChevronLeft className="h-4 w-4 rtl:hidden" />
           <ChevronRight className="h-4 w-4 ltr:hidden" />
         </button>
       </div>
-      <span dir="ltr" className="text-sm font-bold text-zinc-800 dark:text-zinc-200 px-1 select-none">
+      <span dir="ltr" className="text-sm font-bold text-ink-secondary dark:text-line px-1 select-none">
         {labelStr}
       </span>
     </div>
