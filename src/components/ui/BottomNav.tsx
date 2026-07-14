@@ -96,15 +96,26 @@ export function BottomNav() {
     if (!shouldFetch) return;
 
     let active = true;
-    import('@/features/notifications/actions')
-      .then((mod) => mod.getUnreadNotificationCountAction())
-      .then((count) => {
-        if (active) setUnreadCount(count);
-      })
-      .catch((err) => console.error('Failed to load unread count in BottomNav:', err));
+
+    // Deferred, not fired immediately on navigation: this is a separate
+    // Server Action request that would otherwise race the page's own
+    // navigation request. This is a mitigation, not a guarantee — it
+    // reduces the odds of this specific request colliding with the page
+    // navigation's own token refresh by giving that refresh a head start,
+    // but it doesn't eliminate concurrent-refresh races in general (see
+    // docs/30_STAFF_APP_REDESIGN_V1_FEEDBACK_FIXES.md).
+    const timer = setTimeout(() => {
+      import('@/features/notifications/actions')
+        .then((mod) => mod.getUnreadNotificationCountAction())
+        .then((count) => {
+          if (active) setUnreadCount(count);
+        })
+        .catch((err) => console.error('Failed to load unread count in BottomNav:', err));
+    }, 400);
 
     return () => {
       active = false;
+      clearTimeout(timer);
     };
   }, [pathname]);
 

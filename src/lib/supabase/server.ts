@@ -1,22 +1,28 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { cache } from 'react';
 import { env } from '@/lib/env';
 
 /**
- * Memoized per-request via React's cache(): every query/action in a given
- * request that calls createClient() gets the *same* Supabase client
- * instance, so auth.getUser() only ever resolves once per request instead
- * of once per query. Without this, a page that runs several independent
- * queries (each with its own createClient() + getUser()) can, when the
- * access token happens to be near expiry, fire several concurrent refresh
- * attempts against the same single-use refresh token — one wins, the rest
- * invalidate the session and the user gets bounced to /login on the next
- * request. This was previously worked around ad hoc in one query (see git
- * history for features/messages/queries.ts); caching the client removes
- * the whole class of bug instead of one instance of it.
+ * Plain async factory, deliberately NOT wrapped in React's cache(). This
+ * helper is shared by Server Components, Server Actions, and Route
+ * Handlers; cache() is a React-render-scoped optimization and must not be
+ * relied on from a generic factory used outside that context. Session
+ * correctness must not depend on it.
+ *
+ * Cross-request session-refresh correctness is handled entirely by
+ * src/proxy.ts: middleware is the single authoritative place that
+ * validates/refreshes the session (via getClaims()) for every request,
+ * writes the refreshed cookies to both the request (so this and every
+ * downstream call reads the already-fresh session) and the response (so
+ * the browser gets it), and never lets a redirect drop those cookies.
+ *
+ * Where a single render needs more than one query helper that would each
+ * otherwise call createClient() independently, create one client at the
+ * call site and pass it into the subordinate helpers instead (see
+ * src/features/messages/queries.ts's getMessagesFeed for an example) —
+ * do not reach for cache() to paper over that.
  */
-export const createClient = cache(async function createClient() {
+export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -41,4 +47,4 @@ export const createClient = cache(async function createClient() {
       },
     }
   );
-});
+}

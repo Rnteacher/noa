@@ -1,4 +1,5 @@
 import 'server-only';
+import { createClient } from '@/lib/supabase/server';
 import { getAnnouncements } from '@/features/announcements/queries';
 import { getNotifications } from '@/features/notifications/queries';
 import { t } from '@/lib/i18n';
@@ -10,14 +11,14 @@ import type { MessageFeedData, MessageFeedItem } from './types';
  * (MESSAGES_DATA: kind 'announcement' | 'update').
  */
 export async function getMessagesFeed(): Promise<MessageFeedData> {
-  // Safe to run concurrently: createClient() (src/lib/supabase/server.ts)
-  // is memoized per-request via React's cache(), so both calls share one
-  // Supabase client and its internal auth lock serializes any concurrent
-  // getUser()/refresh instead of racing two independent clients.
-  const [announcementsResult, notificationsResult] = await Promise.all([
-    getAnnouncements(),
-    getNotifications(),
-  ]);
+  // One client created here and passed into both subordinate queries
+  // (rather than each independently calling createClient()) so this
+  // single render only ever does one auth check, not two. createClient()
+  // is a plain, uncached factory — see src/lib/supabase/server.ts — so
+  // this sharing has to be done explicitly at the call site.
+  const supabase = await createClient();
+  const announcementsResult = await getAnnouncements(supabase);
+  const notificationsResult = await getNotifications(supabase);
 
   if (announcementsResult.error && notificationsResult.error) {
     return { items: [], error: announcementsResult.error };

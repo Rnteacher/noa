@@ -7,7 +7,11 @@ export type AppAccessState =
   | 'authorized'
   | 'anonymous'
   | 'access_denied'
-  | 'access_pending';
+  | 'access_pending'
+  // Distinct from `access_pending`: the profile/role lookup itself failed
+  // (transient DB/network error), not a confirmed inactive profile. Must
+  // not be treated as a reason to redirect or sign the user out.
+  | 'lookup_error';
 
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();

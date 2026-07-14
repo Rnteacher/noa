@@ -21,6 +21,7 @@
   "sections.today": "Today at Chamama",
   "sections.announcements": "Announcements",
   "common.loading": "Loading...",
+  "common.temporaryError": "A temporary error occurred. Please try refreshing in a moment.",
   "common.searchPlaceholder": "Search student...",
   "common.back": "Back",
   "common.view": "View",

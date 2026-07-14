@@ -2,6 +2,8 @@ import 'server-only';
 import { createClient } from '@/lib/supabase/server';
 import type { Announcement, SingleAnnouncementData } from './types';
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 const ANNOUNCEMENT_SELECT = `
   id,
   title,
@@ -53,8 +55,10 @@ function normalizeAnnouncement(row: AnnouncementRow): Announcement {
   };
 }
 
-export async function getAnnouncements(): Promise<{ announcements: Announcement[]; error: string | null }> {
-  const supabase = await createClient();
+export async function getAnnouncements(
+  suppliedClient?: SupabaseServerClient
+): Promise<{ announcements: Announcement[]; error: string | null }> {
+  const supabase = suppliedClient ?? (await createClient());
 
   const {
     data: { user },

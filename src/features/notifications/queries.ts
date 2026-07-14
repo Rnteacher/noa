@@ -1,6 +1,8 @@
 import 'server-only';
 import { createClient } from '@/lib/supabase/server';
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 export type NotificationItem = {
   id: string;
   profile_id: string;
@@ -37,11 +39,13 @@ export async function getUnreadNotificationCount(): Promise<number> {
   return count ?? 0;
 }
 
-export async function getNotifications(): Promise<{
+export async function getNotifications(
+  suppliedClient?: SupabaseServerClient
+): Promise<{
   notifications: NotificationItem[];
   error: string | null;
 }> {
-  const supabase = await createClient();
+  const supabase = suppliedClient ?? (await createClient());
   const {
     data: { user },
     error: userError,

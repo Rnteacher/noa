@@ -19,7 +19,13 @@ export async function getCurrentAccessState(): Promise<AppAccessState> {
 
   const { data, error } = await supabase.rpc('current_user_is_active_staff');
 
-  if (error || !data) {
+  if (error) {
+    // Operational/DB failure, not a confirmed inactive profile — do not
+    // misclassify as access_pending (same principle as src/proxy.ts).
+    return 'lookup_error';
+  }
+
+  if (!data) {
     return 'access_pending';
   }
 
