@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export type CurrentProfileSummary = {
   fullName: string;
   isSuperAdmin: boolean;
+  isManagerOrSuperAdmin: boolean;
 } | null;
 
 /** Minimal current-staff-profile summary for the Settings tab's profile card. */
@@ -18,7 +19,7 @@ export async function getCurrentProfileSummary(): Promise<CurrentProfileSummary>
     return null;
   }
 
-  const [profileResult, superAdminResult] = await Promise.all([
+  const [profileResult, superAdminResult, managerOrSuperAdminResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('full_name')
@@ -26,6 +27,7 @@ export async function getCurrentProfileSummary(): Promise<CurrentProfileSummary>
       .eq('is_active', true)
       .maybeSingle(),
     supabase.rpc('current_user_is_super_admin'),
+    supabase.rpc('current_user_is_manager_or_super_admin'),
   ]);
 
   if (!profileResult.data) {
@@ -35,5 +37,6 @@ export async function getCurrentProfileSummary(): Promise<CurrentProfileSummary>
   return {
     fullName: profileResult.data.full_name,
     isSuperAdmin: Boolean(superAdminResult.data),
+    isManagerOrSuperAdmin: Boolean(managerOrSuperAdminResult.data),
   };
 }

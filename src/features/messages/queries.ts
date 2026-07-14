@@ -10,10 +10,13 @@ import type { MessageFeedData, MessageFeedItem } from './types';
  * (MESSAGES_DATA: kind 'announcement' | 'update').
  */
 export async function getMessagesFeed(): Promise<MessageFeedData> {
-  const [announcementsResult, notificationsResult] = await Promise.all([
-    getAnnouncements(),
-    getNotifications(),
-  ]);
+  // Sequential, not Promise.all: each of these creates its own Supabase
+  // client and independently calls auth.getUser(). Running them concurrently
+  // risks two simultaneous token-refresh attempts racing on the same
+  // refresh token (GoTrue rotates it on use), which can invalidate the
+  // session and force a re-login on the next request.
+  const announcementsResult = await getAnnouncements();
+  const notificationsResult = await getNotifications();
 
   if (announcementsResult.error && notificationsResult.error) {
     return { items: [], error: announcementsResult.error };

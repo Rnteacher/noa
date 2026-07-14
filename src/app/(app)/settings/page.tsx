@@ -35,6 +35,23 @@ export default async function SettingsPage() {
           </div>
         </div>
 
+        {profile?.isManagerOrSuperAdmin ? (
+          <Link
+            href="/admin/groups"
+            className="flex items-center gap-3 rounded-[18px] border border-accent/30 bg-accent-soft/50 p-4 text-accent transition-colors hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-on-accent">
+              <ShieldCheck aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold">{t('admin.nav.title')}</span>
+              <span className="block text-xs text-ink-secondary">
+                {t('settings.adminShortcutDescription')}
+              </span>
+            </span>
+          </Link>
+        ) : null}
+
         {profile?.isSuperAdmin ? (
           <Link
             href="/admin/access-grants"

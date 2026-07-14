@@ -70,12 +70,9 @@ export function ThemeSwitcher({ initialTheme }: { initialTheme: ThemeId }) {
       </div>
 
       <div className="flex justify-center pb-1.5 pt-5">
-        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo; next/image blocks SVG by default */}
-        <img
-          src={theme === 'dark' ? '/logo-light-text.svg' : '/logo-dark-text.svg'}
-          alt={t('settings.logoAlt')}
-          className="h-[22px] w-auto opacity-55"
-        />
+        <span className="text-[12px] font-medium text-ink-muted opacity-70">
+          {t('settings.appVersion')}
+        </span>
       </div>
     </>
   );

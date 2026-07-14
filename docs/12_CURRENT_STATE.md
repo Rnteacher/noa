@@ -303,10 +303,10 @@ Base UI components and semantic design tokens are implemented.
 
 Status:
 - Semantic design tokens were added in `src/app/globals.css` using Tailwind v4 CSS-based token configuration.
-- Base UI components were added under `src/components/ui/`: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, and `AppHeader`.
+- Base UI components were added under `src/components/ui/`: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`, and (added in Staff App Redesign v1) `Avatar`.
 - The Toast system was deferred; the inline `Alert` component was implemented instead for early feedback messaging.
 - An internal component showcase route exists at `/dev/ui` (accessible under the protected app route group).
-- `BottomNav` matches the five conceptual navigation slots: Dashboard (`/dashboard`), Today (`/today`), Students (`/students`), Announcements (`/announcements`), and More (`/more`).
+- **Superseded by Staff App Redesign v1** (see the dedicated section near the end of this file): `BottomNav` now matches 4 tabs — Messages (`/messages`), Calendar (`/calendar`), Students (`/students`), Settings (`/settings`) — not the original five.
 - `StatusBadge` uses both a unique glyph shape (e.g., circle-check, triangle, octagon) and text labels, ensuring color is never used as the sole conveyor of status information.
 
 ## App shell status
@@ -315,15 +315,17 @@ The layout and navigation shell integration is complete.
 
 Status:
 - `BottomNav` is rendered in the protected app layout (`src/app/(app)/layout.tsx`) as a persistent element for staff-facing mobile routes. It is conditionally hidden on admin routes.
-- `AppHeader` is rendered per-page to support individual screen actions, custom titles, and back link navigation affordances in the mobile staff app.
-- `/today`, `/students`, `/announcements`, and `/more` exist as protected placeholder routes returning placeholder content via the i18n layer.
-- Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
-- `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
+- `AppHeader` is rendered per-page to support individual screen actions, custom titles, and back link navigation affordances in the mobile staff app; a large-title variant (added in Staff App Redesign v1) is used on the 4 tab-root screens.
+- `/messages`, `/calendar`, `/students`, and `/settings` are the 4 tab-root routes (see the Staff App Redesign v1 section near the end of this file — this superseded the original `/today`, `/announcements`, `/more` placeholder routes and the `/dashboard` route).
+- Protected features `/admin/access-grants` and `/dev/ui` build successfully inside the new app shell.
+- `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff app (`/calendar`), and a collapsible menu drawer for responsive mobile layout viewports. Styled via the same semantic design tokens as the mobile app since Staff App Redesign v1 (previously hardcoded `zinc`/`emerald` Tailwind colors).
 - `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
 - The `AdminShell` Access Grants, Calendar, Learning Groups, Announcements, Groups, Audit, and Import/Export nav items are now enabled. Only Students, Users, and Settings remain disabled placeholders.
-- Real dashboard data queries and status aggregations are implemented in Dashboard v1.
+- Real calendar-feed and profile data queries back the Calendar and Settings tabs (see Staff App Redesign v1 — this superseded the original standalone Dashboard v1).
 
 ## Dashboard v1 status
+
+**Superseded by Staff App Redesign v1**: the `/dashboard` route described below was removed and its content redistributed across the new `/messages`, `/calendar`, and `/settings` tabs (see the dedicated section near the end of this file). This section is kept for history; the route, queries, and types it describes (`src/features/dashboard/*`) no longer exist in the codebase.
 
 Personal dashboard display of live, security-scoped data is implemented.
 
@@ -396,11 +398,13 @@ Status:
 
 ## Announcements read and management v1 status
 
+**Route superseded by Staff App Redesign v1**: the standalone `/announcements` list below was folded into the unified `/messages` feed (announcements merged with student-update notifications), and the detail route moved to `/messages/[announcementId]`. The underlying read/acknowledge logic, RLS, and `/admin/announcements` management surface described below are unchanged.
+
 Personal announcements reading path, read acknowledgements, and administrator management compose workflows are implemented.
 
 Status:
-- `/announcements` lists recent RLS-visible announcements, indicating their pinned status and acknowledgement state.
-- `/announcements/[announcementId]` displays one RLS-visible announcement's details (title, body, author name, published date, and confirmation status).
+- `/messages` lists recent RLS-visible announcements merged with student-update notifications, indicating pinned status and acknowledgement state (previously a standalone `/announcements` list).
+- `/messages/[announcementId]` displays one RLS-visible announcement's details (title, body, author name, published date, and confirmation status) — previously `/announcements/[announcementId]`.
 - Acknowledgement-required announcements can be acknowledged by the current authenticated user via an interactive confirmation button.
 - Both read queries and acknowledgement write actions use the normal server Supabase client (`createClient()`) to respect database Row-Level Security (RLS) policies; the service-role client is completely avoided.
 - Dashboard required acknowledgement rows now link to the respective announcement detail flow.
@@ -431,15 +435,13 @@ Status:
 - `/notifications` lists recent notifications for the current authenticated user.
 - Unread status is indicated with distinct borders/colors and a blue badge.
 - Interactive client buttons permit marking a single notification or all notifications as read under `useTransition`.
-- Mobile BottomNav displays a numeric unread badge overlay on the `More` tab item by dynamically fetching counts.
-- `/more` page displays a notification card displaying the live unread count and routing to `/notifications`.
-- Dashboard header Bell icon routes to `/notifications`.
+- **Superseded by Staff App Redesign v1**: the mobile BottomNav's unread badge moved from the old `More` tab to the `Messages` tab (`/messages`), since that's where notifications now surface alongside announcements. The notification link-rows previously on `/more` now live on `/settings`, both still routing to `/notifications`. The old Dashboard header Bell icon (which routed to `/notifications`) no longer exists — `/notifications` is reached via `/settings` instead.
 - Web Push delivery and push subscription management v1 is implemented:
   - `push_subscriptions` supports one row per browser endpoint, multiple devices per profile, `expiration_time`, and `updated_at`.
   - Active authenticated staff can insert/update/delete only their own push subscriptions through normal request-scoped Supabase clients and RLS.
   - Managers and super admins have no special direct RLS read/delete access to other users' subscriptions.
   - `/notifications` mounts compact browser notification controls that detect support, show permission state, request permission only after a user click, register `/sw.js`, save the current browser subscription, and disable/unsubscribe the current device.
-  - `/more` includes a compact browser-notifications link back to `/notifications`.
+  - `/settings` includes a compact browser-notifications link back to `/notifications` (previously `/more`).
   - Server-side push sending is best-effort and non-blocking after the in-app notification RPC succeeds. Failures are logged and never fail the original student-card mutation.
   - Push payloads are generic and privacy-preserving: no raw message body, emotional status value/color/note, or goal title/description is sent to the browser push service.
   - VAPID configuration uses `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`; missing keys disable push without breaking the app build.
@@ -474,7 +476,7 @@ Status:
 - **Sync Indicators**: Displays a read-only sync icon showing **Synced** (green check icon) if `google_calendar_event_id` is present, and **Not Synced** (gray alert icon) if absent.
 - **RLS/RETURNING workaround:** Maintained the Postgres RLS `RETURNING` workaround (generating IDs client-side, never chaining `.select()` after write actions). All mutations go through the request-scoped Supabase client.
 - Audit logging: successful mutations write `calendar_event.created`, `calendar_event.updated`, `calendar_event.deleted`, and `calendar_event.rescheduled` through the existing privileged server-only audit helper.
-- Revalidation: all actions revalidate both `/admin/calendar` and `/dashboard` routes.
+- Revalidation: all actions revalidate both `/admin/calendar` and `/calendar` routes (was `/dashboard` prior to Staff App Redesign v1).
 - **Hydration Fix**: Weekday labels are retrieved from `he.json` (`t('admin.calendar.day_0')` to `day_6`), removing any Hebrew characters from implementation code files to pass Hebrew character scanning.
 - Google Calendar Sync: Outbound mirror sync v1 is implemented and **live-verified** against a dedicated test Google Calendar (see the "Google Calendar outbound sync v1 and browser verification status" section below).
 - Deferred: Google Calendar sync delete/conflict hardening (tombstone-revival handling) and recurrence rule mutation support. (Note: full visual drag-and-drop slots editing was completed in Noa Annual Gantt Pilot v1).
@@ -500,7 +502,7 @@ Status:
 - **Browser/manual verification completed** (closeout pass) against a real authenticated Google OAuth session (super_admin). A temporary group (no leader, no room) was created on Sunday and rescheduled to a later time the same weekday: the timetable card moved to the new time and, with a second temporary group added at an earlier time, chronological sort within the day was confirmed correct; List view showed the same new weekday/time. The group was then rescheduled to Wednesday: it disappeared from the Sunday column and appeared in Wednesday's, with duration preserved; the `weekday=sunday`/`weekday=wednesday`/`state=all` filters all behaved correctly afterward. Boundary case: moving the group to exactly 12:30–13:30 (the window's upper edge) succeeded. Negative paths: an out-of-window move (13:00 start, computed 14:00 end) produced a clean localized error and left the row unchanged; rescheduling a group deleted out from under the open modal produced a clean "could not be loaded" error with no crash; rollback-only SQL probes reconfirmed a staff-only role's direct update affects 0 rows and an end-before-start update is rejected by the `learning_groups_time_order` CHECK constraint. Regression checks: create, edit (from a timetable card), and archive all still work correctly, and groups with no leader/no room continue to render their fallback placeholders. Three `learning_group.rescheduled` audit rows were confirmed with before/after data limited to `id`/`title`/`weekday`/`starts_at`/`ends_at`. No application bugs were found. All temporary test groups were deleted afterward and the table was confirmed back to the single original seeded group.
 - **Sidebar Integration**: The right sidebar dynamically switches between creating new learning groups and editing selected learning groups from either the List table rows or the Timetable cards. Clicking "Cancel" reverts the form back to create mode.
 - Audit logging: successful mutations write `learning_group.created`, `learning_group.updated`, `learning_group.archived`, and `learning_group.rescheduled` through the existing privileged server-only audit helper, capturing before/after group metadata and target group ids where relevant.
-- Revalidation: all actions revalidate both `/admin/learning-groups` and `/dashboard` routes.
+- Revalidation: all actions revalidate `/admin/learning-groups` (the redundant `/dashboard` revalidation was removed in Staff App Redesign v1 — dashboard queries never included learning-group data, so it was a dead call).
 - Deferred: full visual drag-and-drop weekly timetable editing, group capacity/roster management, and school-year picker.
 - **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). All 8 required URL/param combinations (`view=timetable|list`, invalid `view=bad`, `weekday=all&state=active`, `weekday=monday`, `state=inactive`, and `view=list&weekday=all&state=all`) rendered with no console errors; invalid `view` fell back safely to `timetable`. The Timetable/List switcher, and the `weekday`/`state` filters, were confirmed to apply identically to both views. Full create/edit/archive mutation flow was verified live: a temporary group appeared correctly in both Timetable (under the correct weekday/time) and List views, editing from a Timetable card correctly pre-populated the sidebar and propagated changes to both views, archiving correctly flipped `is_active` and was reflected correctly by all three state filters, and `learning_group.created`/`.updated`/`.archived` all appeared correctly in the audit log. Edge cases verified live: a group starting exactly at 11:30 and ending exactly at 13:30 (the boundary of the allowed window) saved successfully; a group with a time outside the 11:30-13:30 window was correctly rejected server-side with a clean error message (`errorTimeWindow`) even after removing the client-side HTML `min`/`max` constraints, confirming defense-in-depth; an end-before-start submission was likewise cleanly rejected (`errorEndBeforeStart`); groups with no leader and no room rendered correctly with their respective fallback text; and three groups on the same weekday with different times sorted chronologically correctly in both views. All temporary test groups were deleted afterward and the table was verified back to its original single seeded row.
 - **Documentation correction (not a code bug)**: the prior handoff doc for this feature claimed the Timetable view "collapses Friday/Saturday if empty." Live testing confirmed the actual implementation (`LearningGroupsTimetable.tsx`) always renders all 7 weekday columns unconditionally, showing a `-` placeholder for empty days; there is no collapsing logic in the code. This is not a functional defect (nothing crashes or shows incorrect data) and was left as-is per this task's explicit no-new-features scope; the prior doc's inaccurate claim is corrected here instead of adding new collapsing behavior.
@@ -1485,8 +1487,20 @@ A follow-up closeout pass closed the one disclosed gap from the initial Noa Annu
 - **One test-fixture bug found and fixed (not an application bug)**: the harness's seed script hardcoded a `+03` UTC offset for all test timestamps, which is wrong for winter months (Israel is `+02` outside DST); this corrupted a January-dated fixture by exactly one hour. Fixed by adding a DST-aware Jerusalem conversion helper to the seed script (same algorithm as `src/lib/date/il-date.ts`). No application code changed.
 - Scope preserved: no product features were added; no code was committed, pushed, or deployed as part of this verification pass.
 
+## Latest Staff App Redesign v1 results
+
+Implemented Ronen's Claude Design mockup ("עיצוב מחדש עם תפריט תחתון") end to end: a real 4-theme system (light/dark/warm/violet, persisted, user-selectable), the mockup's 4-tab navigation (Messages/Calendar/Students/Settings, replacing Dashboard/Today/Students/Announcements/More), and a token-level reskin of the admin desktop shell so the same theme choice applies everywhere. Full report: `docs/29_STAFF_APP_REDESIGN_V1.md`; parallel handoff: `docs/parallel/GPT_STAFF_APP_REDESIGN_V1_HANDOFF.md`.
+
+- **Theme system**: `data-theme` attribute (server-rendered from a cookie, no flash) replaced `prefers-color-scheme`-only dark mode; Heebo replaced Geist as the body font. A `@custom-variant dark` redefinition in `globals.css` kept every pre-existing `dark:`-styled element in the codebase (46 files) working correctly against the new explicit theme instead of silently breaking.
+- **Navigation restructure**: `/dashboard`, `/today`, `/announcements`, `/more` routes and `src/features/dashboard/*` deleted; replaced by `/messages` (announcements merged with student-update notifications into one feed), `/calendar` (today/week events, now the default post-login landing route), `/students` (restyled), `/settings` (profile, notification links, theme picker, sign-out). Every `revalidatePath`/redirect that referenced the old routes was repointed or removed across ~10 server-action files.
+- **Admin shell reskin**: `AdminShell.tsx` and all 34 files under `src/app/(app)/admin/**` migrated off hardcoded `zinc`/`emerald`/`amber` Tailwind classes onto the shared semantic tokens — live-verified: switching to dark theme in Settings immediately re-themes `/admin/groups`' sidebar/body to the exact same computed colors as the mobile app, with no functional regression.
+- **Four real bugs found and fixed**, none previously known: the notifications page had referenced undefined `primary-*`/`neutral-*` Tailwind classes since it was written (unread highlight, "mark all read" button, and "view" link had zero styling, in any theme, this whole time); `Card`'s `className` override pattern (`className="p-0"`) didn't reliably work because this codebase's `cn()` helper is plain concatenation, not a Tailwind-merge; two imported design-asset SVGs had empty fill-color definitions that would have rendered as invisible text or a solid black box; several `revalidatePath` calls across server actions pointed at routes this pass removed, which would have left the Next.js cache stale for real user-facing pages.
+- **Scope preserved**: no RLS, migrations, or server-action business logic changed — visual/IA layer only. Nothing was committed as part of this pass.
+- **One disclosed verification gap**: the Browser pane's screenshot tool was unavailable all session (repeated timeouts, not a page defect — every other browser-automation check worked normally). Verification relied on `get_page_text`/`read_page`/computed-CSS-value checks instead of visual screenshots; a human has not yet eyeballed the running app side-by-side with the mockup.
+
 ## Next recommended tasks
 
-1. **Admin Students, Users, and Settings Usability v1**: immediate next task. Activate the remaining disabled `AdminShell` placeholders (Students, Users, Settings) as real, usable admin surfaces.
-2. **Staff/Student Import Apply Gate v1**: optional later. Design and wire the DB apply gate in the browser UI, to be enabled only after explicit rollout approval.
-3. **Google Calendar Sync Delete/Conflict Hardening v1**: optional later. Design and implement remote conflict resolution.
+1. **Human visual pass on Staff App Redesign v1**: confirm the running app matches the mockup pixel-for-pixel now that the screenshot tool issue (if transient) has cleared, since the automated verification above was DOM/computed-style-based rather than visual.
+2. **Admin Students, Users, and Settings Usability v1**: activate the remaining disabled `AdminShell` placeholders (Students, Users, Settings) as real, usable admin surfaces.
+3. **Staff/Student Import Apply Gate v1**: optional later. Design and wire the DB apply gate in the browser UI, to be enabled only after explicit rollout approval.
+4. **Google Calendar Sync Delete/Conflict Hardening v1**: optional later. Design and implement remote conflict resolution.
