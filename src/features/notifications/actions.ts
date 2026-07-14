@@ -13,12 +13,10 @@ export async function markNotificationRead(
 ): Promise<NotificationActionResult> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: claimsData, error: userError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (userError || !user) {
+  if (userError || !userId) {
     return { success: false, error: 'dashboard.error.noSession' };
   }
 
@@ -26,7 +24,7 @@ export async function markNotificationRead(
     .from('notifications')
     .update({ read_at: new Date().toISOString() })
     .eq('id', notificationId)
-    .eq('profile_id', user.id);
+    .eq('profile_id', userId);
 
   if (error) {
     console.error('Failed to mark notification as read:', error);
@@ -43,19 +41,17 @@ export async function markNotificationRead(
 export async function markAllNotificationsRead(): Promise<NotificationActionResult> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: claimsData, error: userError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (userError || !user) {
+  if (userError || !userId) {
     return { success: false, error: 'dashboard.error.noSession' };
   }
 
   const { error } = await supabase
     .from('notifications')
     .update({ read_at: new Date().toISOString() })
-    .eq('profile_id', user.id)
+    .eq('profile_id', userId)
     .is('read_at', null);
 
   if (error) {

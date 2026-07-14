@@ -58,12 +58,10 @@ export async function getAdminGroupsData(rawState: string | undefined): Promise<
 
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: claimsData, error: userError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (userError || !user) {
+  if (userError || !userId) {
     return emptyAdminGroupsData(state, false, 'dashboard.error.noSession');
   }
 

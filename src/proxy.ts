@@ -12,6 +12,7 @@ const AUTH_COOKIE_INFIX = 'auth-token';
 type AuthReason =
   | 'no_claims'
   | 'claims_error'
+  | 'background_claims_error'
   | 'access_denied'
   | 'inactive_profile'
   | 'profile_lookup_error'
@@ -23,6 +24,45 @@ function isPublicPath(pathname: string) {
 
 function isAuthInternalPath(pathname: string) {
   return AUTH_INTERNAL_PATHS.some((path) => pathname.startsWith(path));
+}
+
+function isBackgroundAuthRequest(request: NextRequest): boolean {
+  const headers = request.headers;
+
+  // RSC request (Next.js data fetch)
+  if (headers.has('RSC') || headers.has('rsc')) {
+    return true;
+  }
+
+  // Next.js Link prefetch
+  if (
+    headers.has('Next-Router-Prefetch') ||
+    headers.has('next-router-prefetch') ||
+    headers.get('Purpose') === 'prefetch' ||
+    headers.get('purpose') === 'prefetch' ||
+    headers.get('Sec-Purpose') === 'prefetch' ||
+    headers.get('sec-purpose') === 'prefetch'
+  ) {
+    return true;
+  }
+
+  // Next.js Router State Tree
+  if (headers.has('Next-Router-State-Tree') || headers.has('next-router-state-tree')) {
+    return true;
+  }
+
+  // Next.js Server Action
+  if (headers.has('Next-Action') || headers.has('next-action')) {
+    return true;
+  }
+
+  // Accept header checks (non-HTML request)
+  const accept = headers.get('accept') || headers.get('Accept') || '';
+  if (accept && !accept.includes('text/html')) {
+    return true;
+  }
+
+  return false;
 }
 
 function countAuthCookieChunks(request: NextRequest) {
@@ -146,6 +186,14 @@ export async function proxy(request: NextRequest) {
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
   if (claimsError || !claimsData) {
+    const isBackground = isBackgroundAuthRequest(request);
+    const reason: AuthReason = !hasAuthCookie
+      ? 'no_claims'
+      : isBackground
+      ? 'background_claims_error'
+      : 'claims_error';
+    const shouldPassThrough = isPublic || (hasAuthCookie && isBackground);
+
     logAuthDecision({
       requestId,
       pathname,
@@ -155,19 +203,12 @@ export async function proxy(request: NextRequest) {
       claimsOk: false,
       errorCode: claimsError?.code ?? claimsError?.name ?? null,
       cookiesWritten: response.cookies.getAll().length,
-      outcome: isPublic ? 'next' : 'redirect',
-      redirectPath: isPublic ? null : '/login',
-      // Not further split into "genuinely anonymous" vs "refresh failed":
-      // getClaims() already attempts a refresh internally before
-      // validating, so an error here means no valid session could be
-      // established for this request either way. Distinguishing the two
-      // in the log (via hasAuthCookie) is enough to spot whether this
-      // correlates with sessions that *did* have a cookie, without
-      // guessing at a routing outcome middleware can't safely make.
-      reason: hasAuthCookie ? 'claims_error' : 'no_claims',
+      outcome: shouldPassThrough ? 'next' : 'redirect',
+      redirectPath: shouldPassThrough ? null : '/login',
+      reason,
     });
 
-    if (isPublic) {
+    if (shouldPassThrough) {
       return response;
     }
 

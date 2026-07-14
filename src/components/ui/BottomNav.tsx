@@ -85,11 +85,9 @@ export function BottomNav() {
   useEffect(() => {
     const prevPath = prevPathnameRef.current;
     const shouldFetch =
-      prevPath === null ||
       pathname === '/messages' ||
       pathname === '/notifications' ||
-      prevPath === '/messages' ||
-      prevPath === '/notifications';
+      (prevPath !== null && (prevPath === '/messages' || prevPath === '/notifications'));
 
     prevPathnameRef.current = pathname;
 

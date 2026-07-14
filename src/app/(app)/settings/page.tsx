@@ -80,6 +80,7 @@ export default async function SettingsPage() {
           <Card className="p-0">
             <Link
               href="/notifications"
+              prefetch={false}
               className="flex items-center gap-3 px-[15px] py-3.5 transition-colors hover:bg-surface-sunken"
             >
               <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
@@ -98,6 +99,7 @@ export default async function SettingsPage() {
             <div className="border-t border-line">
               <Link
                 href="/notifications"
+                prefetch={false}
                 className="flex items-center gap-3 px-[15px] py-3.5 transition-colors hover:bg-surface-sunken"
               >
                 <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
@@ -126,6 +128,7 @@ export default async function SettingsPage() {
 
         <Link
           href="/auth/sign-out"
+          prefetch={false}
           className="chm-card-shadow flex w-full items-center justify-center gap-2 rounded-[16px] bg-surface-raised p-[15px] text-[15px] font-bold text-status-critical transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <LogOut aria-hidden="true" className="h-[17px] w-[17px]" />

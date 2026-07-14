@@ -134,17 +134,50 @@ A final pass before commit/deploy, correcting scope and framing issues in Round 
 - `src/features/messages/queries.ts` — creates one client and passes it into `getAnnouncements`/`getNotifications` explicitly (Round 4).
 - `src/features/announcements/queries.ts`, `src/features/notifications/queries.ts` — `getAnnouncements`/`getNotifications` accept an optional shared client (Round 4).
 - `src/features/profile/queries.ts` — added `isManagerOrSuperAdmin` (C).
-- `src/app/(app)/settings/page.tsx` — general admin shortcut, `prefetch={false}` on both admin links (C, Round 2).
+- `src/features/announcements/queries.ts`, `src/features/notifications/queries.ts` — `getAnnouncements`/`getNotifications` accept an optional shared client (Round 4); replaced duplicate page-level `getUser()` calls with `getClaims()` (Round 5).
+- `src/features/profile/queries.ts` — added `isManagerOrSuperAdmin` (C); replaced duplicate page-level `getUser()` calls with `getClaims()` (Round 5).
+- `src/app/(app)/settings/page.tsx` — general admin shortcut, `prefetch={false}` on both admin links (C, Round 2); disabled prefetch on notifications and sign-out Links (Round 5).
 - `src/components/settings/ThemeSwitcher.tsx` — logo → version text (E).
 - `src/components/ui/AppHeader.tsx` — inlined emblem SVG on large-variant headers (F).
 - `src/i18n/he.json`, `src/i18n/en.json` — חניך/חניכים rename (G); new keys for E/C/H; `common.temporaryError` (Round 3).
 - `src/app/(app)/students/[studentId]/page.tsx`, new `src/app/(app)/students/[studentId]/StudentCardTabs.tsx` — tabbed layout (H).
 - `src/components/layout/AdminShell.tsx` — `prefetch={false}` on all nav links (Round 2).
-- `src/proxy.ts` — `getClaims()` instead of `getUser()`, full-cookie-object redirects, CDN no-cache header propagation, RPC-error passthrough instead of misclassification, structured logging gated behind `AUTH_DIAGNOSTICS_ENABLED` (Round 3/4).
+- `src/proxy.ts` — `getClaims()` instead of `getUser()`, full-cookie-object redirects, CDN no-cache header propagation, RPC-error passthrough instead of misclassification, structured logging gated behind `AUTH_DIAGNOSTICS_ENABLED` (Round 3/4); classified and passed through background claims errors (Round 5).
 - `src/lib/auth/session.ts`, `src/lib/auth/access.ts` — same RPC-error-vs-access-decision fix as proxy, for the root-page fallback path (Round 3).
 - `src/app/page.tsx` — renders a non-destructive message on `lookup_error` instead of guessing a redirect (Round 3).
 - `src/lib/supabase/server.ts` — `cache()` removed entirely; plain uncached factory (Round 4).
 - `src/lib/env.ts`, `.env.example` — `AUTH_DIAGNOSTICS_ENABLED` (Round 4).
+- `src/features/groups/admin-queries.ts`, `src/features/notifications/actions.ts` — replaced duplicate page-level `getUser()` calls with `getClaims()` (Round 5).
+
+---
+
+## Round 5 — Production Logout Bug Fixes (Settings & Background Auth Classification)
+
+This round resolves the production logout bug where background request collisions (e.g. Settings rendering Link prefetches, BottomNav unread count Server Action, and page-level getUser() calls) raced on token refreshes and forced destructive redirects to `/login`.
+
+### 1. Disabled Settings notification prefetch
+Added `prefetch={false}` to both Links to `/notifications` on `src/app/(app)/settings/page.tsx`, as well as to the `/auth/sign-out` Link. This prevents hover or viewport-based prefetch requests from firing background auth checks.
+
+### 2. Stopped BottomNav's initial-mount background auth request
+Removed `prevPath === null` as an automatic reason to fetch unread notification counts in `src/components/ui/BottomNav.tsx`. Unread count fetches now only run when explicitly navigating into or out of `/messages` or `/notifications`, preventing background auth requests on load of `/settings`, `/calendar`, or other unrelated routes.
+
+### 3. Classified and passed through background claims failures in `src/proxy.ts`
+Implemented `isBackgroundAuthRequest(request)` in `src/proxy.ts` to identify Link/RSC prefetches, Server Actions, RSC data requests, and other non-document background requests based on headers (`RSC`, `Next-Router-Prefetch`, `Next-Router-State-Tree`, `Next-Action`, `Purpose`, `Sec-Purpose`, `Accept`). 
+On `claimsError` (or `!claimsData`), if the request arrived with an auth cookie and is classified as a background request:
+* The middleware passes the request through safely (`NextResponse.next()`) instead of redirecting to `/login`.
+* Refreshed cookies and headers are preserved.
+* The event is logged under the distinct reason `background_claims_error`.
+* Destructive redirects to `/login` are restricted strictly to top-level HTML/document navigations. Protected mutations and data reads continue to be blocked at the RLS/authorization level.
+
+### 4. Reduced page-level Auth-server calls via `getClaims()`
+Replaced `supabase.auth.getUser()` with `supabase.auth.getClaims()` and extracted `userId = claimsData?.claims?.sub` in:
+* `src/features/profile/queries.ts` (`getCurrentProfileSummary`)
+* `src/features/notifications/queries.ts` (`getUnreadNotificationCount`, `getNotifications`)
+* `src/features/groups/admin-queries.ts` (`getAdminGroupsData`)
+* `src/features/notifications/actions.ts` (`markNotificationRead`, `markAllNotificationsRead`)
+This completely avoids unnecessary duplicate network calls to the Auth server, leveraging local cryptographic JWT verification and leaving user ID filtering safe under RLS.
+
+---
 
 ## Next steps
 

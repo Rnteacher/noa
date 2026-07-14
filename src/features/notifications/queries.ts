@@ -17,18 +17,17 @@ export type NotificationItem = {
 
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (!user) {
+  if (!userId) {
     return 0;
   }
 
   const { count, error } = await supabase
     .from('notifications')
     .select('id', { count: 'exact', head: true })
-    .eq('profile_id', user.id)
+    .eq('profile_id', userId)
     .is('read_at', null);
 
   if (error) {
@@ -46,19 +45,17 @@ export async function getNotifications(
   error: string | null;
 }> {
   const supabase = suppliedClient ?? (await createClient());
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: claimsData, error: userError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (userError || !user) {
+  if (userError || !userId) {
     return { notifications: [], error: 'dashboard.error.noSession' };
   }
 
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
-    .eq('profile_id', user.id)
+    .eq('profile_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {

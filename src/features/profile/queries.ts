@@ -11,11 +11,10 @@ export type CurrentProfileSummary = {
 export async function getCurrentProfileSummary(): Promise<CurrentProfileSummary> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  if (!user) {
+  if (!userId) {
     return null;
   }
 
@@ -23,7 +22,7 @@ export async function getCurrentProfileSummary(): Promise<CurrentProfileSummary>
     supabase
       .from('profiles')
       .select('full_name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .eq('is_active', true)
       .maybeSingle(),
     supabase.rpc('current_user_is_super_admin'),
