@@ -502,6 +502,143 @@ export async function rescheduleCalendarEvent(
   return { success: true, error: null };
 }
 
+type TimeChangeOptions = {
+  newIsAllDay?: boolean;
+  auditAction: 'calendar_event.moved' | 'calendar_event.resized';
+};
+
+/**
+ * Shared persistence for drag-move and drag-resize interactions. Both only
+ * ever touch starts_at/ends_at(/is_all_day) — google_calendar_event_id is
+ * left untouched, matching rescheduleCalendarEvent's existing update shape.
+ */
+async function applyCalendarEventTimeChange(
+  eventId: string,
+  newStartsAtIso: string,
+  newEndsAtIso: string,
+  options: TimeChangeOptions
+): Promise<CalendarActionResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { success: false, error: 'dashboard.error.noSession' };
+  }
+
+  if (!UUID_PATTERN.test(eventId)) {
+    return { success: false, error: 'admin.calendar.errorInvalidId' };
+  }
+
+  const { data: isManagerOrSuperAdmin, error: permissionError } = await supabase.rpc(
+    'current_user_is_manager_or_super_admin'
+  );
+
+  if (permissionError || !isManagerOrSuperAdmin) {
+    return { success: false, error: 'admin.calendar.errorForbidden' };
+  }
+
+  const newStartsAtDate = new Date(newStartsAtIso);
+  const newEndsAtDate = new Date(newEndsAtIso);
+
+  if (Number.isNaN(newStartsAtDate.getTime()) || Number.isNaN(newEndsAtDate.getTime())) {
+    return { success: false, error: 'admin.calendar.errorInvalidDateTime' };
+  }
+
+  if (newEndsAtDate.getTime() <= newStartsAtDate.getTime()) {
+    return { success: false, error: 'admin.calendar.errorEndBeforeStart' };
+  }
+
+  const { data: existingEvent, error: fetchError } = await supabase
+    .from('calendar_events')
+    .select('id, starts_at, ends_at, is_all_day')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (fetchError || !existingEvent) {
+    return { success: false, error: 'admin.calendar.errorNotFound' };
+  }
+
+  const updatePayload: {
+    starts_at: string;
+    ends_at: string;
+    updated_by: string;
+    is_all_day?: boolean;
+  } = {
+    starts_at: newStartsAtDate.toISOString(),
+    ends_at: newEndsAtDate.toISOString(),
+    updated_by: user.id,
+  };
+
+  if (typeof options.newIsAllDay === 'boolean') {
+    updatePayload.is_all_day = options.newIsAllDay;
+  }
+
+  const { error: updateError } = await supabase
+    .from('calendar_events')
+    .update(updatePayload)
+    .eq('id', eventId);
+
+  if (updateError) {
+    console.error(`Failed to apply calendar event time change (${options.auditAction}):`, updateError);
+    return { success: false, error: 'admin.calendar.errorUpdateFailed' };
+  }
+
+  try {
+    await writeAuditLog({
+      actorId: user.id,
+      action: options.auditAction,
+      entityType: 'calendar_event',
+      entityId: eventId,
+      beforeData: {
+        starts_at: existingEvent.starts_at,
+        ends_at: existingEvent.ends_at,
+        is_all_day: existingEvent.is_all_day,
+      },
+      afterData: {
+        starts_at: newStartsAtDate.toISOString(),
+        ends_at: newEndsAtDate.toISOString(),
+        is_all_day:
+          typeof options.newIsAllDay === 'boolean' ? options.newIsAllDay : existingEvent.is_all_day,
+      },
+    });
+  } catch (auditError) {
+    console.error(`Failed to write audit log for ${options.auditAction}:`, auditError);
+  }
+
+  revalidatePath('/admin/calendar');
+  revalidatePath('/dashboard');
+
+  return { success: true, error: null };
+}
+
+/** Drag-to-move: same duration, new start (and possibly a new all-day/timed state). */
+export async function moveCalendarEvent(
+  eventId: string,
+  newStartsAtIso: string,
+  newEndsAtIso: string,
+  newIsAllDay: boolean
+): Promise<CalendarActionResult> {
+  return applyCalendarEventTimeChange(eventId, newStartsAtIso, newEndsAtIso, {
+    newIsAllDay,
+    auditAction: 'calendar_event.moved',
+  });
+}
+
+/** Drag-to-resize: start (or end) boundary changes, duration changes, all-day/timed state unchanged. */
+export async function resizeCalendarEvent(
+  eventId: string,
+  newStartsAtIso: string,
+  newEndsAtIso: string
+): Promise<CalendarActionResult> {
+  return applyCalendarEventTimeChange(eventId, newStartsAtIso, newEndsAtIso, {
+    auditAction: 'calendar_event.resized',
+  });
+}
+
 export type ImportedEventItem = {
   title: string;
   description: string | null;

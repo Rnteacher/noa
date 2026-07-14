@@ -12,9 +12,15 @@
     "import:plan": "npx tsx scripts/import/run-import.ts --plan-only",
     "import:dry-run": "npx tsx scripts/import/run-import.ts --dry-run",
     "import:apply:local": "npx tsx scripts/import/run-import.ts --apply-local",
-    "import:rollback:local": "npx tsx scripts/import/rollback-import.ts"
+    "import:rollback:local": "npx tsx scripts/import/rollback-import.ts",
+    "test:calendar": "npx tsx scripts/calendar/verify-date-and-scheduling.ts"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/react": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",
     "googleapis": "^173.0.0",

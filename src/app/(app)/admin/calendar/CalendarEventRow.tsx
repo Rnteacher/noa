@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, X } from 'lucide-react';
+import { Pencil, X, CalendarDays } from 'lucide-react';
 import { CalendarEventForm } from './CalendarEventForm';
 import { DeleteCalendarEventButton } from './DeleteCalendarEventButton';
+import { RescheduleModal } from './RescheduleModal';
 import type { AdminCalendarEvent, AdminCalendarGroupOption } from '@/features/calendar/admin-queries';
+import { formatILDate, formatILTime } from '@/lib/date/il-date';
 import { t } from '@/lib/i18n';
 
 type CalendarEventRowProps = {
@@ -13,14 +15,12 @@ type CalendarEventRowProps = {
 };
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('he-IL', {
-    dateStyle: 'short',
-    timeStyle: 'medium',
-  }).format(new Date(value));
+  return `${formatILDate(value)} ${formatILTime(value)}`;
 }
 
 export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
   if (isEditing) {
     return (
@@ -62,6 +62,7 @@ export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
   }
 
   return (
+    <>
     <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-850/30">
       <td className="py-3 px-2 font-medium text-zinc-900 dark:text-zinc-100 max-w-[150px] sm:max-w-[220px]">
         <div className="truncate">{event.title}</div>
@@ -72,10 +73,10 @@ export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
         ) : null}
       </td>
       <td className="py-3 px-2 text-zinc-600 dark:text-zinc-450 whitespace-nowrap">
-        {formatDateTime(event.startsAt)}
+        <span dir="ltr">{formatDateTime(event.startsAt)}</span>
       </td>
       <td className="py-3 px-2 text-zinc-600 dark:text-zinc-450 whitespace-nowrap">
-        {formatDateTime(event.endsAt)}
+        <span dir="ltr">{formatDateTime(event.endsAt)}</span>
       </td>
       <td className="py-3 px-2 text-center">
         {event.isAllDay ? (
@@ -98,6 +99,14 @@ export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
         <div className="flex items-center justify-center gap-1">
           <button
             type="button"
+            onClick={() => setIsRescheduling(true)}
+            title={t('admin.calendar.rescheduleButton')}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-emerald-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          >
+            <CalendarDays className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => setIsEditing(true)}
             title={t('admin.calendar.editButton')}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-emerald-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -108,5 +117,9 @@ export function CalendarEventRow({ event, groups }: CalendarEventRowProps) {
         </div>
       </td>
     </tr>
+    {isRescheduling ? (
+      <RescheduleModal event={event} onClose={() => setIsRescheduling(false)} />
+    ) : null}
+    </>
   );
 }

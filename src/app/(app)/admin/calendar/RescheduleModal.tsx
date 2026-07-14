@@ -1,10 +1,21 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { rescheduleCalendarEvent } from '@/features/calendar/admin-actions';
 import type { AdminCalendarEvent } from '@/features/calendar/admin-queries';
+import { ILDatePicker } from '@/components/date/ILDatePicker';
+import { ILTimeInput } from '@/components/date/ILTimeInput';
+import {
+  type DateParts,
+  type TimeParts,
+  isoToDateParts,
+  isoToTimeParts,
+  combineDateAndTimeToIso,
+  allDayStartIso,
+} from '@/lib/date/il-date';
 import { t } from '@/lib/i18n';
 
 type RescheduleModalProps = {
@@ -12,24 +23,12 @@ type RescheduleModalProps = {
   onClose: () => void;
 };
 
-function toLocalDateString(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function toLocalTimeString(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [dateStr, setDateStr] = useState(toLocalDateString(event.startsAt));
-  const [timeStr, setTimeStr] = useState(toLocalTimeString(event.startsAt));
+  const [date, setDate] = useState<DateParts>(() => isoToDateParts(event.startsAt));
+  const [time, setTime] = useState<TimeParts>(() => isoToTimeParts(event.startsAt));
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -38,28 +37,10 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
     setError(null);
     setSuccess(null);
 
-    if (!dateStr) {
-      setError(t('admin.calendar.errorInvalidDateTime'));
-      return;
-    }
-
-    if (!event.isAllDay && !timeStr) {
-      setError(t('admin.calendar.errorInvalidDateTime'));
-      return;
-    }
-
-    const localDateTimeStr = event.isAllDay 
-      ? `${dateStr}T00:00` 
-      : `${dateStr}T${timeStr}`;
-
-    const newStartsAtDate = new Date(localDateTimeStr);
-    if (Number.isNaN(newStartsAtDate.getTime())) {
-      setError(t('admin.calendar.errorInvalidDateTime'));
-      return;
-    }
+    const newStartsAtIso = event.isAllDay ? allDayStartIso(date) : combineDateAndTimeToIso(date, time);
 
     startTransition(async () => {
-      const result = await rescheduleCalendarEvent(event.id, localDateTimeStr);
+      const result = await rescheduleCalendarEvent(event.id, newStartsAtIso);
 
       if (!result.success) {
         setError(result.error ? t(result.error) : t('admin.calendar.errorUpdateFailed'));
@@ -74,9 +55,9 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
     });
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 backdrop-blur-xs p-4" role="dialog" aria-modal="true">
-      <div 
+      <div
         className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
@@ -93,23 +74,13 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
               {event.isAllDay ? t('admin.calendar.newStartsAtDateLabel') : t('admin.calendar.newStartsAtLabel')}
             </span>
             <div className="flex gap-2">
-              <input
-                type="date"
-                required
-                disabled={isPending}
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
-                className="h-10 flex-1 rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-xs text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-              />
+              <div className="flex-1">
+                <ILDatePicker value={date} onChange={setDate} disabled={isPending} required />
+              </div>
               {!event.isAllDay && (
-                <input
-                  type="time"
-                  required
-                  disabled={isPending}
-                  value={timeStr}
-                  onChange={(e) => setTimeStr(e.target.value)}
-                  className="h-10 w-28 rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-xs text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                />
+                <div className="w-28">
+                  <ILTimeInput value={time} onChange={setTime} disabled={isPending} required />
+                </div>
               )}
             </div>
           </label>
@@ -146,6 +117,7 @@ export function RescheduleModal({ event, onClose }: RescheduleModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

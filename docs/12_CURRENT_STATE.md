@@ -14,6 +14,12 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - Supabase SSR (browser and server client helpers configured)
 - Local Supabase (initialized & migration applied)
 - Custom Hebrew Character Code Scanner (Node.js script)
+- FullCalendar packages:
+  - @fullcalendar/react
+  - @fullcalendar/core
+  - @fullcalendar/daygrid
+  - @fullcalendar/timegrid
+  - @fullcalendar/interaction
 
 ## Scaffold structure created
 
@@ -43,7 +49,10 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/calendar/CalendarWorkspace.tsx` (admin calendar workspace client wrapper)
   - `src/app/(app)/admin/calendar/CalendarViewSwitcher.tsx` (admin calendar layout switcher component)
   - `src/app/(app)/admin/calendar/CalendarDateNavigator.tsx` (admin calendar navigation control component)
-  - `src/app/(app)/admin/calendar/CalendarViews.tsx` (admin calendar day/week/month layout panels)
+  - `src/app/(app)/admin/calendar/CalendarViews.tsx` (shared calendar helpers/exports; no longer owns Day/Week/Month views)
+  - `src/app/(app)/admin/calendar/FullCalendarView.tsx` (FullCalendar day/week/month view wrapper client component)
+  - `src/app/(app)/admin/calendar/CalendarYearGanttView.tsx` (custom school-year Gantt/timeline view component)
+  - `src/app/(app)/admin/calendar/QuickCreateModal.tsx` (calendar event quick-create client modal)
   - `src/app/(app)/admin/calendar/RescheduleModal.tsx` (calendar event reschedule date/time client modal)
   - `src/app/(app)/admin/calendar/CalendarEventForm.tsx` (reusable create/edit calendar event client form)
   - `src/app/(app)/admin/calendar/CalendarEventRow.tsx` (calendar event table row with inline edit toggle)
@@ -56,6 +65,12 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/app/(app)/admin/learning-groups/LearningGroupForm.tsx` (reusable create/edit learning group client form)
   - `src/app/(app)/admin/learning-groups/LearningGroupRow.tsx` (learning group table row with inline edit toggle)
   - `src/app/(app)/admin/learning-groups/ArchiveLearningGroupButton.tsx` (learning group archive/deactivate client button)
+  - `src/app/(app)/admin/groups/page.tsx` (admin student groups router page)
+  - `src/app/(app)/admin/groups/GroupsWorkspace.tsx` (admin student groups workspace client wrapper)
+  - `src/app/(app)/admin/groups/GroupForm.tsx` (reusable create/edit student group form)
+  - `src/app/(app)/admin/groups/GroupRow.tsx` (student group table row with inline editing)
+  - `src/app/(app)/admin/groups/ArchiveGroupButton.tsx` (student group archive/deactivate client button)
+  - `src/app/(app)/admin/groups/MentorAssignmentPanel.tsx` (student group mentor assignment panel component)
   - `src/app/(app)/admin/audit/page.tsx` (admin audit log viewer router page)
   - `src/app/(app)/admin/audit/AuditLogFilters.tsx` (admin audit log filters client component)
   - `src/app/(app)/admin/audit/AuditLogPagination.tsx` (admin audit log pagination client component)
@@ -69,6 +84,9 @@ Database foundation and codebase guardrails validated. Next.js application, inte
 - `src/components/` (UI elements and layouts)
   - `src/components/ui/` (base components: `Card`, `ListRow`, `StatusBadge`, `EmptyState`, `Skeleton`, `Alert`, `BottomNav`, `AppHeader`)
   - `src/components/layout/` (structural layouts: `AdminShell`)
+  - `src/components/date/`
+    - `src/components/date/ILDatePicker.tsx` (Israeli date selection component with custom date picker)
+    - `src/components/date/ILTimeInput.tsx` (Israeli 24h format time input component)
 - `src/lib/` (general utilities)
   - `src/lib/cn.ts` (Tailwind class-joining utility helper)
   - `src/lib/env.ts` (Zod environment variable schema validation)
@@ -77,6 +95,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `src/lib/admin/access-grants.ts` (Server actions for super-admin staff access grant management)
   - `src/lib/audit/log.ts` (Server-only audit log writer)
   - `src/lib/i18n.ts` (Lightweight translation helper)
+  - `src/lib/date/il-date.ts` (Israeli timezone-pinned date/time format/parse helpers)
   - `src/lib/supabase/`
     - `src/lib/supabase/client.ts` (Supabase client-side browser helper)
     - `src/lib/supabase/server.ts` (Supabase server-side helper using async cookies)
@@ -102,10 +121,15 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `calendar/`
     - `src/features/calendar/admin-queries.ts` (Admin calendar server-side queries)
     - `src/features/calendar/admin-actions.ts` (Admin calendar Server Actions)
+    - `src/features/calendar/constants.ts` (calendar-related UI and validation constants)
   - `learning-groups/`
     - `src/features/learning-groups/types.ts` (shared admin learning group types and weekday constants)
     - `src/features/learning-groups/admin-queries.ts` (Admin learning groups server-side queries)
     - `src/features/learning-groups/admin-actions.ts` (Admin learning groups Server Actions)
+  - `groups/`
+    - `src/features/groups/types.ts` (shared admin student group types)
+    - `src/features/groups/admin-queries.ts` (Admin student groups server-side queries)
+    - `src/features/groups/admin-actions.ts` (Admin student groups Server Actions)
   - `notifications/`
     - `src/features/notifications/queries.ts` (Notifications server-side queries)
     - `src/features/notifications/actions.ts` (Notifications Server Actions)
@@ -126,6 +150,7 @@ Database foundation and codebase guardrails validated. Next.js application, inte
   - `supabase/migrations/20260709020000_student_message_soft_delete_fix.sql`
   - `supabase/migrations/20260709030000_push_subscriptions_v1.sql`
   - `supabase/migrations/20260709040000_harden_student_photo_url_path.sql`
+  - `supabase/migrations/20260714074316_managers_can_manage_student_groups.sql`
   - `supabase/seeds/dev_seed.sql` (reviewed local development seed; enabled for local `supabase db reset`)
 - `scripts/`
   - `scripts/check-no-hebrew-in-code.mjs` (Enforcement scanner script)
@@ -295,7 +320,7 @@ Status:
 - Protected features `/dashboard`, `/admin/access-grants`, and `/dev/ui` build successfully inside the new app shell.
 - `/admin/*` routes use the desktop-first `AdminShell` (`src/components/layout/AdminShell.tsx`) featuring a logical direction-aware (RTL-ready) side navigation panel, top headers, back links to the staff dashboard, and a collapsible menu drawer for responsive mobile layout viewports.
 - `/admin/access-grants` is visually integrated into the new admin shell, styling outer spacing dynamically and validating super-admin session authorization.
-- The `AdminShell` Calendar, Learning groups, Audit log, and Import/Export nav items are now enabled and link to `/admin/calendar`, `/admin/learning-groups`, `/admin/audit`, and `/admin/import-export`. Remaining placeholders (Students, Groups, Users, Settings) stay muted and non-clickable.
+- The `AdminShell` Access Grants, Calendar, Learning Groups, Announcements, Groups, Audit, and Import/Export nav items are now enabled. Only Students, Users, and Settings remain disabled placeholders.
 - Real dashboard data queries and status aggregations are implemented in Dashboard v1.
 
 ## Dashboard v1 status
@@ -422,9 +447,12 @@ Status:
   - Push subscription create/delete audit events are intentionally not written in v1 to avoid noisy audit rows and any risk of storing raw subscription material; subscription CRUD remains protected by RLS and validated server-side.
   - Full browser push display and click verification (permission prompt, subscription saving, actual push popup, notification click focusing, and disable/re-enable) has been completed against a real authenticated Google OAuth session and a real Chrome browser. See "Latest Web Push browser verification results" below for details, including a real-world FCM delivery delay observed (not a code defect) and one real bug found and fixed in `PushSubscriptionControls.tsx`.
 
-## Admin calendar management v2 and rescheduling v1 status
+## [Historical] Admin calendar management v2 and rescheduling v1 status (Superseded)
 
-The calendar workspace is upgraded to v2 and rescheduling v1 at:
+> [!NOTE]
+> This section describes the historical pre-Noa-pilot status (where Day/Week/Month views were hand-built and drag-and-drop was deferred). It has been superseded by the FullCalendar-backed implementation in **Noa Annual Gantt Pilot v1** (see the latest sections below).
+
+The calendar workspace was upgraded to v2 and rescheduling v1 at:
 
 - `/admin/calendar`
 
@@ -436,10 +464,10 @@ Status:
   - **List view** displays upcoming/today/week/month table rows (retaining the v1 inline edit forms).
   - **Day view** shows all-day events at the top and timed events sorted chronologically by time slots.
   - **Week view** shows columns for all 7 days of the week, with event details and inline edit/delete.
-  - **Month view** renders a 35/42-day calendar block where clicking a day navigates to that day's Day view.
+  - **Month view** historically rendered a 35/42-day calendar block where clicking a day navigated to that day's Day view. In **Noa Annual Gantt Pilot v1**, Day/Week/Month views now use FullCalendar and support click/select/drag/resize directly on the calendar grids, with clicks on events opening the edit form.
   - **Year (Gantt) view** renders horizontal timeline bars representing events across months for the selected school year, supporting school-year selection.
 - **URL Query Parameters**: The calendar state is driven dynamically by `view=list|day|week|month|year` and `date=YYYY-MM-DD` parameters. Navigator controls support Prev, Today, and Next shifting (by 1 day, 7 days, 1 month, or 1 year based on the active view).
-- **Rescheduling v1**: Added support for managers and super admins to reschedule existing events from the Day, Week, and Month views via a responsive `RescheduleModal` dialog — not full visual drag-and-drop, which remains deferred. In Day and Week views, a reschedule button (`CalendarDays` icon) on each event card opens the modal. In Month view, clicking an event's mini-card directly opens the modal (clicking elsewhere in the day cell still navigates to Day view). The modal lets the user pick a target date and time (time picker is disabled/hidden for all-day events). It preserves the event duration, target groups, visibility, and description. Successful rescheduling writes `calendar_event.rescheduled` audit logs.
+- **Rescheduling**: Support is implemented for managers and super admins to reschedule existing events. In the historical v2, this was supported only via the `RescheduleModal` dialog. In **Noa Annual Gantt Pilot v1**, visual drag-and-drop slots editing and resizing were fully implemented. In the historical Day and Week views, a reschedule button (`CalendarDays` icon) on each event card opened the modal. In the historical Month view, clicking an event's mini-card directly opened the modal. Successful rescheduling writes `calendar_event.rescheduled` audit logs.
 - **Database Validation**: Security and business logic constraints were verified via rollback-only SQL probes (`calendar_reschedule_probes.sql`). Manager/super_admin updates succeed, unauthorized staff updates affect 0 rows, and invalid ranges (end-before-start) are rejected by the database constraint.
 - **Browser/manual verification completed** (closeout pass) against a real authenticated Google OAuth session (super_admin). A temporary timed event was created, rescheduled to a later time the same day via the Week-view reschedule button (UI updated immediately, correct `calendar_event.rescheduled` audit row with before/after `starts_at`/`ends_at`), then rescheduled to the next day (duration preserved; Day view for the old date correctly showed no events; Day view for the new date correctly showed the event at the moved time; second audit row confirmed). A temporary 2-day all-day event was created and rescheduled to a new date: the modal's time input was confirmed hidden for all-day events, the event remained all-day after the move, and the 2-day duration was preserved. Month view: clicking an event's mini-card opens the reschedule modal without navigating to Day view (event bubbling correctly suppressed via `stopPropagation`), while clicking empty grid space still navigates to Day view for that date. Negative/security checks: submitting a reschedule for an event deleted out from under the open modal (simulating a stale/invalid target) produced a clean localized "event could not be loaded" error with no crash and no console errors; an end-before-start update is still rejected by the `calendar_events_time_order` CHECK constraint; a staff-only (non-manager) role's direct update affects 0 rows under RLS; the server action uses only the request-scoped client (no service-role path) and never chains `.select()` after the update. No application bugs were found. All temporary test events were deleted afterward and the table was confirmed back to the original 2 seeded events. **Automation note (not an app defect)**: in this pass, coordinate/ref-based clicks from the browser automation tool intermittently failed to reach the reschedule/cancel buttons' React handlers (the click registered on the DOM but no state update occurred); invoking the same `onClick` handlers directly always worked correctly and produced the results described above. This is a tooling-interaction quirk of the automated test session, not a reproducible defect in the app's own event handling.
 - **Sidebar Integration**: The right sidebar dynamically switches between creating new events and editing selected events from any of the view grids, canceling back to create mode cleanly.
@@ -449,7 +477,7 @@ Status:
 - Revalidation: all actions revalidate both `/admin/calendar` and `/dashboard` routes.
 - **Hydration Fix**: Weekday labels are retrieved from `he.json` (`t('admin.calendar.day_0')` to `day_6`), removing any Hebrew characters from implementation code files to pass Hebrew character scanning.
 - Google Calendar Sync: Outbound mirror sync v1 is implemented and **live-verified** against a dedicated test Google Calendar (see the "Google Calendar outbound sync v1 and browser verification status" section below).
-- Deferred: Google Calendar sync delete/conflict hardening (tombstone-revival handling), recurrence rule mutation support, and full visual drag-and-drop slots editing.
+- Deferred: Google Calendar sync delete/conflict hardening (tombstone-revival handling) and recurrence rule mutation support. (Note: full visual drag-and-drop slots editing was completed in Noa Annual Gantt Pilot v1).
 - **Authenticated browser smoke test completed** against a real Google OAuth session (super_admin). Verified live: all 8 required URL/param combinations (`view=list|day|week|month`, invalid `view=bad`, invalid `date=bad`, and a `date` value in a different month) render with no console errors and fall back safely on invalid input; Prev/Today/Next all update the URL correctly; clicking a Month-view day cell navigates to Day view for that date; create/edit/delete of a same-day timed event correctly reflected across List, Day, Week, and Month views and on the dashboard's Today/This Week cards, with no RLS/`RETURNING` regression in server logs. Edge cases verified live: an existing seeded multi-day event (spanning 3 days) renders correctly on every relevant day in both Week and Month grids with no grid overflow; a newly created all-day event renders in the separate all-day section of Day view; a newly created group-targeted event shows the target group name; an event spanning a month boundary (Jul 30 - Aug 1) correctly appears on the relevant cells in both the July and August month grids; the sync indicator was confirmed to show "Synced" only when `google_calendar_event_id` is set and "Not synced" otherwise, in Day/Week/Month views (the List view's `CalendarEventRow` intentionally has no sync indicator — it is the preserved legacy v1 row component and was not extended in v2). All test events created for this pass were deleted afterward and verified back to the original 2 seeded events.
 - **Bug found and fixed: RTL date-range label displayed in reversed visual order.** `CalendarDateNavigator.tsx`'s week/day/month label span had no explicit `dir`, so under the page's `dir="rtl"` context the browser's Unicode bidi algorithm rendered a two-part numeric range like `"5.7 - 11.7.2026"` visually as `"1.7.2026 - 5.7"` (correct DOM text, reversed visual order) for any range containing a hyphen-joined start/end pair — confirmed by comparing the raw DOM text content against the rendered screenshot. Fixed by adding `dir="ltr"` to that span, since the date/time tokens themselves are always LTR-formatted regardless of UI locale. Verified fixed live: the same week now renders in the correct visual order.
 
@@ -517,7 +545,7 @@ Status:
 - **Bug found and fixed: all-day/multi-day date mapping was off by one calendar day.** `getLocalDateString()` in `src/features/calendar/google-calendar-mapping.ts` extracted the Google `date` field using raw UTC getters, assuming the stored timestamp was already UTC midnight. All-day timestamps are actually produced by naive local-time parsing of a `datetime-local` input on the Node server, and this server's real deployment timezone (`Asia/Jerusalem`, UTC+3 in July) stores a local midnight as `21:00 UTC` the previous day — so the old UTC-based extraction silently read the wrong calendar day for every all-day/multi-day event. Fixed by extracting the date via an explicit `Intl.DateTimeFormat` with `timeZone: 'Asia/Jerusalem'`, matching the timezone convention already used for timed events. Verified fixed live: a single-day event and a 3-day multi-day event both corrected to their intended dates after re-sync.
 - **Bug found and fixed: the remote-deletion-recovery (404) path never wrote an audit log entry.** When a sync hits a `404` on `events.update()` (the remote Google event was deleted out-of-band) and recreates it, both the batch sync loop and `syncSingleCalendarEventAction` (in `src/features/calendar/google-sync-actions.ts`) updated the local `google_calendar_event_id` but never called `writeAuditLog`, unlike the normal insert/update paths — violating the documented audit-trail guarantee. Fixed by adding a `calendar_google_event.recreated` audit entry (with both the new and previous Google event IDs) to both recovery branches. Verified fixed live by forcing a real `404` via a synthetic invalid `google_calendar_event_id` set directly in the database (a legitimate one-off test technique, since Google Calendar's tombstone/soft-delete retention makes a real "delete in Google UI, then immediately re-sync" 404 unreliable to reproduce within a single session — see the full verification report for detail) and confirming the resulting audit row.
 - All temporary test events created during verification were deleted from both the local database and the test Google Calendar afterward (including two orphaned duplicate Google events that were a byproduct of the synthetic-404 testing technique, not a code defect); `calendar_events` was confirmed back to the exact 2-row seed baseline.
-- Deferred: Google Calendar sync delete/conflict hardening (in particular, deliberate handling of Google's tombstone-revival behavior), recurrence rule mutation support, and full visual drag-and-drop slots editing.
+- Deferred: Google Calendar sync delete/conflict hardening (in particular, deliberate handling of Google's tombstone-revival behavior) and recurrence rule mutation support. (Note: full visual drag-and-drop slots editing was completed in Noa Annual Gantt Pilot v1).
 
 ## UX design foundation status
 
@@ -1426,10 +1454,39 @@ Implemented the comprehensive Admin Import/Export Center v2:
 - **Roster In-Memory Validation**: Implemented pure in-memory validation routines for staff access grants/roles and multi-file student rosters (groups, students, mentors, projects, masters, goals, baselines).
 - **Data & Safety Gates**: Direct database apply is disabled in the browser for staff and student rosters to prevent accidental modifications; the local CLI remains the only apply path. No real student/staff data or secrets were committed.
 
+## Latest Noa Annual Gantt Pilot v1 results
+
+Made the admin calendar directly manipulable and activated student-group administration:
+- **FullCalendar-backed Day/Week/Month views**: replaced the hand-rolled grids with `@fullcalendar/react` (+`daygrid`/`timegrid`/`interaction`, MIT-licensed, no premium plugins), RTL, Hebrew locale, click/drag-select to quick-create, drag-to-move, drag-to-resize, all wired to new `moveCalendarEvent`/`resizeCalendarEvent` server actions with the same permission/validation/audit shape as the existing `rescheduleCalendarEvent`.
+- **Custom Year/Gantt enhancements**: kept fully custom per instruction; added a click/drag-select ruler row for quick-create, pointer-based drag-to-move and edge-handle resize on event bars, a 5px click-vs-drag threshold, and a `dir="ltr"` timeline wrapper for correct RTL behavior.
+- **Israeli date/time everywhere**: centralized `src/lib/date/il-date.ts` helpers (`Asia/Jerusalem`-pinned via `Intl`, not host-timezone-dependent), new hand-built `ILDatePicker`/`ILTimeInput` components (no native `datetime-local`/`date`/`time` inputs remain anywhere in the calendar create/edit/reschedule/quick-create flows), and a documented all-day exclusive-end-boundary convention matching FullCalendar's own model.
+- **`/admin/groups` activated**: new feature module (`src/features/groups/*`) and route, mirroring the existing `learning-groups` conventions — group CRUD, activate/archive, mentor assignment/removal (soft-ended via `active_until`, not hard-deleted), and a UI-only (not a DB constraint) warning when a group's active-mentor count isn't 2. `AdminShell`'s Groups nav item is now enabled.
+- **One migration**: `20260714074316_managers_can_manage_student_groups.sql` — realigned `student_groups`/`group_mentors` RLS write policies from super-admin-only to manager-or-super-admin, matching the existing `calendar_events` pattern (RLS-only, no schema change, types regenerated byte-identical).
+- **Test coverage added**: `scripts/calendar/verify-date-and-scheduling.ts` (`npm run test:calendar`), 53 assertions covering IL date parsing/formatting, DST, month/year/leap-day boundaries, all-day semantics, move/resize date math, and invalid-range rejection — this project has no test framework, so this follows the existing `scripts/import/validate-real-data.ts` standalone-script convention.
+
+Full report: `docs/28_NOA_ANNUAL_GANTT_PILOT_V1.md`; parallel handoff: `docs/parallel/GPT_NOA_ANNUAL_GANTT_PILOT_V1_HANDOFF.md`.
+
+Scope boundaries preserved:
+- Service-role client remains confined to the pre-existing, already-approved `writeAuditLog` helper; every new mutation uses the request-scoped client.
+- Outbound-only Google Calendar sync model is unchanged; `moveCalendarEvent`/`resizeCalendarEvent` never touch `google_calendar_event_id`.
+- No inbound Google Calendar sync was implemented.
+- Students, Users, and Settings remain disabled placeholders in `AdminShell` (not filled with placeholder pages).
+- No real student/staff data was used; all browser verification used fake/local seeded data only.
+
+## Latest Noa Annual Gantt Pilot v1 real mouse-drag/resize verification results
+
+A follow-up closeout pass closed the one disclosed gap from the initial Noa Annual Gantt Pilot v1 pass above: a literal, trusted mouse-driven drag/resize verification. Full detail: `docs/28_NOA_ANNUAL_GANTT_PILOT_V1.md` §9a; `docs/parallel/GPT_NOA_ANNUAL_GANTT_PILOT_V1_HANDOFF.md` §5a.
+
+- Used an ephemeral Playwright installation (own `package.json` in an OS-temp scratchpad, browser binaries in the global Playwright cache) — **not added to this project's dependencies, never committed**. Drove genuine trusted `page.mouse.move`/`.down`/`.up` sequences against a real authenticated throwaway local manager session.
+- **All 10 required FullCalendar scenarios passed**: same-day move, cross-day move, resize longer, resize shorter, all-day move, multi-day extend, multi-day shorten — each independently confirmed via a direct database read of `starts_at`/`ends_at`, `google_calendar_event_id` preservation, and the correct `calendar_event.moved`/`calendar_event.resized` audit-action name.
+- **All 6 required Year/Gantt scenarios passed**: drag bar horizontally, drag right edge to extend, drag right edge to shorten to exactly one day, drag left edge to change start date — each confirmed via a direct database read and correct audit-action name.
+- **Failure/revert checks passed for both surfaces**: a temporary event was loaded live, deleted directly in the database while still rendered (stale) in the browser, and a real drag was attempted on the stale element. Both surfaces failed cleanly (`errorNotFound`), wrote no database mutation, wrote no audit row, displayed a visible localized error banner, and visually reverted to the original position (FullCalendar via `info.revert()`, the Gantt via its non-optimistic drag-preview reset) with no crash.
+- All synthetic test data (13 calendar events, 1 throwaway manager profile/auth user, all associated audit rows) was deleted afterward and confirmed at zero residual by four independent checks (by event ID, by title pattern, by actor ID, by email).
+- **One test-fixture bug found and fixed (not an application bug)**: the harness's seed script hardcoded a `+03` UTC offset for all test timestamps, which is wrong for winter months (Israel is `+02` outside DST); this corrupted a January-dated fixture by exactly one hour. Fixed by adding a DST-aware Jerusalem conversion helper to the seed script (same algorithm as `src/lib/date/il-date.ts`). No application code changed.
+- Scope preserved: no product features were added; no code was committed, pushed, or deployed as part of this verification pass.
+
 ## Next recommended tasks
 
-1. **Admin Import/Export Center Browser Verification v1**: immediate next task. Perform a manual browser smoke verification check of the new tabbed layout and CSV uploads under an authenticated manager/super_admin session.
-2. **Admin Students/Groups Management v1**: optional later. Refactor the placeholder views into active student roster management grids.
-3. **Staff/Student Import Apply Gate v1**: optional later. Design and wire the DB apply gate in the browser UI, to be enabled only after explicit rollout approval.
-4. **Noa Annual Gantt Pilot Prep v1**: optional later. Prepare the app and workflow for Noa to maintain the annual Gantt/calendar.
-5. **Google Calendar Sync Delete/Conflict Hardening v1**: optional later. Design and implement remote conflict resolution.
+1. **Admin Students, Users, and Settings Usability v1**: immediate next task. Activate the remaining disabled `AdminShell` placeholders (Students, Users, Settings) as real, usable admin surfaces.
+2. **Staff/Student Import Apply Gate v1**: optional later. Design and wire the DB apply gate in the browser UI, to be enabled only after explicit rollout approval.
+3. **Google Calendar Sync Delete/Conflict Hardening v1**: optional later. Design and implement remote conflict resolution.

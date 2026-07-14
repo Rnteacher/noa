@@ -9,9 +9,10 @@ import { t } from '@/lib/i18n';
 type DeleteCalendarEventButtonProps = {
   eventId: string;
   title: string;
+  onDeleted?: () => void;
 };
 
-export function DeleteCalendarEventButton({ eventId, title }: DeleteCalendarEventButtonProps) {
+export function DeleteCalendarEventButton({ eventId, title, onDeleted }: DeleteCalendarEventButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -25,6 +26,7 @@ export function DeleteCalendarEventButton({ eventId, title }: DeleteCalendarEven
       const result = await deleteCalendarEvent(eventId);
       if (result.success) {
         router.refresh();
+        onDeleted?.();
       } else {
         alert(result.error ? t(result.error) : t('admin.calendar.errorDeleteFailed'));
       }

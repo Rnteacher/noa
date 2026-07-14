@@ -3,11 +3,12 @@
 import { useState, useTransition } from 'react';
 import { CalendarViewSwitcher } from './CalendarViewSwitcher';
 import { CalendarDateNavigator } from './CalendarDateNavigator';
-import { CalendarViews } from './CalendarViews';
+import { FullCalendarView, type QuickCreateRange } from './FullCalendarView';
+import { QuickCreateModal } from './QuickCreateModal';
 import { CalendarYearGanttView } from './CalendarYearGanttView';
 import { CalendarEventRow } from './CalendarEventRow';
 import { CalendarEventForm } from './CalendarEventForm';
-import { RescheduleModal } from './RescheduleModal';
+import { DeleteCalendarEventButton } from './DeleteCalendarEventButton';
 import { CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 import { syncSingleCalendarEventAction } from '@/features/calendar/google-sync-actions';
 import { t } from '@/lib/i18n';
@@ -39,7 +40,7 @@ export function CalendarWorkspace({
   isSyncConfigured,
 }: CalendarWorkspaceProps) {
   const [editingEvent, setEditingEvent] = useState<AdminCalendarEvent | null>(null);
-  const [reschedulingEvent, setReschedulingEvent] = useState<AdminCalendarEvent | null>(null);
+  const [quickCreateRange, setQuickCreateRange] = useState<QuickCreateRange | null>(null);
 
   const [isSyncing, startSync] = useTransition();
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -127,14 +128,15 @@ export function CalendarWorkspace({
             schoolYears={schoolYears}
             selectedSchoolYear={selectedSchoolYear}
             onEditEvent={(event) => setEditingEvent(event)}
+            onQuickCreate={(range) => setQuickCreateRange(range)}
           />
         ) : (
-          <CalendarViews
-            view={view}
+          <FullCalendarView
+            view={view as 'day' | 'week' | 'month'}
             dateStr={dateStr}
             events={events}
             onEditEvent={(event) => setEditingEvent(event)}
-            onRescheduleEvent={(event) => setReschedulingEvent(event)}
+            onQuickCreate={(range) => setQuickCreateRange(range)}
           />
         )}
       </section>
@@ -147,17 +149,24 @@ export function CalendarWorkspace({
                 <h2 className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
                   {t('admin.calendar.editTitle')}
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingEvent(null);
-                    setSyncError(null);
-                    setSyncSuccess(false);
-                  }}
-                  className="text-xs text-emerald-600 hover:text-emerald-700 font-bold"
-                >
-                  {t('admin.calendar.cancelButton')}
-                </button>
+                <div className="flex items-center gap-2">
+                  <DeleteCalendarEventButton
+                    eventId={editingEvent.id}
+                    title={editingEvent.title}
+                    onDeleted={() => setEditingEvent(null)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingEvent(null);
+                      setSyncError(null);
+                      setSyncSuccess(false);
+                    }}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-bold"
+                  >
+                    {t('admin.calendar.cancelButton')}
+                  </button>
+                </div>
               </div>
 
               {isSyncConfigured && (
@@ -234,12 +243,14 @@ export function CalendarWorkspace({
         </section>
       </aside>
 
-      {reschedulingEvent && (
-        <RescheduleModal
-          event={reschedulingEvent}
-          onClose={() => setReschedulingEvent(null)}
+      {quickCreateRange ? (
+        <QuickCreateModal
+          range={quickCreateRange}
+          groups={groups}
+          onClose={() => setQuickCreateRange(null)}
+          onCreated={() => setQuickCreateRange(null)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

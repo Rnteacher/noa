@@ -104,3 +104,36 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
 }
+
+/* FullCalendar (Day/Week/Month admin calendar views) — align its built-in
+   CSS custom properties with this app's zinc/emerald theme instead of
+   FullCalendar's defaults. */
+.il-fullcalendar {
+  --fc-border-color: #e4e4e7;
+  --fc-neutral-bg-color: #fafafa;
+  --fc-page-bg-color: transparent;
+  --fc-today-bg-color: rgba(16, 185, 129, 0.06);
+  --fc-event-border-color: transparent;
+  font-family: var(--font-sans);
+}
+
+.il-fullcalendar .fc-timegrid-slot-label,
+.il-fullcalendar .fc-col-header-cell-cushion,
+.il-fullcalendar .fc-daygrid-day-number {
+  color: var(--ink-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.il-fullcalendar .fc-event {
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .il-fullcalendar {
+    --fc-border-color: #27272a;
+    --fc-neutral-bg-color: #18181b;
+    --fc-today-bg-color: rgba(16, 185, 129, 0.1);
+  }
+}

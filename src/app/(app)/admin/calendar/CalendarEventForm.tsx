@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarPlus, Loader2 } from 'lucide-react';
 import {
@@ -12,6 +12,19 @@ import type {
   AdminCalendarGroupOption,
   CalendarEventVisibility,
 } from '@/features/calendar/admin-queries';
+import { ILDatePicker } from '@/components/date/ILDatePicker';
+import { ILTimeInput } from '@/components/date/ILTimeInput';
+import {
+  type DateParts,
+  type TimeParts,
+  isoToDateParts,
+  isoToTimeParts,
+  combineDateAndTimeToIso,
+  allDayStartIso,
+  allDayEndIsoExclusive,
+  exclusiveEndIsoToInclusiveDateParts,
+  todayDateParts,
+} from '@/lib/date/il-date';
 import { t } from '@/lib/i18n';
 
 type GroupOption = AdminCalendarGroupOption;
@@ -42,41 +55,42 @@ const VISIBILITIES: CalendarEventVisibility[] = [
   'groups',
 ];
 
-function toDatetimeLocalValue(iso: string) {
-  const date = new Date(iso);
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-}
-
-const emptyValues: CalendarEventFormInitialValues = {
-  title: '',
-  description: '',
-  startsAt: '',
-  endsAt: '',
-  isAllDay: false,
-  visibility: 'all_school',
-  location: '',
-  groupIds: [],
-};
+const DEFAULT_TIME: TimeParts = { hour: 9, minute: 0 };
+const DEFAULT_END_TIME: TimeParts = { hour: 10, minute: 0 };
 
 export function CalendarEventForm({ groups, mode, eventId, initialValues, onSaved }: CalendarEventFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const initial = initialValues ?? emptyValues;
+  const [title, setTitle] = useState(initialValues?.title ?? '');
+  const [description, setDescription] = useState(initialValues?.description ?? '');
+  const [isAllDay, setIsAllDay] = useState(initialValues?.isAllDay ?? false);
 
-  const [title, setTitle] = useState(initial.title);
-  const [description, setDescription] = useState(initial.description);
-  const [startsAt, setStartsAt] = useState(
-    initial.startsAt ? toDatetimeLocalValue(initial.startsAt) : ''
+  const [startDate, setStartDate] = useState<DateParts>(() =>
+    initialValues ? isoToDateParts(initialValues.startsAt) : todayDateParts()
   );
-  const [endsAt, setEndsAt] = useState(initial.endsAt ? toDatetimeLocalValue(initial.endsAt) : '');
-  const [isAllDay, setIsAllDay] = useState(initial.isAllDay);
-  const [visibility, setVisibility] = useState<CalendarEventVisibility>(initial.visibility);
-  const [location, setLocation] = useState(initial.location);
-  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set(initial.groupIds));
+  const [startTime, setStartTime] = useState<TimeParts>(() =>
+    initialValues && !initialValues.isAllDay ? isoToTimeParts(initialValues.startsAt) : DEFAULT_TIME
+  );
+  const [endDate, setEndDate] = useState<DateParts>(() => {
+    if (!initialValues) {
+      return todayDateParts();
+    }
+    return initialValues.isAllDay
+      ? exclusiveEndIsoToInclusiveDateParts(initialValues.endsAt)
+      : isoToDateParts(initialValues.endsAt);
+  });
+  const [endTime, setEndTime] = useState<TimeParts>(() =>
+    initialValues && !initialValues.isAllDay ? isoToTimeParts(initialValues.endsAt) : DEFAULT_END_TIME
+  );
+
+  const [visibility, setVisibility] = useState<CalendarEventVisibility>(
+    initialValues?.visibility ?? 'all_school'
+  );
+  const [location, setLocation] = useState(initialValues?.location ?? '');
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(
+    new Set(initialValues?.groupIds ?? [])
+  );
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -91,7 +105,7 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
     setSelectedGroups(next);
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSuccess(null);
@@ -102,15 +116,13 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
       return;
     }
 
-    if (!startsAt || !endsAt) {
-      setError(t('admin.calendar.errorInvalidDateTime'));
-      return;
-    }
-
     if (visibility === 'groups' && selectedGroups.size === 0) {
       setError(t('admin.calendar.errorGroupsRequired'));
       return;
     }
+
+    const startsAt = isAllDay ? allDayStartIso(startDate) : combineDateAndTimeToIso(startDate, startTime);
+    const endsAt = isAllDay ? allDayEndIsoExclusive(endDate) : combineDateAndTimeToIso(endDate, endTime);
 
     const input: CalendarEventInput = {
       title: trimmedTitle,
@@ -141,9 +153,12 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
       if (mode === 'create') {
         setTitle('');
         setDescription('');
-        setStartsAt('');
-        setEndsAt('');
         setIsAllDay(false);
+        const today = todayDateParts();
+        setStartDate(today);
+        setEndDate(today);
+        setStartTime(DEFAULT_TIME);
+        setEndTime(DEFAULT_END_TIME);
         setVisibility('all_school');
         setLocation('');
         setSelectedGroups(new Set());
@@ -187,35 +202,57 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
         />
       </label>
 
+      <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
+        <input
+          type="checkbox"
+          disabled={isPending}
+          checked={isAllDay}
+          onChange={(event) => setIsAllDay(event.target.checked)}
+          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
+        />
+        {t('admin.calendar.isAllDayLabel')}
+      </label>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            {t('admin.calendar.startsAtLabel')}
+            {t('admin.calendar.startsAtDateLabel')}
           </span>
-          <input
-            type="datetime-local"
-            required
-            disabled={isPending}
-            value={startsAt}
-            onChange={(event) => setStartsAt(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-          />
+          <ILDatePicker value={startDate} onChange={setStartDate} disabled={isPending} required />
         </label>
-
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            {t('admin.calendar.endsAtLabel')}
-          </span>
-          <input
-            type="datetime-local"
-            required
-            disabled={isPending}
-            value={endsAt}
-            onChange={(event) => setEndsAt(event.target.value)}
-            className="h-11 w-full rounded-xl border border-zinc-200 dark:border-zinc-750 bg-white dark:bg-zinc-950 px-3 text-sm text-zinc-950 dark:text-zinc-50 outline-none transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-          />
-        </label>
+        {isAllDay ? (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              {t('admin.calendar.endsAtDateLabel')}
+            </span>
+            <ILDatePicker value={endDate} onChange={setEndDate} disabled={isPending} required />
+          </label>
+        ) : (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              {t('admin.calendar.startsAtTimeLabel')}
+            </span>
+            <ILTimeInput value={startTime} onChange={setStartTime} disabled={isPending} required />
+          </label>
+        )}
       </div>
+
+      {!isAllDay ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              {t('admin.calendar.endsAtDateLabel')}
+            </span>
+            <ILDatePicker value={endDate} onChange={setEndDate} disabled={isPending} required />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              {t('admin.calendar.endsAtTimeLabel')}
+            </span>
+            <ILTimeInput value={endTime} onChange={setEndTime} disabled={isPending} required />
+          </label>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
@@ -251,17 +288,6 @@ export function CalendarEventForm({ groups, mode, eventId, initialValues, onSave
           </select>
         </label>
       </div>
-
-      <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 cursor-pointer">
-        <input
-          type="checkbox"
-          disabled={isPending}
-          checked={isAllDay}
-          onChange={(event) => setIsAllDay(event.target.checked)}
-          className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600"
-        />
-        {t('admin.calendar.isAllDayLabel')}
-      </label>
 
       {visibility === 'groups' ? (
         <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">

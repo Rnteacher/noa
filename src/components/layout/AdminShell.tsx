@@ -60,11 +60,11 @@ export function AdminShell({ children }: AdminShellProps) {
       icon: Users, 
       enabled: false 
     },
-    { 
-      href: '#', 
-      labelKey: 'admin.nav.groups', 
-      icon: FolderOpen, 
-      enabled: false 
+    {
+      href: '/admin/groups',
+      labelKey: 'admin.nav.groups',
+      icon: FolderOpen,
+      enabled: true
     },
     {
       href: '#',
